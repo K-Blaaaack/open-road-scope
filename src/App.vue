@@ -82,9 +82,9 @@ onMounted(() => {
             :title="isDark ? t('common.day') : t('common.night')"
             @click="prefs.toggleTheme()"
           >
-            <!-- 图标显示当前主题状态并配主题色：黑夜为琥珀月亮，日间为琥珀太阳 -->
+            <!-- 图标随主题：黑夜模式为深色月亮，日间模式为亮色太阳 -->
             <span
-              :class="isDark ? 'i-lucide-moon text-amber-300' : 'i-lucide-sun text-amber-500'"
+              :class="isDark ? 'i-lucide-moon text-slate-500' : 'i-lucide-sun text-amber-500'"
               class="h-4 w-4"
             />
           </button>
