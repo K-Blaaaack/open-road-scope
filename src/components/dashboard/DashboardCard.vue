@@ -3,7 +3,6 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { GRID_ROW_HEIGHT, type DashboardCard, type GaugeType } from "@shared/dashboard";
-import GaugeContent from "./GaugeContent.vue";
 import LineContent from "./LineContent.vue";
 import BarContent from "./BarContent.vue";
 import ValueContent from "./ValueContent.vue";
@@ -27,7 +26,6 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const types: { type: GaugeType; icon: string }[] = [
-  { type: "gauge", icon: "i-lucide-gauge" },
   { type: "line", icon: "i-lucide-chart-line" },
   { type: "bar", icon: "i-lucide-chart-bar" },
   { type: "value", icon: "i-lucide-text" },
@@ -192,18 +190,7 @@ const applyRange = (): void => {
 
       <!-- 内容 -->
       <div class="min-h-0 flex-1 px-3 pb-3">
-        <GaugeContent
-          v-if="card.type === 'gauge'"
-          :pid="card.pid"
-          :min="card.min"
-          :max="card.max"
-        />
-        <LineContent
-          v-else-if="card.type === 'line'"
-          :pid="card.pid"
-          :min="card.min"
-          :max="card.max"
-        />
+        <LineContent v-if="card.type === 'line'" :pid="card.pid" :min="card.min" :max="card.max" />
         <BarContent
           v-else-if="card.type === 'bar'"
           :pid="card.pid"

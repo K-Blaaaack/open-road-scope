@@ -3,7 +3,7 @@ import type { Pid } from "./obd";
 export type { Pid };
 
 /** 卡片呈现方式 */
-export type GaugeType = "gauge" | "line" | "bar" | "value";
+export type GaugeType = "line" | "bar" | "value";
 
 /** 仪表盘卡片定义 */
 export interface DashboardCard {
@@ -79,8 +79,8 @@ export const makeCard = (
 export const DEFAULT_LAYOUT: DashboardLayout = {
   version: 1,
   cards: [
-    makeCard("SPEED", "gauge", 0, 0, 5, 4),
-    makeCard("RPM", "gauge", 5, 0, 5, 4),
+    makeCard("SPEED", "line", 0, 0, 5, 4),
+    makeCard("RPM", "line", 5, 0, 5, 4),
     makeCard("COOLANT_TEMP", "line", 0, 4, 3, 3),
     makeCard("ENGINE_LOAD", "line", 3, 4, 3, 3),
     makeCard("MAF", "line", 6, 4, 3, 3),
@@ -111,23 +111,9 @@ export const COMPACT_LAYOUT: DashboardLayout = {
   ],
 };
 
-/** 仪表预设：全部表盘 */
-export const GAUGE_LAYOUT: DashboardLayout = {
-  version: 1,
-  cards: [
-    makeCard("SPEED", "gauge", 0, 0, 4, 4),
-    makeCard("RPM", "gauge", 4, 0, 4, 4),
-    makeCard("COOLANT_TEMP", "gauge", 8, 0, 4, 4),
-    makeCard("ENGINE_LOAD", "gauge", 0, 4, 4, 4),
-    makeCard("THROTTLE_POS", "gauge", 4, 4, 4, 4),
-    makeCard("VOLTAGE", "gauge", 8, 4, 4, 4),
-  ],
-};
-
 export const LAYOUT_PRESETS: Record<string, DashboardLayout> = {
   default: DEFAULT_LAYOUT,
   compact: COMPACT_LAYOUT,
-  gauge: GAUGE_LAYOUT,
 };
 
 /** 布局可用的 PID 列表（供添加卡片选择） */

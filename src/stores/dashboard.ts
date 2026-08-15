@@ -26,13 +26,14 @@ const normalizeLayout = (raw: unknown): DashboardCard[] => {
         typeof c === "object" &&
         typeof (c as DashboardCard).id === "string" &&
         typeof (c as DashboardCard).pid === "string" &&
-        ["gauge", "line", "bar"].includes((c as DashboardCard).type)
+        ["line", "bar", "value"].includes((c as DashboardCard).type)
       );
     })
     .map((c) => ({
       id: c.id || nextCardId(),
       pid: c.pid as Pid,
-      type: c.type as GaugeType,
+      // 兼容旧数据：type 不在当前类型集合内时回退为折线
+      type: (["line", "bar", "value"].includes(c.type) ? c.type : "line") as GaugeType,
       min: typeof c.min === "number" ? c.min : null,
       max: typeof c.max === "number" ? c.max : null,
       x: clampGrid(c.x, 0, GRID_COLS - 1),
@@ -116,7 +117,6 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
   /** 各呈现方式的默认卡片尺寸（网格单元） */
   const DEFAULT_CARD_SIZE: Record<GaugeType, { w: number; h: number }> = {
-    gauge: { w: 4, h: 4 },
     line: { w: 4, h: 3 },
     bar: { w: 4, h: 3 },
     value: { w: 3, h: 2 },

@@ -51,7 +51,7 @@ onBeforeUnmount(() => {
 /* ---------- 配置侧栏 ---------- */
 
 const addPid = ref<Pid>("SPEED");
-const addType = ref<GaugeType>("gauge");
+const addType = ref<GaugeType>("line");
 const jsonText = ref("");
 const importMsg = ref("");
 
@@ -182,7 +182,6 @@ const doImport = (): void => {
                 v-model="addType"
                 class="border-border bg-[var(--color-card)] text-primary rounded-lg border px-2 py-1.5 text-sm outline-none"
               >
-                <option value="gauge">{{ t("dashboard.type.gauge") }}</option>
                 <option value="line">{{ t("dashboard.type.line") }}</option>
                 <option value="bar">{{ t("dashboard.type.bar") }}</option>
                 <option value="value">{{ t("dashboard.type.value") }}</option>
@@ -204,7 +203,6 @@ const doImport = (): void => {
                 v-for="preset in [
                   { key: 'default', label: t('dashboard.presetDefault') },
                   { key: 'compact', label: t('dashboard.presetCompact') },
-                  { key: 'gauge', label: t('dashboard.presetGauge') },
                 ]"
                 :key="preset.key"
                 class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-2.5 py-1 text-xs"

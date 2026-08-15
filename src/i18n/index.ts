@@ -37,7 +37,6 @@ export const i18n = createI18n({
         preset: "预设布局",
         presetDefault: "默认",
         presetCompact: "紧凑",
-        presetGauge: "全仪表",
         resetLayout: "重置为默认布局",
         layoutJson: "布局配置（JSON）",
         export: "导出",
@@ -49,7 +48,6 @@ export const i18n = createI18n({
         auto: "自动",
         empty: "暂无卡片，点击右上角编辑图标添加",
         type: {
-          gauge: "仪表",
           line: "折线图",
           bar: "柱状图",
           value: "数值",
@@ -138,7 +136,6 @@ export const i18n = createI18n({
         preset: "Presets",
         presetDefault: "Default",
         presetCompact: "Compact",
-        presetGauge: "All gauges",
         resetLayout: "Reset to default layout",
         layoutJson: "Layout config (JSON)",
         export: "Export",
@@ -150,7 +147,6 @@ export const i18n = createI18n({
         auto: "Auto",
         empty: "No cards yet. Click the edit icon to add one",
         type: {
-          gauge: "Gauge",
           line: "Line",
           bar: "Bar",
           value: "Value",

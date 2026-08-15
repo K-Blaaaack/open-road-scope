@@ -33,9 +33,9 @@ describe("useDashboardStore", () => {
 
   test("addCard 追加卡片并返回", () => {
     const store = useDashboardStore();
-    store.addCard("SPEED", "gauge");
+    store.addCard("SPEED", "bar");
     const added = store.cards[store.cards.length - 1];
-    expect(added.type).toBe("gauge");
+    expect(added.type).toBe("bar");
     expect(added.min).toBeNull();
     expect(added.max).toBeNull();
   });

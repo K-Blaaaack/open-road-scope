@@ -55,7 +55,6 @@
     "happy-dom": "^20.11.1",
     "localforage": "^1.10.0",
     "pinia": "^4.0.2",
-    "pixi.js": "^8.0.0",
     "prettier": "^3.9.6",
     "reka-ui": "^2.10.1",
     "rimraf": "^6.1.3",
