@@ -24,10 +24,10 @@ const props = defineProps<{
 const containerRef = ref<HTMLDivElement>();
 const displayValue = ref(props.value);
 
-// 表盘 240° 扫掠：0 值在左下（-150°，钟表 8 点），max 在顶部（90°，钟表 12 点），
-// 指针沿顺时针扫过底部（钟表 6 点），符合标准汽车仪表方向
-const SWEEP = (240 * Math.PI) / 180;
-const START = (-150 * Math.PI) / 180;
+// 表盘 240° 扫掠：0 值在钟表 8 点方向（-120°，左下方），max 在钟表 12 点方向（0°，正上方），
+// 指针扫掠经过底部 6 点（-180°）与右侧 3 点（-270°），符合标准汽车仪表顺时针方向
+const SWEEP = (-240 * Math.PI) / 180;
+const START = (-120 * Math.PI) / 180;
 
 let app: Application | null = null;
 let pointer: Container | null = null;
