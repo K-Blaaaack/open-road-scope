@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { electronApp, optimizer } from "@electron-toolkit/utils";
 import log from "electron-log/main";
 
@@ -8,6 +8,31 @@ import { SidecarManager } from "./sidecar/manager";
 
 const manager = new SidecarManager();
 let mainWindow: BrowserWindow | null = null;
+/** 界面热重载开关：崩溃自动恢复 + F5/Ctrl+R 快捷键 */
+let hotReloadEnabled = true;
+
+/** 安装热重载：渲染进程崩溃自动恢复，并拦截 F5 / Ctrl+R 重载界面 */
+function setupHotReload(win: BrowserWindow): void {
+  win.webContents.on("render-process-gone", (_event, details) => {
+    if (!hotReloadEnabled) return;
+    if (details.reason === "clean-exit") return;
+    log.warn(`[hot-reload] renderer gone (${details.reason}), reloading…`);
+    setTimeout(() => {
+      if (!win.isDestroyed()) win.webContents.reload();
+    }, 500);
+  });
+
+  win.webContents.on("before-input-event", (event, input) => {
+    if (!hotReloadEnabled) return;
+    const isF5 = input.type === "keyDown" && input.key === "F5";
+    const isCtrlR = input.type === "keyDown" && input.control && input.key.toLowerCase() === "r";
+    if (isF5 || isCtrlR) {
+      event.preventDefault();
+      log.info("[hot-reload] manual reload via shortcut");
+      win.webContents.reload();
+    }
+  });
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -26,6 +51,7 @@ function createWindow(): void {
   });
 
   mainWindow.on("ready-to-show", () => mainWindow?.show());
+  setupHotReload(mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
@@ -47,6 +73,13 @@ app.whenReady().then(() => {
   registerObdIpc({
     getManager: () => manager,
     getWindow: () => mainWindow,
+  });
+
+  // 渲染进程同步热重载开关
+  ipcMain.handle("app:setHotReload", (_e, enabled: boolean) => {
+    hotReloadEnabled = enabled === true;
+    log.info(`[hot-reload] ${hotReloadEnabled ? "enabled" : "disabled"}`);
+    return { ok: true, enabled: hotReloadEnabled };
   });
 
   createWindow();

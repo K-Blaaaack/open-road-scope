@@ -11,6 +11,7 @@ const obdApi: ObdApi = {
   query: (cmd) => ipcRenderer.invoke("obd:query", cmd),
   status: () => ipcRenderer.invoke("obd:status"),
   listPorts: () => ipcRenderer.invoke("obd:listPorts"),
+  setHotReload: (enabled) => ipcRenderer.invoke("app:setHotReload", enabled),
   onEvent: (callback) => {
     const listener = (_e: unknown, event: unknown): void => callback(event as never);
     ipcRenderer.on("obd:event", listener);

@@ -118,4 +118,6 @@ export interface ObdApi {
   status(): Promise<unknown>;
   listPorts(): Promise<unknown>;
   onEvent(callback: (event: RpcEvent) => void): () => void;
+  /** 开关界面热重载（崩溃自动恢复与 F5/Ctrl+R 快捷键） */
+  setHotReload(enabled: boolean): Promise<unknown>;
 }

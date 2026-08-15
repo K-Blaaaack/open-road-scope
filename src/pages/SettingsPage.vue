@@ -150,6 +150,35 @@ const confirmEnableExperimental = (): void => {
           />
         </button>
       </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-primary text-sm">{{ t("settings.hotReload") }}</span>
+            <kbd
+              class="rounded border border-[var(--color-border)] bg-[var(--color-card)] px-1 py-0.5 font-mono text-[10px] text-secondary"
+            >
+              F5 / Ctrl+R
+            </kbd>
+          </div>
+          <div class="text-secondary mt-0.5 text-xs">{{ t("settings.hotReloadDesc") }}</div>
+        </div>
+        <button
+          class="relative h-6 w-11 rounded-full transition-colors"
+          :class="prefs.hotReload ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
+          role="switch"
+          :aria-checked="prefs.hotReload"
+          @click="
+            prefs.hotReload = !prefs.hotReload;
+            prefs.persist();
+          "
+        >
+          <span
+            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+            :class="prefs.hotReload ? 'left-[22px]' : 'left-0.5'"
+          />
+        </button>
+      </div>
     </section>
   </div>
 
