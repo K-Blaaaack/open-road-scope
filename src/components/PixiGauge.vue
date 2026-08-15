@@ -127,6 +127,52 @@ const rebuildFace = (): void => {
   app.stage.addChildAt(face, 0);
 };
 
+/** 跟随容器尺寸自适应（卡片缩放/布局变化时重建表盘） */
+const updateSize = (): void => {
+  const el = containerRef.value;
+  if (!el || !app) return;
+  const next = Math.floor(Math.min(el.clientWidth, el.clientHeight));
+  if (next <= 0 || next === size) return;
+  size = next;
+  app.renderer.resize(size, size);
+  app.canvas.style.width = `${size}px`;
+  app.canvas.style.height = `${size}px`;
+  rebuildFace();
+  if (pointer) {
+    pointer.position.set(size / 2, size / 2);
+    pointer.rotation = angleOf(displayValue.value);
+  }
+  updateLabels();
+};
+
+/** 刻度数字标签的定位（基于方形表盘的半径，避免宽扁容器下溢出） */
+const labelPositions = ref<{ text: string; left: string; top: string }[]>([]);
+
+const updateLabels = (): void => {
+  const el = containerRef.value;
+  if (!el) return;
+  const w = el.clientWidth;
+  const h = el.clientHeight;
+  if (w <= 0 || h <= 0) return;
+  const r = Math.min(w, h) * 0.352;
+  const cx = w / 2;
+  const cy = h / 2;
+  const calc = (frac: number): { left: string; top: string } => {
+    const angle = START + frac * SWEEP;
+    return {
+      left: `${((cx + Math.cos(angle) * r) / w) * 100}%`,
+      top: `${((cy + Math.sin(angle) * r) / h) * 100}%`,
+    };
+  };
+  labelPositions.value = [
+    { text: String(Math.round(props.min)), ...calc(0) },
+    { text: String(Math.round((props.min + props.max) / 2)), ...calc(0.5) },
+    { text: String(Math.round(props.max)), ...calc(1) },
+  ];
+};
+
+let ro: ResizeObserver | null = null;
+
 onMounted(async () => {
   const el = containerRef.value;
   if (!el) return;
@@ -141,8 +187,8 @@ onMounted(async () => {
     resolution: window.devicePixelRatio || 1,
     autoDensity: true,
   });
-  app.canvas.style.width = "100%";
-  app.canvas.style.height = "100%";
+  app.canvas.style.width = `${size}px`;
+  app.canvas.style.height = `${size}px`;
   el.appendChild(app.canvas);
 
   rebuildFace();
@@ -151,6 +197,10 @@ onMounted(async () => {
   pointer.position.set(size / 2, size / 2);
   pointer.rotation = angleOf(displayValue.value);
   app.stage.addChild(pointer);
+
+  ro = new ResizeObserver(updateSize);
+  ro.observe(el);
+  updateLabels();
 
   ticker();
 });
@@ -162,10 +212,15 @@ watch(
   }
 );
 
-watch([() => props.min, () => props.max, () => props.dangerAt], rebuildFace);
+watch([() => props.min, () => props.max, () => props.dangerAt], () => {
+  rebuildFace();
+  updateLabels();
+});
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId);
+  ro?.disconnect();
+  ro = null;
   if (app) {
     app.destroy(true, { children: true });
     app = null;
@@ -174,27 +229,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="relative flex flex-col items-center">
+  <div class="relative flex h-full w-full flex-col items-center">
     <div class="text-secondary mb-1 text-xs font-medium tracking-wider">{{ label }}</div>
-    <div ref="containerRef" class="relative h-44 w-44 sm:h-52 sm:w-52">
-      <!-- 主刻度数字标签（DOM 渲染，半径约为容器 35%） -->
+    <div ref="containerRef" class="relative flex min-h-0 w-full flex-1 items-center justify-center">
+      <!-- 主刻度数字标签（DOM 渲染，位置随容器自适应） -->
       <span
+        v-for="label in labelPositions"
+        :key="label.text"
         class="text-secondary font-mono absolute text-[11px]"
-        style="left: calc(50% - 30.5%); top: calc(50% - 17.6%); transform: translate(-50%, -50%)"
+        :style="{ left: label.left, top: label.top, transform: 'translate(-50%, -50%)' }"
       >
-        {{ Math.round(min) }}
-      </span>
-      <span
-        class="text-secondary font-mono absolute text-[11px]"
-        style="left: calc(50% + 30.5%); top: calc(50% - 17.6%); transform: translate(-50%, -50%)"
-      >
-        {{ Math.round((min + max) / 2) }}
-      </span>
-      <span
-        class="text-secondary font-mono absolute text-[11px]"
-        style="left: 50%; top: calc(50% - 35.2%); transform: translate(-50%, -50%)"
-      >
-        {{ Math.round(max) }}
+        {{ label.text }}
       </span>
       <!-- Pixi 画布挂载点 -->
     </div>

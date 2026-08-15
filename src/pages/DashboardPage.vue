@@ -213,6 +213,12 @@ const doImport = (): void => {
                 {{ preset.label }}
               </button>
             </div>
+            <button
+              class="border-border text-red-300/80 hover:bg-red-400/10 rounded-lg border px-2.5 py-1 text-xs transition-colors"
+              @click="layout.applyPreset('default')"
+            >
+              {{ t("dashboard.resetLayout") }}
+            </button>
           </section>
 
           <!-- 导入 / 导出 -->

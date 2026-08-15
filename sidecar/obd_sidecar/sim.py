@@ -107,7 +107,8 @@ class SimDevice(Device):
         if pid == "MAF":
             return 1.5 + pedal * 42.0 + noise(0.8)
         if pid == "THROTTLE_POS":
-            return pedal * 82.0 + noise(1.5)
+            # 节气门随油门开度，怠速时保持小幅抖动且不低于 0
+            return max(0.0, pedal * 82.0 + noise(1.5))
         if pid == "FUEL_LEVEL":
             return max(0.0, 62.0 - t / 360.0 + noise(0.2))
         if pid == "INTAKE_TEMP":
@@ -117,11 +118,16 @@ class SimDevice(Device):
         if pid == "FUEL_RATE":
             return 0.7 + pedal * 6.5 + noise(0.2) if engine_on else 0.0
         if pid == "BAROMETRIC_PRESSURE":
-            return 101.3 + noise(0.1)
+            # 缓慢气压漂移，模拟天气变化
+            return 101.3 + 0.6 * math.sin(t / 240.0) + noise(0.05)
         if pid == "AMBIANT_AIR_TEMP":
-            return 26.0 + noise(0.2)
+            # 缓慢昼夜温度漂移
+            return 24.0 + 4.0 * math.sin(t / 480.0 + 1.0) + noise(0.1)
         if pid == "VOLTAGE":
-            return 14.2 + noise(0.05) if engine_on else 12.6 + noise(0.05)
+            # 电压随转速与负荷波动（充电控制 + 纹波）
+            if engine_on:
+                return 14.2 - pedal * 0.5 + 0.15 * math.sin(t * 4.0) + noise(0.03)
+            return 12.6 - min(0.3, t * 0.0001) + noise(0.03)
         if pid == "RUN_TIME":
             return round(t, 1)
         if pid == "TIMING_ADVANCE":

@@ -41,13 +41,15 @@ const dangerAt = computed<number | undefined>(() => {
 </script>
 
 <template>
-  <PixiGauge
-    :label="t(`pid.${pid}`)"
-    :value="store.latest[pid] ?? 0"
-    :min="rangeMin"
-    :max="Math.max(rangeMax, rangeMin + 1)"
-    :unit="meta.unit"
-    :decimals="meta.decimals"
-    :danger-at="dangerAt"
-  />
+  <div class="h-full w-full">
+    <PixiGauge
+      :label="t(`pid.${pid}`)"
+      :value="store.latest[pid] ?? 0"
+      :min="rangeMin"
+      :max="Math.max(rangeMax, rangeMin + 1)"
+      :unit="meta.unit"
+      :decimals="meta.decimals"
+      :danger-at="dangerAt"
+    />
+  </div>
 </template>
