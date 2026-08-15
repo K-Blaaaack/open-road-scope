@@ -31,8 +31,10 @@ const START = (-150 * Math.PI) / 180;
 
 let app: Application | null = null;
 let pointer: Container | null = null;
+let face: Container | null = null;
 let targetValue = props.value;
 let rafId = 0;
+let size = 0;
 
 /** 值 → 指针旋转角（弧度） */
 const angleOf = (v: number): number => {
@@ -114,10 +116,21 @@ const ticker = (): void => {
   }
 };
 
+/** 重建表盘（量程或危险区变化时调用） */
+const rebuildFace = (): void => {
+  if (!app || size === 0) return;
+  if (face) {
+    face.destroy({ children: true });
+    app.stage.removeChild(face);
+  }
+  face = drawFace(size);
+  app.stage.addChildAt(face, 0);
+};
+
 onMounted(async () => {
   const el = containerRef.value;
   if (!el) return;
-  const size = Math.min(el.clientWidth, el.clientHeight);
+  size = Math.min(el.clientWidth, el.clientHeight);
   app = new Application();
   await app.init({
     width: size,
@@ -132,7 +145,7 @@ onMounted(async () => {
   app.canvas.style.height = "100%";
   el.appendChild(app.canvas);
 
-  app.stage.addChild(drawFace(size));
+  rebuildFace();
 
   pointer = drawPointer();
   pointer.position.set(size / 2, size / 2);
@@ -148,6 +161,8 @@ watch(
     targetValue = v;
   }
 );
+
+watch([() => props.min, () => props.max, () => props.dangerAt], rebuildFace);
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId);

@@ -1,91 +1,246 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { useDashboardStore } from "@/stores/dashboard";
 import { useObdStore } from "@/stores/obd";
-import { PID_META, type Pid } from "@shared/obd";
-import PixiGauge from "@/components/PixiGauge.vue";
-import ValueCard from "@/components/ValueCard.vue";
-import LineChart from "@/components/LineChart.vue";
+import { GRID_COLS, GRID_ROW_HEIGHT, CARD_PIDS, type GaugeType, type Pid } from "@shared/dashboard";
+import DashboardCard from "@/components/dashboard/DashboardCard.vue";
 
 const { t } = useI18n();
-const store = useObdStore();
+const layout = useDashboardStore();
+const obd = useObdStore();
 
-const speedMeta = PID_META.SPEED;
-const rpmMeta = PID_META.RPM;
+const containerRef = ref<HTMLDivElement>();
+const containerWidth = ref(0);
+let ro: ResizeObserver | null = null;
 
-const cardPids: Pid[] = [
-  "COOLANT_TEMP",
-  "ENGINE_LOAD",
-  "MAF",
-  "THROTTLE_POS",
-  "FUEL_LEVEL",
-  "INTAKE_TEMP",
-  "VOLTAGE",
-  "FUEL_RATE",
-];
+const hasData = computed(() => obd.lastTs > 0);
 
-const chartPids: Pid[] = ["SPEED", "COOLANT_TEMP", "ENGINE_LOAD"];
+/** 容器最小高度：最大卡片底部 + 留白 */
+const containerHeight = computed(() => {
+  const bottom = layout.cards.reduce((m, c) => Math.max(m, c.y + c.h), 0);
+  return `${Math.max(bottom, 4) * GRID_ROW_HEIGHT + 24}px`;
+});
 
-const hasData = computed(() => store.lastTs > 0);
+const gridLines = computed(() => {
+  if (!layout.editing) return null;
+  const cols = Array.from({ length: GRID_COLS - 1 }, (_, i) => i + 1);
+  const rows = Array.from(
+    { length: Math.max(layout.cards.reduce((m, c) => Math.max(m, c.y + c.h), 4) - 1, 0) },
+    (_, i) => i + 1
+  );
+  return { cols, rows };
+});
+
+onMounted(() => {
+  void layout.init();
+  ro = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      containerWidth.value = entry.contentRect.width;
+    }
+  });
+  if (containerRef.value) ro.observe(containerRef.value);
+});
+
+onBeforeUnmount(() => {
+  ro?.disconnect();
+  ro = null;
+});
+
+/* ---------- 配置侧栏 ---------- */
+
+const addPid = ref<Pid>("SPEED");
+const addType = ref<GaugeType>("gauge");
+const jsonText = ref("");
+const importMsg = ref("");
+
+const addCard = (): void => {
+  layout.addCard(addPid.value, addType.value);
+};
+
+const doExport = async (): Promise<void> => {
+  jsonText.value = layout.toJSON();
+  try {
+    await navigator.clipboard.writeText(jsonText.value);
+    importMsg.value = t("dashboard.exportCopied");
+  } catch {
+    importMsg.value = "";
+  }
+};
+
+const doImport = (): void => {
+  importMsg.value = layout.fromJSON(jsonText.value)
+    ? t("dashboard.importOk")
+    : t("dashboard.importFail");
+};
 </script>
 
 <template>
-  <div class="flex flex-col gap-5">
-    <div>
-      <h1 class="text-primary text-lg font-semibold">{{ t("dashboard.title") }}</h1>
-      <p v-if="!hasData" class="text-secondary mt-1 text-sm">{{ t("dashboard.noData") }}</p>
+  <div class="flex h-full flex-col gap-4">
+    <!-- 标题栏 + 编辑按钮组 -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-primary text-lg font-semibold">{{ t("dashboard.title") }}</h1>
+        <p v-if="!hasData" class="text-secondary mt-1 text-sm">{{ t("dashboard.noData") }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+          :class="layout.editing ? '!border-sky-400/60 !text-sky-300 bg-sky-400/10' : ''"
+          :title="t('dashboard.edit')"
+          @click="layout.editing ? layout.cancelEdit() : layout.enterEdit()"
+        >
+          <span class="i-lucide-pen-line h-4 w-4" />
+        </button>
+        <template v-if="layout.editing">
+          <button
+            class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-sm transition-colors"
+            @click="layout.sidebarOpen = true"
+          >
+            {{ t("dashboard.config") }}
+          </button>
+          <button
+            class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-sm transition-colors"
+            @click="layout.cancelEdit()"
+          >
+            {{ t("common.cancel") }}
+          </button>
+          <button
+            class="rounded-lg bg-sky-500/90 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500"
+            @click="layout.save()"
+          >
+            {{ t("common.save") }}
+          </button>
+        </template>
+      </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-5">
-      <div class="glass-card flex-center p-4">
-        <PixiGauge
-          :label="t('pid.SPEED')"
-          :value="store.latest.SPEED ?? 0"
-          :min="speedMeta.min"
-          :max="speedMeta.max"
-          :unit="speedMeta.unit"
-          :decimals="speedMeta.decimals"
+    <!-- 卡片布局区 -->
+    <div ref="containerRef" class="relative w-full" :style="{ height: containerHeight }">
+      <!-- 编辑态网格背景线 -->
+      <div v-if="gridLines" class="pointer-events-none absolute inset-0">
+        <div
+          v-for="c in gridLines.cols"
+          :key="`c${c}`"
+          class="absolute top-0 h-full border-l border-dashed border-sky-400/15"
+          :style="{ left: `${(c / GRID_COLS) * 100}%` }"
+        />
+        <div
+          v-for="r in gridLines.rows"
+          :key="`r${r}`"
+          class="absolute left-0 w-full border-t border-dashed border-sky-400/15"
+          :style="{ top: `${r * GRID_ROW_HEIGHT}px` }"
         />
       </div>
-      <div class="glass-card flex-center p-4">
-        <PixiGauge
-          :label="t('pid.RPM')"
-          :value="store.latest.RPM ?? 0"
-          :min="rpmMeta.min"
-          :max="rpmMeta.max"
-          :unit="rpmMeta.unit"
-          :decimals="rpmMeta.decimals"
-          :danger-at="6500"
-        />
-      </div>
-    </div>
 
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <ValueCard
-        v-for="pid in cardPids"
-        :key="pid"
-        :label="t(`pid.${pid}`)"
-        :value="store.latest[pid] ?? 0"
-        :unit="PID_META[pid].unit"
-        :decimals="PID_META[pid].decimals"
+      <DashboardCard
+        v-for="card in layout.cards"
+        :key="card.id"
+        :card="card"
+        :editing="layout.editing"
+        :container-width="containerWidth"
+        @move="(x, y) => layout.moveCard(card.id, x, y)"
+        @resize="(w, h) => layout.resizeCard(card.id, w, h)"
+        @remove="layout.removeCard(card.id)"
+        @update="(patch) => layout.updateCard(card.id, patch)"
       />
-    </div>
 
-    <div>
-      <h2 class="text-primary mb-3 text-base font-semibold">{{ t("dashboard.history") }}</h2>
-      <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
-        <LineChart
-          v-for="pid in chartPids"
-          :key="pid"
-          :pid="pid"
-          :label="t(`pid.${pid}`)"
-          :unit="PID_META[pid].unit"
-          :min="PID_META[pid].min"
-          :max="PID_META[pid].max"
-          :decimals="PID_META[pid].decimals"
-        />
+      <div v-if="layout.cards.length === 0" class="text-secondary flex-center h-64 w-full text-sm">
+        {{ t("dashboard.empty") }}
       </div>
     </div>
+
+    <!-- 布局配置侧栏 -->
+    <Teleport to="body">
+      <div v-if="layout.sidebarOpen" class="fixed inset-0 z-40">
+        <div class="absolute inset-0 bg-black/40" @click="layout.sidebarOpen = false" />
+        <aside
+          class="border-border absolute top-0 right-0 flex h-full w-80 flex-col gap-4 border-l bg-[var(--color-bg-elevated)] p-4 shadow-2xl"
+        >
+          <div class="flex items-center justify-between">
+            <h2 class="text-primary font-semibold">{{ t("dashboard.config") }}</h2>
+            <button
+              class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex h-7 w-7 items-center justify-center rounded-md"
+              @click="layout.sidebarOpen = false"
+            >
+              <span class="i-lucide-x h-4 w-4" />
+            </button>
+          </div>
+
+          <!-- 添加卡片 -->
+          <section class="flex flex-col gap-2">
+            <div class="text-secondary text-sm">{{ t("dashboard.addCard") }}</div>
+            <div class="flex gap-2">
+              <select
+                v-model="addPid"
+                class="border-border bg-[var(--color-card)] text-primary min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-sm outline-none"
+              >
+                <option v-for="p in CARD_PIDS" :key="p" :value="p">{{ t(`pid.${p}`) }}</option>
+              </select>
+              <select
+                v-model="addType"
+                class="border-border bg-[var(--color-card)] text-primary rounded-lg border px-2 py-1.5 text-sm outline-none"
+              >
+                <option value="gauge">{{ t("dashboard.type.gauge") }}</option>
+                <option value="line">{{ t("dashboard.type.line") }}</option>
+                <option value="bar">{{ t("dashboard.type.bar") }}</option>
+                <option value="value">{{ t("dashboard.type.value") }}</option>
+              </select>
+              <button
+                class="rounded-lg bg-sky-500/90 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-500"
+                @click="addCard"
+              >
+                +
+              </button>
+            </div>
+          </section>
+
+          <!-- 预设布局 -->
+          <section class="flex flex-col gap-2">
+            <div class="text-secondary text-sm">{{ t("dashboard.preset") }}</div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                v-for="preset in [
+                  { key: 'default', label: t('dashboard.presetDefault') },
+                  { key: 'compact', label: t('dashboard.presetCompact') },
+                  { key: 'gauge', label: t('dashboard.presetGauge') },
+                ]"
+                :key="preset.key"
+                class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-2.5 py-1 text-xs"
+                @click="layout.applyPreset(preset.key as never)"
+              >
+                {{ preset.label }}
+              </button>
+            </div>
+          </section>
+
+          <!-- 导入 / 导出 -->
+          <section class="flex min-h-0 flex-1 flex-col gap-2">
+            <div class="text-secondary text-sm">{{ t("dashboard.layoutJson") }}</div>
+            <textarea
+              v-model="jsonText"
+              class="border-border bg-[var(--color-card)] text-secondary font-mono min-h-0 flex-1 resize-none rounded-lg border p-2 text-xs outline-none"
+              spellcheck="false"
+            />
+            <div class="flex gap-2">
+              <button
+                class="border-border text-secondary hover:bg-[var(--color-hover)] flex-1 rounded-lg border px-2 py-1.5 text-sm"
+                @click="doExport"
+              >
+                {{ t("dashboard.export") }}
+              </button>
+              <button
+                class="border-border text-secondary hover:bg-[var(--color-hover)] flex-1 rounded-lg border px-2 py-1.5 text-sm"
+                @click="doImport"
+              >
+                {{ t("dashboard.import") }}
+              </button>
+            </div>
+            <div v-if="importMsg" class="text-xs text-sky-300">{{ importMsg }}</div>
+          </section>
+        </aside>
+      </div>
+    </Teleport>
   </div>
 </template>
