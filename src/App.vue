@@ -74,6 +74,22 @@ onMounted(() => {
         <!-- 导航文字说明，可在设置中控制显示 -->
         <span v-if="prefs.showNavLabels" class="truncate">{{ t(item.key) }}</span>
       </router-link>
+
+      <!-- 底部无文字快捷按钮：切换导航文字说明显示 -->
+      <button
+        class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] transition-colors"
+        :class="prefs.showNavLabels ? '' : 'mx-auto'"
+        :title="t('settings.showNavLabels')"
+        @click="
+          prefs.showNavLabels = !prefs.showNavLabels;
+          prefs.persist();
+        "
+      >
+        <span
+          :class="prefs.showNavLabels ? 'i-lucide-panel-left-close' : 'i-lucide-panel-left-open'"
+          class="h-4 w-4"
+        />
+      </button>
     </aside>
 
     <main class="flex min-w-0 flex-1 flex-col">
