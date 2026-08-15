@@ -97,9 +97,11 @@ const doImport = (): void => {
 <template>
   <div class="flex h-full flex-col gap-4">
     <!-- 标题栏 + 编辑按钮组 -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-2">
       <div>
-        <h1 class="text-primary text-lg font-semibold">{{ t("dashboard.title") }}</h1>
+        <h1 class="text-primary text-lg font-semibold max-sm:text-base">
+          {{ t("dashboard.title") }}
+        </h1>
         <p v-if="!hasData" class="text-secondary mt-1 text-sm">{{ t("dashboard.noData") }}</p>
       </div>
       <div class="flex items-center gap-2">

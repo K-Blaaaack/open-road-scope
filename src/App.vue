@@ -59,14 +59,14 @@ onMounted(() => {
 <template>
   <div class="flex h-full">
     <aside
-      class="border-border flex flex-col gap-2 border-r bg-[var(--color-bg-elevated)] py-4"
+      class="border-border flex flex-col gap-2 border-r bg-[var(--color-bg-elevated)] py-4 max-sm:w-14 max-sm:items-center"
       :class="prefs.showNavLabels ? 'w-44 items-stretch px-2' : 'w-14 items-center'"
     >
       <router-link
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex items-center gap-2.5 rounded-lg transition-colors"
+        class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex items-center gap-2.5 rounded-lg transition-colors max-sm:flex-center max-sm:h-10 max-sm:w-10"
         :class="[
           prefs.showNavLabels ? 'px-3 py-2 text-sm' : 'flex-center h-10 w-10',
           route.path === item.path ? '!text-primary bg-[var(--color-active)]' : '',
@@ -74,13 +74,13 @@ onMounted(() => {
         :title="t(item.key)"
       >
         <span :class="item.icon" class="h-5 w-5 shrink-0" />
-        <!-- 导航文字说明，可在设置中控制显示 -->
-        <span v-if="prefs.showNavLabels" class="truncate">{{ t(item.key) }}</span>
+        <!-- 导航文字说明，可在设置中控制显示（手机窄屏下隐藏） -->
+        <span v-if="prefs.showNavLabels" class="truncate max-sm:hidden">{{ t(item.key) }}</span>
       </router-link>
 
       <!-- 底部无文字快捷按钮：切换导航文字说明显示（样式与顶部日夜切换按钮一致） -->
       <button
-        class="text-secondary hover:text-primary mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors"
+        class="text-secondary hover:text-primary mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors max-sm:mx-auto"
         :class="[
           isDark
             ? 'border-white/10 bg-white/10 hover:bg-white/20'
@@ -106,7 +106,7 @@ onMounted(() => {
       >
         <div class="flex items-center gap-2">
           <span class="i-lucide-car text-primary h-5 w-5" />
-          <span class="text-primary font-semibold tracking-wide">OpenRoadScope</span>
+          <span class="text-primary font-semibold tracking-wide max-sm:hidden">OpenRoadScope</span>
         </div>
         <div class="flex items-center gap-3">
           <!-- 主题切换按钮（原样式：常态背景随日夜模式切换） -->
@@ -141,7 +141,8 @@ onMounted(() => {
           >
             <span class="i-lucide-pen-line h-4 w-4" />
           </button>
-          <span class="text-secondary text-xs">
+          <!-- 模拟/实车模式标识：手机窄屏下隐藏 -->
+          <span class="text-secondary text-xs max-sm:hidden">
             {{ store.status.mode === "sim" ? t("status.sim") : t("status.real") }}
           </span>
           <span class="flex items-center gap-1.5">
@@ -151,7 +152,7 @@ onMounted(() => {
         </div>
       </header>
 
-      <div class="min-h-0 flex-1 overflow-auto p-5">
+      <div class="min-h-0 flex-1 overflow-auto p-5 max-sm:p-3">
         <router-view v-slot="{ Component }">
           <Transition name="page" mode="out-in">
             <component :is="Component" :key="route.path" />

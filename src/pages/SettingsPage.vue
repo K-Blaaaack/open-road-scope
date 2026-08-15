@@ -272,7 +272,7 @@ const disableDevMode = (): void => {
           @click="confirmingDevMode = false"
         />
         <div
-          class="relative w-96 rounded-xl border border-amber-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+          class="relative w-96 max-w-[calc(100vw-32px)] rounded-xl border border-amber-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
         >
           <div class="flex items-start gap-3">
             <span
@@ -316,7 +316,7 @@ const disableDevMode = (): void => {
           @click="confirmingExperimental = false"
         />
         <div
-          class="relative w-96 rounded-xl border border-red-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+          class="relative w-96 max-w-[calc(100vw-32px)] rounded-xl border border-red-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
         >
           <div class="flex items-start gap-3">
             <span

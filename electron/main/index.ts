@@ -48,8 +48,8 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    minWidth: 960,
-    minHeight: 640,
+    minWidth: 480,
+    minHeight: 400,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: "#0b0f14",

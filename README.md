@@ -52,23 +52,23 @@ pnpm release:push       # 推送提交与 tag，触发 CI 自动构建并发布 
 
 版本规则：
 
-| 提交类型 | 版本变化 |
-|---|---|
-| `feat:`（新功能） | minor（0.1.0 → 0.2.0） |
-| `fix:`（修复） | patch（0.1.0 → 0.1.1） |
+| 提交类型                     | 版本变化               |
+| ---------------------------- | ---------------------- |
+| `feat:`（新功能）            | minor（0.1.0 → 0.2.0） |
+| `fix:`（修复）               | patch（0.1.0 → 0.1.1） |
 | `feat!:` / `BREAKING CHANGE` | major（0.1.0 → 1.0.0） |
-| 其他（docs/chore/ci...） | 不产生新版本 |
+| 其他（docs/chore/ci...）     | 不产生新版本           |
 
 > 注意：`release` 会基于 **最后一个版本 tag 之后** 的提交计算版本，且要求提交信息符合常规提交格式。
 
 ## 平台支持
 
-| 平台 | 发行格式 | 说明 |
-|---|---|---|
-| Windows | NSIS 安装包 / 便携版 / MSI | `build:win` / `build:win:nsis` / `build:win:portable` / `build:win:msi` |
-| macOS | DMG / ZIP | `build:mac` / `build:mac:dmg` / `build:mac:zip`（ZIP 供自动更新） |
-| Linux | AppImage / deb / rpm / snap / tar.gz | `build:linux` 或按需 `build:linux:deb` 等 |
-| Android | — | Electron 不支持移动端；如需要可基于渲染层（Vue 3）以 Capacitor 迁移，OBD 采集需改用 Android USB/蓝牙方案 |
+| 平台    | 发行格式                             | 说明                                                                                                     |
+| ------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Windows | NSIS 安装包 / 便携版 / MSI           | `build:win` / `build:win:nsis` / `build:win:portable` / `build:win:msi`                                  |
+| macOS   | DMG / ZIP                            | `build:mac` / `build:mac:dmg` / `build:mac:zip`（ZIP 供自动更新）                                        |
+| Linux   | AppImage / deb / rpm / snap / tar.gz | `build:linux` 或按需 `build:linux:deb` 等                                                                |
+| Android | —                                    | Electron 不支持移动端；如需要可基于渲染层（Vue 3）以 Capacitor 迁移，OBD 采集需改用 Android USB/蓝牙方案 |
 
 > sidecar（PyInstaller）产物与平台绑定，跨平台打包需在**各目标平台**上分别执行（Windows 上打 Windows 包、macOS 上打 macOS 包）。
 

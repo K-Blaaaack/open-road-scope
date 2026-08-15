@@ -88,7 +88,7 @@ onMounted(listPorts);
       <!-- 模拟/实车模式选择，可在开发者菜单中控制显示 -->
       <div v-if="prefs.showModeSelect && store.status.state === 'idle'">
         <div class="text-secondary mb-2 text-sm">{{ t("connection.mode") }}</div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           <button
             class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
             :class="
@@ -118,7 +118,7 @@ onMounted(listPorts);
         <!-- 实车连接方式：USB 串口 / 蓝牙串口 / 网络（RJ45 OBD） -->
         <div>
           <div class="text-secondary mb-2 text-sm">{{ t("connection.connType") }}</div>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <button
               v-for="type in [
                 { key: 'usb', label: t('connection.typeUsb') },
@@ -194,7 +194,7 @@ onMounted(listPorts);
         <label for="sim-fault" class="text-secondary text-sm">{{ t("connection.fault") }}</label>
       </div>
 
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <button
           v-if="store.status.state === 'idle'"
           class="flex-1 rounded-lg bg-sky-500/90 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:opacity-50"
