@@ -13,6 +13,8 @@ const layout = useDashboardStore();
 const obd = useObdStore();
 const prefs = usePrefsStore();
 
+const isDark = computed(() => prefs.theme === "dark");
+
 const containerRef = ref<HTMLDivElement>();
 const containerWidth = ref(0);
 const containerHeight = ref(0);
@@ -104,8 +106,13 @@ const doImport = (): void => {
       </div>
       <div class="flex items-center gap-2">
         <button
-          class="border-border text-secondary hover:text-primary bg-[var(--color-btn)] hover:bg-[var(--color-btn-hover)] flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
-          :class="layout.editing ? '!border-sky-400/60 !text-sky-300 bg-sky-400/10' : ''"
+          class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+          :class="[
+            isDark
+              ? 'border-white/10 bg-white/10 hover:bg-white/20'
+              : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10',
+            layout.editing ? '!border-sky-400/60 !text-sky-300 bg-sky-400/10' : '',
+          ]"
           :title="t('dashboard.edit')"
           @click="layout.editing ? layout.cancelEdit() : layout.enterEdit()"
         >
