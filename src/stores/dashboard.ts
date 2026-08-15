@@ -114,6 +114,14 @@ export const useDashboardStore = defineStore("dashboard", () => {
     await resubscribe();
   };
 
+  /** 各呈现方式的默认卡片尺寸（网格单元） */
+  const DEFAULT_CARD_SIZE: Record<GaugeType, { w: number; h: number }> = {
+    gauge: { w: 4, h: 4 },
+    line: { w: 4, h: 3 },
+    bar: { w: 4, h: 3 },
+    value: { w: 3, h: 2 },
+  };
+
   /**
    * 添加卡片
    * @param pid - 数据源
@@ -122,6 +130,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
    */
   const addCard = (pid: Pid, type: GaugeType): DashboardCard => {
     const y = cards.value.reduce((m, c) => Math.max(m, c.y + c.h), 0);
+    const size = DEFAULT_CARD_SIZE[type];
     const card: DashboardCard = {
       id: nextCardId(),
       pid,
@@ -130,8 +139,8 @@ export const useDashboardStore = defineStore("dashboard", () => {
       max: null,
       x: 0,
       y,
-      w: 3,
-      h: 3,
+      w: size.w,
+      h: size.h,
     };
     cards.value.push(card);
     return card;

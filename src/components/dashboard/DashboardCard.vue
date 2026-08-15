@@ -112,9 +112,9 @@ const applyRange = (): void => {
 </script>
 
 <template>
+  <!-- 定位层：网格定位 + 卡片间距（p-2） -->
   <div
-    class="glass-card absolute flex flex-col overflow-hidden transition-shadow"
-    :class="editing ? 'ring-2 ring-sky-400/70 shadow-lg shadow-sky-900/30' : ''"
+    class="absolute flex flex-col p-2"
     :style="{
       ...style,
       transform:
@@ -123,91 +123,107 @@ const applyRange = (): void => {
           : undefined,
     }"
   >
-    <!-- 编辑工具栏 -->
-    <div
-      v-if="editing"
-      class="flex flex-wrap items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2 py-1"
-    >
-      <button
-        v-for="item in types"
-        :key="item.type"
-        class="flex-center rounded-md p-1 transition-colors"
-        :class="
-          card.type === item.type
-            ? 'bg-sky-400/20 text-sky-300'
-            : 'text-secondary hover:bg-[var(--color-hover)]'
-        "
-        :title="t(`dashboard.type.${item.type}`)"
-        @click="emit('update', { type: item.type })"
-      >
-        <span :class="item.icon" class="h-4 w-4" />
-      </button>
-      <div v-if="card.type !== 'value'" class="ml-auto flex items-center gap-1">
-        <input
-          v-model="minText"
-          type="number"
-          class="border-border bg-[var(--color-card)] text-secondary w-14 rounded border px-1 py-0.5 text-xs outline-none"
-          :placeholder="t('dashboard.auto')"
-          @change="applyRange"
-        />
-        <span class="text-secondary text-xs">—</span>
-        <input
-          v-model="maxText"
-          type="number"
-          class="border-border bg-[var(--color-card)] text-secondary w-14 rounded border px-1 py-0.5 text-xs outline-none"
-          :placeholder="t('dashboard.auto')"
-          @change="applyRange"
-        />
-      </div>
-    </div>
-
-    <!-- 标题（拖拽手柄） -->
-    <div
-      class="flex items-center justify-between px-3 pt-2.5"
-      :class="editing ? 'cursor-grab active:cursor-grabbing' : ''"
-      @pointerdown="onDragStart"
-      @pointermove="onDragMove"
-      @pointerup="onDragEnd"
-      @pointercancel="onDragEnd"
-    >
-      <span class="text-secondary truncate text-xs font-medium tracking-wider">
-        {{ t(`pid.${card.pid}`) }}
-      </span>
-    </div>
-
-    <!-- 内容 -->
-    <div class="min-h-0 flex-1 px-3 pb-3">
-      <GaugeContent v-if="card.type === 'gauge'" :pid="card.pid" :min="card.min" :max="card.max" />
-      <LineContent
-        v-else-if="card.type === 'line'"
-        :pid="card.pid"
-        :min="card.min"
-        :max="card.max"
-      />
-      <BarContent v-else-if="card.type === 'bar'" :pid="card.pid" :min="card.min" :max="card.max" />
-      <ValueContent v-else :pid="card.pid" />
-    </div>
-
-    <!-- 删除按钮（编辑态） -->
+    <!-- 删除按钮（编辑态），置于视觉层外避免被 overflow 裁剪 -->
     <button
       v-if="editing"
-      class="flex-center absolute -right-2 -top-2 z-10 h-6 w-6 rounded-full bg-red-500 text-white shadow-md transition-transform hover:scale-110"
+      class="flex-center absolute -top-1.5 -right-1.5 z-10 h-6 w-6 rounded-full bg-red-500 text-white shadow-md transition-transform hover:scale-110"
       :title="t('dashboard.removeCard')"
       @click="emit('remove')"
     >
       <span class="i-lucide-x h-3.5 w-3.5" />
     </button>
 
-    <!-- 缩放句柄（编辑态） -->
+    <!-- 视觉层：卡片外观与内容 -->
     <div
-      v-if="editing"
-      class="absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize"
-      @pointerdown="onResizeStart"
-      @pointermove="onResizeMove"
-      @pointerup="onResizeEnd"
-      @pointercancel="onResizeEnd"
+      class="glass-card relative flex min-h-0 flex-1 flex-col overflow-hidden transition-shadow"
+      :class="editing ? 'ring-2 ring-sky-400/70 shadow-lg shadow-sky-900/30' : ''"
     >
-      <span class="i-lucide-grip absolute bottom-0.5 right-0.5 h-3 w-3 text-sky-300" />
+      <!-- 编辑工具栏 -->
+      <div
+        v-if="editing"
+        class="flex flex-wrap items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2 py-1"
+      >
+        <button
+          v-for="item in types"
+          :key="item.type"
+          class="flex-center rounded-md p-1 transition-colors"
+          :class="
+            card.type === item.type
+              ? 'bg-sky-400/20 text-sky-300'
+              : 'text-secondary hover:bg-[var(--color-hover)]'
+          "
+          :title="t(`dashboard.type.${item.type}`)"
+          @click="emit('update', { type: item.type })"
+        >
+          <span :class="item.icon" class="h-4 w-4" />
+        </button>
+        <div v-if="card.type !== 'value'" class="ml-auto flex items-center gap-1">
+          <input
+            v-model="minText"
+            type="number"
+            class="border-border bg-[var(--color-card)] text-secondary w-14 rounded border px-1 py-0.5 text-xs outline-none"
+            :placeholder="t('dashboard.auto')"
+            @change="applyRange"
+          />
+          <span class="text-secondary text-xs">—</span>
+          <input
+            v-model="maxText"
+            type="number"
+            class="border-border bg-[var(--color-card)] text-secondary w-14 rounded border px-1 py-0.5 text-xs outline-none"
+            :placeholder="t('dashboard.auto')"
+            @change="applyRange"
+          />
+        </div>
+      </div>
+
+      <!-- 标题（拖拽手柄） -->
+      <div
+        class="flex items-center justify-between px-3 pt-2.5"
+        :class="editing ? 'cursor-grab active:cursor-grabbing' : ''"
+        @pointerdown="onDragStart"
+        @pointermove="onDragMove"
+        @pointerup="onDragEnd"
+        @pointercancel="onDragEnd"
+      >
+        <span class="text-secondary truncate text-xs font-medium tracking-wider">
+          {{ t(`pid.${card.pid}`) }}
+        </span>
+      </div>
+
+      <!-- 内容 -->
+      <div class="min-h-0 flex-1 px-3 pb-3">
+        <GaugeContent
+          v-if="card.type === 'gauge'"
+          :pid="card.pid"
+          :min="card.min"
+          :max="card.max"
+        />
+        <LineContent
+          v-else-if="card.type === 'line'"
+          :pid="card.pid"
+          :min="card.min"
+          :max="card.max"
+        />
+        <BarContent
+          v-else-if="card.type === 'bar'"
+          :pid="card.pid"
+          :min="card.min"
+          :max="card.max"
+        />
+        <ValueContent v-else :pid="card.pid" />
+      </div>
+
+      <!-- 缩放句柄（编辑态） -->
+      <div
+        v-if="editing"
+        class="absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize"
+        @pointerdown="onResizeStart"
+        @pointermove="onResizeMove"
+        @pointerup="onResizeEnd"
+        @pointercancel="onResizeEnd"
+      >
+        <span class="i-lucide-grip absolute bottom-0.5 right-0.5 h-3 w-3 text-sky-300" />
+      </div>
     </div>
   </div>
 </template>
