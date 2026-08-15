@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
+import type { SerialPortInfo } from "@shared/obd";
 
 const { t } = useI18n();
 const store = useObdStore();
 const prefs = usePrefsStore();
 
 const mode = ref<"sim" | "real">(store.status.mode === "real" ? "real" : "sim");
+/** 实车连接方式：USB 串口 / 蓝牙串口 / 网络（RJ45 OBD） */
+const connType = ref<"usb" | "bluetooth" | "network">("usb");
 const port = ref("");
-const ports = ref<{ name: string; description?: string }[]>([]);
+const ports = ref<SerialPortInfo[]>([]);
+/** 网络串口（RJ45 OBD）地址 */
+const netHost = ref("");
+const netPort = ref("35000");
 const fault = ref(false);
 const busy = ref(false);
 
@@ -24,6 +30,13 @@ watch(
   { immediate: true }
 );
 
+/** 按连接方式过滤枚举出的串口 */
+const filteredPorts = computed(() => {
+  if (connType.value === "network") return [];
+  const target = connType.value === "usb" ? ["usb", "other"] : ["bluetooth"];
+  return ports.value.filter((p) => target.includes(p.type));
+});
+
 const listPorts = async (): Promise<void> => {
   const result = (await window.obd.listPorts()) as {
     ok: boolean;
@@ -31,17 +44,26 @@ const listPorts = async (): Promise<void> => {
   };
   if (result.ok && result.result) {
     ports.value = result.result.ports;
-    if (!port.value && ports.value.length > 0) port.value = ports.value[0].name;
+    if (!port.value && filteredPorts.value.length > 0) {
+      port.value = filteredPorts.value[0].name;
+    }
   }
 };
 
 const connect = async (): Promise<void> => {
   busy.value = true;
   try {
-    await store.connect(
-      mode.value,
-      mode.value === "real" ? { port: port.value || undefined } : { fault: fault.value }
-    );
+    const options =
+      mode.value === "real"
+        ? {
+            // 网络串口直接传 host:port，sidecar 自动转 socket:// URL
+            port:
+              connType.value === "network"
+                ? `${netHost.value}:${netPort.value}`
+                : port.value || undefined,
+          }
+        : { fault: fault.value };
+    await store.connect(mode.value, options);
     await store.subscribe();
   } catch (err) {
     console.error(err);
@@ -92,25 +114,79 @@ onMounted(listPorts);
         </div>
       </div>
 
-      <div v-if="mode === 'real' && store.status.state === 'idle'" class="flex items-end gap-2">
-        <div class="flex-1">
-          <div class="text-secondary mb-2 text-sm">{{ t("connection.port") }}</div>
-          <select
-            v-model="port"
-            class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
-          >
-            <option v-if="ports.length === 0" value="" disabled>
-              {{ t("connection.scanning") }}
-            </option>
-            <option v-for="p in ports" :key="p.name" :value="p.name">{{ p.name }}</option>
-          </select>
+      <div v-if="mode === 'real' && store.status.state === 'idle'" class="flex flex-col gap-3">
+        <!-- 实车连接方式：USB 串口 / 蓝牙串口 / 网络（RJ45 OBD） -->
+        <div>
+          <div class="text-secondary mb-2 text-sm">{{ t("connection.connType") }}</div>
+          <div class="flex gap-2">
+            <button
+              v-for="type in [
+                { key: 'usb', label: t('connection.typeUsb') },
+                { key: 'bluetooth', label: t('connection.typeBluetooth') },
+                { key: 'network', label: t('connection.typeNetwork') },
+              ]"
+              :key="type.key"
+              class="flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
+              :class="
+                connType === type.key
+                  ? 'border-sky-400/50 bg-sky-400/10 text-[var(--color-accent-text)]'
+                  : 'border-border text-secondary hover:bg-[var(--color-hover)]'
+              "
+              @click="connType = type.key as typeof connType"
+            >
+              {{ type.label }}
+            </button>
+          </div>
         </div>
-        <button
-          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-2 text-sm"
-          @click="listPorts"
-        >
-          {{ t("connection.refresh") }}
-        </button>
+
+        <!-- USB / 蓝牙串口下拉 -->
+        <div v-if="connType !== 'network'" class="flex items-end gap-2">
+          <div class="flex-1">
+            <div class="text-secondary mb-2 text-sm">
+              {{ connType === "usb" ? t("connection.portUsb") : t("connection.portBluetooth") }}
+            </div>
+            <select
+              v-model="port"
+              class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
+            >
+              <option v-if="filteredPorts.length === 0" value="" disabled>
+                {{ t("connection.scanning") }}
+              </option>
+              <option v-for="p in filteredPorts" :key="p.name" :value="p.name">
+                {{ p.name }}{{ p.description ? `（${p.description}）` : "" }}
+              </option>
+            </select>
+          </div>
+          <button
+            class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-2 text-sm"
+            @click="listPorts"
+          >
+            {{ t("connection.refresh") }}
+          </button>
+        </div>
+
+        <!-- 网络串口（RJ45 OBD）：IP + 端口 -->
+        <div v-else class="flex items-end gap-2">
+          <div class="flex-1">
+            <div class="text-secondary mb-2 text-sm">{{ t("connection.networkAddr") }}</div>
+            <input
+              v-model="netHost"
+              type="text"
+              class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
+              :placeholder="t('connection.networkPlaceholder')"
+              spellcheck="false"
+            />
+          </div>
+          <div class="w-28">
+            <div class="text-secondary mb-2 text-sm">{{ t("connection.networkPort") }}</div>
+            <input
+              v-model="netPort"
+              type="number"
+              class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
+              placeholder="35000"
+            />
+          </div>
+        </div>
       </div>
 
       <div v-if="mode === 'sim' && store.status.state === 'idle'" class="flex items-center gap-2">

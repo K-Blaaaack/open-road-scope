@@ -73,9 +73,41 @@ _PID_TO_CMD = {
 }
 
 
+def _classify_port(p) -> str:
+    """按设备名/硬件信息将串口分为 usb / bluetooth / other"""
+    name = (p.device or "").lower()
+    hwid = (p.hwid or "").lower()
+    desc = (p.description or "").lower()
+    if (
+        "rfcomm" in name
+        or "bluetooth" in name
+        or "bluetooth" in hwid
+        or "bt" in hwid
+        or "bluetooth" in desc
+        or name.startswith("tty.bt")
+        or name.startswith("tty.bluetooth")
+    ):
+        return "bluetooth"
+    if (
+        "usb" in name
+        or "usb" in hwid
+        or "ttyusb" in name
+        or "ttyacm" in name
+        or "tty.usb" in name
+        or p.vid is not None
+    ):
+        return "usb"
+    return "other"
+
+
 def list_serial_ports() -> list[dict[str, str]]:
+    """枚举串口并按类型分类，供连接页分组展示"""
     return [
-        {"name": p.device, "description": p.description or ""}
+        {
+            "name": p.device,
+            "description": p.description or "",
+            "type": _classify_port(p),
+        }
         for p in serial.tools.list_ports.comports()
     ]
 
@@ -87,12 +119,27 @@ class RealDevice(Device):
         self._fast = fast
         self._conn: obd.OBD | None = None
 
+    def _resolve_port(self) -> str | None:
+        """将 host:port 形式的网络串口（RJ45 OBD）转为 pyserial 的 socket:// URL"""
+        port = self._port
+        if not port or "://" in port:
+            return port
+        # Windows 盘符/COM 口与类 Unix 设备路径不当作网络串口
+        if port.startswith(("/", "\\")) or port.lower().startswith("com"):
+            return port
+        if ":" in port:
+            host, _, port_no = port.rpartition(":")
+            if host and port_no.isdigit():
+                return f"socket://{host}:{port_no}"
+        return port
+
     def connect(self) -> bool:
         self.close()
         try:
-            logger.info("connecting to %s", self._port or "auto-scan")
+            port = self._resolve_port()
+            logger.info("connecting to %s", port or "auto-scan")
             self._conn = obd.OBD(
-                portstr=self._port,
+                portstr=port,
                 baudrate=self._baudrate,
                 fast=self._fast,
                 timeout=0.3,

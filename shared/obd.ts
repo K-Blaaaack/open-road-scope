@@ -104,8 +104,15 @@ export interface StatusEventParams {
   message?: string;
 }
 
+export interface SerialPortInfo {
+  name: string;
+  description?: string;
+  /** 串口类型：usb 串口 / 蓝牙串口 / 其他 */
+  type: "usb" | "bluetooth" | "other";
+}
+
 export interface ListPortsResult {
-  ports: { name: string; description?: string }[];
+  ports: SerialPortInfo[];
 }
 
 /** preload 通过 contextBridge 暴露给渲染进程的 API */
