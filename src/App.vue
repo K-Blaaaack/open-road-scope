@@ -47,12 +47,7 @@ const navItems = computed(() => {
 
 onMounted(() => {
   void prefs.init().then(() => store.setup());
-  if (store.status.state === "idle") {
-    store
-      .connect("sim")
-      .then(() => store.subscribe())
-      .catch(() => {});
-  }
+  // 不自动连接任何设备：由用户在连接页主动选择模拟/实车
 });
 </script>
 
@@ -141,8 +136,11 @@ onMounted(() => {
           >
             <span class="i-lucide-pen-line h-4 w-4" />
           </button>
-          <!-- 模拟/实车模式标识：手机窄屏下隐藏 -->
-          <span class="text-secondary text-xs max-sm:hidden">
+          <!-- 模拟/实车模式标识：仅连接后显示，手机窄屏下隐藏 -->
+          <span
+            v-if="store.status.state !== 'idle'"
+            class="text-secondary text-xs max-sm:hidden"
+          >
             {{ store.status.mode === "sim" ? t("status.sim") : t("status.real") }}
           </span>
           <span class="flex items-center gap-1.5">
