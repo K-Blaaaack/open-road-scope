@@ -40,6 +40,9 @@ const normalizeLayout = (raw: unknown): DashboardCard[] => {
       y: Math.max(0, Math.round(c.y) || 0),
       w: clampGrid(c.w, 2, GRID_COLS),
       h: Math.min(8, Math.max(2, Math.round(c.h) || 2)),
+      // 字号缩放仅对 value 类型生效，规整到 0.6~2.5
+      fontScale:
+        typeof c.fontScale === "number" ? Math.min(2.5, Math.max(0.6, c.fontScale)) : undefined,
     }));
 };
 

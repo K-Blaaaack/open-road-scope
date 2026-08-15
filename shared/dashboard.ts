@@ -25,6 +25,8 @@ export interface DashboardCard {
   w: number;
   /** 占网格行数 */
   h: number;
+  /** 数值卡片字号缩放（0.6~2.5，默认 1），仅 value 类型生效 */
+  fontScale?: number;
 }
 
 /** 布局配置文件 */

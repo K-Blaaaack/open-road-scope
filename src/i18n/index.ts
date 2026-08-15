@@ -60,6 +60,8 @@ export const i18n = createI18n({
         importFail: "导入失败：格式无效",
         removeCard: "删除卡片",
         auto: "自动",
+        fontLarger: "增大字号",
+        fontSmaller: "减小字号",
         empty: "暂无卡片，点击右上角编辑图标添加",
         type: {
           line: "折线图",
@@ -174,6 +176,8 @@ export const i18n = createI18n({
         importFail: "Import failed: invalid format",
         removeCard: "Remove card",
         auto: "Auto",
+        fontLarger: "Increase font size",
+        fontSmaller: "Decrease font size",
         empty: "No cards yet. Click the edit icon to add one",
         type: {
           line: "Line",

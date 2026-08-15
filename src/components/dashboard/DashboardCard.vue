@@ -109,6 +109,15 @@ const applyRange = (): void => {
   };
   emit("update", { min: parse(minText.value), max: parse(maxText.value) });
 };
+
+/**
+ * 调整数值卡片字号缩放
+ * @param delta - 缩放增量（正为放大，负为缩小），范围 0.6~2.5
+ */
+const adjustFont = (delta: number): void => {
+  const next = Math.min(2.5, Math.max(0.6, (props.card.fontScale ?? 1) + delta));
+  emit("update", { fontScale: Math.round(next * 100) / 100 });
+};
 </script>
 
 <template>
@@ -174,6 +183,26 @@ const applyRange = (): void => {
             @change="applyRange"
           />
         </div>
+        <!-- 数值卡片：字号调节 -->
+        <div v-else class="ml-auto flex items-center gap-1">
+          <button
+            class="text-secondary hover:bg-[var(--color-hover)] rounded-md px-1.5 py-0.5 text-sm leading-none"
+            :title="t('dashboard.fontSmaller')"
+            @click="adjustFont(-0.15)"
+          >
+            A−
+          </button>
+          <span class="text-secondary font-mono w-9 text-center text-xs"
+            >{{ Math.round((card.fontScale ?? 1) * 100) }}%</span
+          >
+          <button
+            class="text-secondary hover:bg-[var(--color-hover)] rounded-md px-1.5 py-0.5 text-sm leading-none"
+            :title="t('dashboard.fontLarger')"
+            @click="adjustFont(0.15)"
+          >
+            A+
+          </button>
+        </div>
       </div>
 
       <!-- 标题（拖拽手柄） -->
@@ -199,7 +228,7 @@ const applyRange = (): void => {
           :min="card.min"
           :max="card.max"
         />
-        <ValueContent v-else :pid="card.pid" />
+        <ValueContent v-else :pid="card.pid" :font-scale="card.fontScale" />
       </div>
 
       <!-- 缩放句柄（编辑态） -->
