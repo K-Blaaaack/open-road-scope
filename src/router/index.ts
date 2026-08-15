@@ -1,5 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 
+import { usePrefsStore } from "@/stores/prefs";
+
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
@@ -26,4 +28,12 @@ export const router = createRouter({
       component: () => import("@/pages/DeveloperPage.vue"),
     },
   ],
+});
+
+// 开发者菜单仅在开发者模式开启时可访问
+router.beforeEach((to) => {
+  if (to.path === "/developer" && !usePrefsStore().devMode) {
+    return { path: "/dashboard" };
+  }
+  return true;
 });

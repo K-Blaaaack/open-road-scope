@@ -86,9 +86,11 @@ app.whenReady().then(() => {
   ipcMain.handle("app:openDevTools", () => {
     const win = mainWindow;
     if (win && !win.isDestroyed()) {
-      win.webContents.openDevTools({ mode: "detach" });
+      log.info("[devtools] opening DevTools");
+      win.webContents.openDevTools();
       return { ok: true };
     }
+    log.warn("[devtools] no window, cannot open DevTools");
     return { ok: false, error: "no window" };
   });
 

@@ -55,6 +55,13 @@ const confirmDevMode = (): void => {
   prefs.persist();
   confirmingDevMode.value = false;
 };
+
+/** 关闭开发者模式：复位由开发者菜单控制的功能项 */
+const disableDevMode = (): void => {
+  prefs.devMode = false;
+  prefs.showModeSelect = true;
+  prefs.persist();
+};
 </script>
 
 <template>
@@ -228,10 +235,7 @@ const confirmDevMode = (): void => {
           class="relative h-6 w-11 rounded-full bg-sky-500 transition-colors"
           role="switch"
           :aria-checked="true"
-          @click="
-            prefs.devMode = false;
-            prefs.persist();
-          "
+          @click="disableDevMode"
         >
           <span class="absolute left-[22px] top-0.5 h-5 w-5 rounded-full bg-white shadow" />
         </button>

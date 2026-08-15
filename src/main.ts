@@ -5,11 +5,11 @@ import "./styles/base.css";
 import App from "./App.vue";
 import { router } from "./router";
 import { i18n } from "./i18n";
+import { usePrefsStore } from "./stores/prefs";
 
 const app = createApp(App);
-app.use(createPinia());
-app.use(router);
-app.use(i18n);
+const pinia = createPinia();
+app.use(pinia);
 
 /** splash 动画总时长（ms） */
 const SPLASH_ANIM_MS = 2800;
@@ -28,10 +28,14 @@ const removeSplash = (): void => {
   );
 };
 
-// 路由就绪后挂载应用，并保证 splash 动画完整播放后再淡出
-void router.isReady().then(() => {
+// 先加载用户偏好（开发者模式等），再安装路由触发初始导航，
+// 保证路由守卫读取到持久化状态；splash 动画完整播放后淡出
+void (async () => {
+  await usePrefsStore().init();
+  app.use(router);
+  app.use(i18n);
   app.mount("#app");
   const elapsed = performance.now() - (window.__splashStart ?? 0);
   const remaining = Math.max(0, SPLASH_ANIM_MS - elapsed);
   setTimeout(removeSplash, remaining);
-});
+})();
