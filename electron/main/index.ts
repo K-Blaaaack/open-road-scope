@@ -82,6 +82,16 @@ app.whenReady().then(() => {
     return { ok: false, error: "no window" };
   });
 
+  // 打开开发者工具（开发者菜单触发）
+  ipcMain.handle("app:openDevTools", () => {
+    const win = mainWindow;
+    if (win && !win.isDestroyed()) {
+      win.webContents.openDevTools({ mode: "detach" });
+      return { ok: true };
+    }
+    return { ok: false, error: "no window" };
+  });
+
   createWindow();
 
   app.on("activate", () => {

@@ -32,6 +32,29 @@ const confirmEnableExperimental = (): void => {
 const reloadUI = (): void => {
   void window.obd.reloadUI();
 };
+
+/** 开发者模式：连续点击 5 次触发，5 秒无点击重置计数 */
+const devClickCount = ref(0);
+const confirmingDevMode = ref(false);
+let devClickTimer: number | undefined;
+
+const onDevButtonClick = (): void => {
+  devClickCount.value += 1;
+  window.clearTimeout(devClickTimer);
+  devClickTimer = window.setTimeout(() => {
+    devClickCount.value = 0;
+  }, 5000);
+  if (devClickCount.value >= 5) {
+    devClickCount.value = 0;
+    confirmingDevMode.value = true;
+  }
+};
+
+const confirmDevMode = (): void => {
+  prefs.devMode = true;
+  prefs.persist();
+  confirmingDevMode.value = false;
+};
 </script>
 
 <template>
@@ -176,47 +199,128 @@ const reloadUI = (): void => {
           {{ t("settings.reloadNow") }}
         </button>
       </div>
-    </section>
-  </div>
 
-  <!-- 实验性功能开启确认弹窗 -->
-  <Teleport to="body">
-    <div v-if="confirmingExperimental" class="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        @click="confirmingExperimental = false"
-      />
-      <div
-        class="relative w-96 rounded-xl border border-red-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
-      >
-        <div class="flex items-start gap-3">
-          <span
-            class="i-lucide-triangle-alert flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-400"
-          />
-          <div>
-            <h2 class="text-primary text-base font-semibold">
-              {{ t("settings.experimentalTitle") }}
-            </h2>
-            <p class="text-secondary mt-2 text-sm leading-relaxed">
-              {{ t("settings.experimentalDesc") }}
-            </p>
+      <!-- 开发者模式：未开启时连击 5 次按钮；开启后变为开关 -->
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-primary text-sm">{{ t("settings.developer") }}</span>
+            <span
+              v-if="prefs.devMode"
+              class="rounded bg-emerald-400/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300"
+            >
+              {{ t("settings.developerActive") }}
+            </span>
+          </div>
+          <div class="text-secondary mt-0.5 text-xs">
+            {{ prefs.devMode ? t("settings.developerActive") : t("settings.developerDesc") }}
           </div>
         </div>
-        <div class="mt-5 flex justify-end gap-2">
-          <button
-            class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm"
-            @click="confirmingExperimental = false"
-          >
-            {{ t("common.cancel") }}
-          </button>
-          <button
-            class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-400"
-            @click="confirmEnableExperimental"
-          >
-            {{ t("settings.experimentalAccept") }}
-          </button>
+        <button
+          v-if="!prefs.devMode"
+          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-sm transition-colors"
+          @click="onDevButtonClick"
+        >
+          {{ t("settings.developer") }}
+        </button>
+        <button
+          v-else
+          class="relative h-6 w-11 rounded-full bg-sky-500 transition-colors"
+          role="switch"
+          :aria-checked="true"
+          @click="
+            prefs.devMode = false;
+            prefs.persist();
+          "
+        >
+          <span class="absolute left-[22px] top-0.5 h-5 w-5 rounded-full bg-white shadow" />
+        </button>
+      </div>
+    </section>
+
+    <!-- 开发者模式开启警告弹窗 -->
+    <Teleport to="body">
+      <div v-if="confirmingDevMode" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div
+          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          @click="confirmingDevMode = false"
+        />
+        <div
+          class="relative w-96 rounded-xl border border-amber-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+        >
+          <div class="flex items-start gap-3">
+            <span
+              class="i-lucide-terminal flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300"
+            />
+            <div>
+              <h2 class="text-primary text-base font-semibold">
+                {{ t("settings.developerWarningTitle") }}
+              </h2>
+              <p class="text-secondary mt-2 text-sm leading-relaxed">
+                {{ t("settings.developerWarningDesc") }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-5 flex justify-end gap-2">
+            <button
+              class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm"
+              @click="confirmingDevMode = false"
+            >
+              {{ t("common.cancel") }}
+            </button>
+            <button
+              class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-amber-400"
+              @click="confirmDevMode"
+            >
+              {{ t("settings.developerAccept") }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </Teleport>
+    </Teleport>
+
+    <!-- 实验性功能开启确认弹窗 -->
+    <Teleport to="body">
+      <div
+        v-if="confirmingExperimental"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+      >
+        <div
+          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          @click="confirmingExperimental = false"
+        />
+        <div
+          class="relative w-96 rounded-xl border border-red-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+        >
+          <div class="flex items-start gap-3">
+            <span
+              class="i-lucide-triangle-alert flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-400"
+            />
+            <div>
+              <h2 class="text-primary text-base font-semibold">
+                {{ t("settings.experimentalTitle") }}
+              </h2>
+              <p class="text-secondary mt-2 text-sm leading-relaxed">
+                {{ t("settings.experimentalDesc") }}
+              </p>
+            </div>
+          </div>
+          <div class="mt-5 flex justify-end gap-2">
+            <button
+              class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm"
+              @click="confirmingExperimental = false"
+            >
+              {{ t("common.cancel") }}
+            </button>
+            <button
+              class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-400"
+              @click="confirmEnableExperimental"
+            >
+              {{ t("settings.experimentalAccept") }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </div>
 </template>

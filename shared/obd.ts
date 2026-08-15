@@ -120,4 +120,6 @@ export interface ObdApi {
   onEvent(callback: (event: RpcEvent) => void): () => void;
   /** 立即重新加载界面（应对突发界面异常） */
   reloadUI(): Promise<unknown>;
+  /** 打开 Chromium 开发者工具（独立窗口） */
+  openDevTools(): Promise<unknown>;
 }

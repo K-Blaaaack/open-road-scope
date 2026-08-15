@@ -6,7 +6,13 @@ export const i18n = createI18n({
   messages: {
     "zh-CN": {
       app: { name: "行车数据" },
-      nav: { dashboard: "仪表盘", connection: "连接", diagnostics: "诊断", settings: "设置" },
+      nav: {
+        dashboard: "仪表盘",
+        connection: "连接",
+        diagnostics: "诊断",
+        settings: "设置",
+        developer: "开发者菜单",
+      },
       settings: {
         title: "设置",
         language: "界面语言",
@@ -27,6 +33,13 @@ export const i18n = createI18n({
         hotReload: "重新加载界面",
         reloadNow: "立即重载",
         hotReloadDesc: "界面异常时点击立即重载，也可按 F5 / Ctrl+R",
+        developer: "开发者模式",
+        developerDesc: "连续点击下方按钮 5 次进入开发者模式",
+        developerActive: "开发者模式已开启",
+        developerWarningTitle: "开启开发者模式",
+        developerWarningDesc:
+          "开发者模式将显示实验性功能与调试工具，可能带来稳定性风险。仅建议开发与调试时使用。",
+        developerAccept: "我已了解，开启",
         experimentalTitle: "开启实验性功能",
         experimentalDesc:
           "「清除故障码」会移除车辆 ECU 中的故障码记录，可能影响后续诊断与年检。该功能尚未经过充分验证，请确认你了解相关风险后再开启。",
@@ -40,6 +53,17 @@ export const i18n = createI18n({
         error: "连接异常",
         sim: "模拟设备",
         real: "实车设备",
+      },
+      developer: {
+        title: "开发者菜单",
+        appInfo: "应用信息",
+        version: "版本",
+        platform: "平台",
+        electron: "Electron",
+        chromium: "Chromium",
+        node: "Node.js",
+        openDevtools: "打开开发者工具",
+        devtoolsHint: "在独立窗口打开 Chromium 开发者工具",
       },
       dashboard: {
         title: "实时仪表",
@@ -122,6 +146,7 @@ export const i18n = createI18n({
         connection: "Connection",
         diagnostics: "Diagnostics",
         settings: "Settings",
+        developer: "Developer",
       },
       settings: {
         title: "Settings",
@@ -143,6 +168,13 @@ export const i18n = createI18n({
         hotReload: "Reload UI",
         reloadNow: "Reload now",
         hotReloadDesc: "Reload the UI instantly when it misbehaves, or press F5 / Ctrl+R",
+        developer: "Developer mode",
+        developerDesc: "Click the button below 5 times to enter developer mode",
+        developerActive: "Developer mode enabled",
+        developerWarningTitle: "Enable developer mode",
+        developerWarningDesc:
+          "Developer mode reveals experimental features and debugging tools, which may affect stability. Recommended for development and debugging only.",
+        developerAccept: "I understand, enable",
         experimentalTitle: "Enable experimental feature",
         experimentalDesc:
           "Clearing DTCs removes fault records from the vehicle ECU, which may affect future diagnostics and inspections. This feature is not fully validated. Please make sure you understand the risks before enabling it.",
@@ -156,6 +188,17 @@ export const i18n = createI18n({
         error: "Error",
         sim: "Simulated",
         real: "Live vehicle",
+      },
+      developer: {
+        title: "Developer",
+        appInfo: "App info",
+        version: "Version",
+        platform: "Platform",
+        electron: "Electron",
+        chromium: "Chromium",
+        node: "Node.js",
+        openDevtools: "Open DevTools",
+        devtoolsHint: "Open Chromium DevTools in a separate window",
       },
       dashboard: {
         title: "Live gauges",

@@ -20,5 +20,10 @@ export const router = createRouter({
       name: "settings",
       component: () => import("@/pages/SettingsPage.vue"),
     },
+    {
+      path: "/developer",
+      name: "developer",
+      component: () => import("@/pages/DeveloperPage.vue"),
+    },
   ],
 });

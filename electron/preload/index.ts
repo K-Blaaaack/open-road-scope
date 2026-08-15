@@ -12,6 +12,7 @@ const obdApi: ObdApi = {
   status: () => ipcRenderer.invoke("obd:status"),
   listPorts: () => ipcRenderer.invoke("obd:listPorts"),
   reloadUI: () => ipcRenderer.invoke("app:reloadUI"),
+  openDevTools: () => ipcRenderer.invoke("app:openDevTools"),
   onEvent: (callback) => {
     const listener = (_e: unknown, event: unknown): void => callback(event as never);
     ipcRenderer.on("obd:event", listener);

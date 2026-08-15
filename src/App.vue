@@ -28,12 +28,19 @@ const statusColor = computed(() => {
   return map[store.status.state] ?? "bg-gray-500";
 });
 
-const navItems = [
-  { path: "/dashboard", icon: "i-lucide-gauge", key: "nav.dashboard" },
-  { path: "/connection", icon: "i-lucide-cable", key: "nav.connection" },
-  { path: "/diagnostics", icon: "i-lucide-stethoscope", key: "nav.diagnostics" },
-  { path: "/settings", icon: "i-lucide-settings", key: "nav.settings" },
-];
+/** 导航项：开发者模式开启时追加开发者菜单 */
+const navItems = computed(() => {
+  const base = [
+    { path: "/dashboard", icon: "i-lucide-gauge", key: "nav.dashboard" },
+    { path: "/connection", icon: "i-lucide-cable", key: "nav.connection" },
+    { path: "/diagnostics", icon: "i-lucide-stethoscope", key: "nav.diagnostics" },
+    { path: "/settings", icon: "i-lucide-settings", key: "nav.settings" },
+  ];
+  if (prefs.devMode) {
+    base.push({ path: "/developer", icon: "i-lucide-terminal", key: "nav.developer" });
+  }
+  return base;
+});
 
 onMounted(() => {
   void prefs.init().then(() => store.setup());
