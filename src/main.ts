@@ -12,7 +12,7 @@ app.use(router);
 app.use(i18n);
 
 /** splash 动画总时长（ms） */
-const SPLASH_ANIM_MS = 2050;
+const SPLASH_ANIM_MS = 2800;
 
 /** 移除 splash 层（淡出后销毁） */
 const removeSplash = (): void => {

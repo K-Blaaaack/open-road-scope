@@ -51,8 +51,8 @@
         color: #38bdf8;
         will-change: transform, opacity;
         animation:
-          splash-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both,
-          splash-flicker 1.8s ease-in-out 0.5s infinite;
+          splash-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both,
+          splash-flicker 1.8s ease-in-out 0.9s infinite;
       }
       .splash-logo .letter {
         stroke: currentColor;
@@ -63,13 +63,13 @@
         stroke-dasharray: 300;
         stroke-dashoffset: 300;
         will-change: stroke-dashoffset;
-        animation: splash-draw 1s ease forwards;
+        animation: splash-draw 1.6s ease forwards;
       }
       .splash-logo .letter:nth-child(1) {
-        animation-delay: 0.15s;
+        animation-delay: 0.2s;
       }
       .splash-logo .letter:nth-child(2) {
-        animation-delay: 0.45s;
+        animation-delay: 0.65s;
       }
       .splash-brand {
         display: flex;
@@ -90,11 +90,11 @@
         line-height: 1;
         will-change: transform, opacity;
       }
-      /* 品牌名逐字入场：每个字符上浮缩放淡入 */
+      /* 品牌名逐字入场：每个字符上浮缩放淡入（在 logo 描边进行中开始） */
       .splash-letter {
         display: inline-block;
         will-change: transform, opacity;
-        animation: splash-letter-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation: splash-letter-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
       }
       @keyframes splash-letter-in {
         from {
@@ -112,7 +112,7 @@
         color: currentColor;
         opacity: 0;
         will-change: transform, opacity;
-        animation: splash-rise-sub 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+        animation: splash-rise-sub 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
       }
       .splash-footer {
         position: absolute;
@@ -125,7 +125,7 @@
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei",
           sans-serif;
-        animation: splash-rise-sub 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.36s forwards;
+        animation: splash-rise-sub 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
       }
       @keyframes splash-rise {
         from {
@@ -203,7 +203,7 @@
           var s = document.createElement("span");
           s.className = "splash-letter";
           s.textContent = text[i];
-          s.style.animationDelay = (0.1 + i * 0.045).toFixed(3) + "s";
+          s.style.animationDelay = (0.9 + i * 0.06).toFixed(3) + "s";
           name.appendChild(s);
         }
       })();
