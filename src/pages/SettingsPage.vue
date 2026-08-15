@@ -140,6 +140,28 @@ const disableDevMode = (): void => {
 
       <div class="flex items-center justify-between">
         <div>
+          <div class="text-primary text-sm">{{ t("settings.showNavLabels") }}</div>
+          <div class="text-secondary mt-0.5 text-xs">{{ t("settings.showNavLabelsDesc") }}</div>
+        </div>
+        <button
+          class="relative h-6 w-11 rounded-full transition-colors"
+          :class="prefs.showNavLabels ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
+          role="switch"
+          :aria-checked="prefs.showNavLabels"
+          @click="
+            prefs.showNavLabels = !prefs.showNavLabels;
+            prefs.persist();
+          "
+        >
+          <span
+            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+            :class="prefs.showNavLabels ? 'left-[22px]' : 'left-0.5'"
+          />
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
           <div class="text-primary text-sm">{{ t("settings.fitViewport") }}</div>
           <div class="text-secondary mt-0.5 text-xs">{{ t("settings.fitViewportDesc") }}</div>
         </div>

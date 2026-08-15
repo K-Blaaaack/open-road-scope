@@ -56,17 +56,23 @@ onMounted(() => {
 <template>
   <div class="flex h-full">
     <aside
-      class="border-border flex w-14 flex-col items-center gap-2 border-r bg-[var(--color-bg-elevated)] py-4"
+      class="border-border flex flex-col gap-2 border-r bg-[var(--color-bg-elevated)] py-4"
+      :class="prefs.showNavLabels ? 'w-44 items-stretch px-2' : 'w-14 items-center'"
     >
       <router-link
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="flex-center text-secondary hover:bg-[var(--color-hover)] hover:text-primary h-10 w-10 rounded-lg transition-colors"
-        :class="route.path === item.path ? '!text-primary bg-[var(--color-active)]' : ''"
+        class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex items-center gap-2.5 rounded-lg transition-colors"
+        :class="[
+          prefs.showNavLabels ? 'px-3 py-2 text-sm' : 'flex-center h-10 w-10',
+          route.path === item.path ? '!text-primary bg-[var(--color-active)]' : '',
+        ]"
         :title="t(item.key)"
       >
-        <span :class="item.icon" class="h-5 w-5" />
+        <span :class="item.icon" class="h-5 w-5 shrink-0" />
+        <!-- 导航文字说明，可在设置中控制显示 -->
+        <span v-if="prefs.showNavLabels" class="truncate">{{ t(item.key) }}</span>
       </router-link>
     </aside>
 

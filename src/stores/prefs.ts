@@ -16,6 +16,7 @@ interface PrefsSnapshot {
   showClearDtc?: boolean;
   devMode?: boolean;
   showModeSelect?: boolean;
+  showNavLabels?: boolean;
 }
 
 const applyTheme = (theme: Theme): void => {
@@ -49,6 +50,8 @@ export const usePrefsStore = defineStore("prefs", () => {
   const devMode = ref(false);
   /** 顶栏是否显示模拟/实车模式标识（默认显示，可在开发者菜单关闭） */
   const showModeSelect = ref(true);
+  /** 左侧导航是否显示文字说明（默认显示） */
+  const showNavLabels = ref(true);
   /** 界面热重载：崩溃自动恢复与 F5/Ctrl+R 快捷键 */
   const loaded = ref(false);
 
@@ -63,6 +66,7 @@ export const usePrefsStore = defineStore("prefs", () => {
         showClearDtc.value = saved.showClearDtc ?? false;
         devMode.value = saved.devMode ?? false;
         showModeSelect.value = saved.showModeSelect ?? true;
+        showNavLabels.value = saved.showNavLabels ?? true;
       }
     } catch {
       // 存储不可用时回退默认值
@@ -80,6 +84,7 @@ export const usePrefsStore = defineStore("prefs", () => {
       showClearDtc: showClearDtc.value,
       devMode: devMode.value,
       showModeSelect: showModeSelect.value,
+      showNavLabels: showNavLabels.value,
     });
   };
 
@@ -107,6 +112,7 @@ export const usePrefsStore = defineStore("prefs", () => {
     showClearDtc,
     devMode,
     showModeSelect,
+    showNavLabels,
     loaded,
     init,
     toggleTheme,
