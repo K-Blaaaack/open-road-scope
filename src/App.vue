@@ -107,7 +107,7 @@ onMounted(() => {
           <span class="i-lucide-car text-primary h-5 w-5" />
           <span class="text-primary font-semibold tracking-wide">OpenRoadScope</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <!-- 主题切换按钮（原样式：常态背景随日夜模式切换） -->
           <button
             class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
@@ -140,8 +140,6 @@ onMounted(() => {
           >
             <span class="i-lucide-pen-line h-4 w-4" />
           </button>
-        </div>
-        <div class="flex items-center gap-3">
           <span class="text-secondary text-xs">
             {{ store.status.mode === "sim" ? t("status.sim") : t("status.real") }}
           </span>
