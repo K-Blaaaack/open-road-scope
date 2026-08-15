@@ -17,6 +17,13 @@ export const i18n = createI18n({
         themeDesc: "切换深色与浅色外观",
         dark: "深色",
         light: "浅色",
+        behavior: "行为选项",
+        behaviorDesc: "自定义应用行为",
+        fitViewport: "内容适配窗口高度",
+        fitViewportDesc: "仪表盘内容自动缩放填满窗口，无需滚动",
+        showClearDtc: "显示清除故障码按钮",
+        showClearDtcDesc: "在诊断页显示清除故障码按钮（默认隐藏）",
+        experimental: "实验性",
       },
       common: { day: "日间", night: "夜间", save: "保存", cancel: "取消" },
       status: {
@@ -78,6 +85,7 @@ export const i18n = createI18n({
         noDtc: "无故障码",
         vin: "车辆识别码",
         dtc: "故障码列表",
+        confirmClear: "确定要清除所有故障码吗？此操作不可撤销。",
       },
       pid: {
         SPEED: "车速",
@@ -116,6 +124,13 @@ export const i18n = createI18n({
         themeDesc: "Switch between dark and light",
         dark: "Dark",
         light: "Light",
+        behavior: "Behavior",
+        behaviorDesc: "Customize app behavior",
+        fitViewport: "Fit content to window",
+        fitViewportDesc: "Auto-scale the dashboard to fill the window without scrolling",
+        showClearDtc: "Show clear DTC button",
+        showClearDtcDesc: "Show the clear DTC button on the diagnostics page (hidden by default)",
+        experimental: "Experimental",
       },
       common: { day: "Day", night: "Night", save: "Save", cancel: "Cancel" },
       status: {
@@ -177,6 +192,7 @@ export const i18n = createI18n({
         noDtc: "No fault codes",
         vin: "VIN",
         dtc: "Fault codes",
+        confirmClear: "Clear all fault codes? This cannot be undone.",
       },
       pid: {
         SPEED: "Speed",

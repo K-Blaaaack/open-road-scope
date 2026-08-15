@@ -4,32 +4,48 @@ import { useI18n } from "vue-i18n";
 
 import { useDashboardStore } from "@/stores/dashboard";
 import { useObdStore } from "@/stores/obd";
+import { usePrefsStore } from "@/stores/prefs";
 import { GRID_COLS, GRID_ROW_HEIGHT, CARD_PIDS, type GaugeType, type Pid } from "@shared/dashboard";
 import DashboardCard from "@/components/dashboard/DashboardCard.vue";
 
 const { t } = useI18n();
 const layout = useDashboardStore();
 const obd = useObdStore();
+const prefs = usePrefsStore();
 
 const containerRef = ref<HTMLDivElement>();
 const containerWidth = ref(0);
+const containerHeight = ref(0);
 let ro: ResizeObserver | null = null;
 
 const hasData = computed(() => obd.lastTs > 0);
 
-/** 容器最小高度：最大卡片底部 + 留白 */
-const containerHeight = computed(() => {
+/** 卡片总行数 */
+const totalRows = computed(() => {
   const bottom = layout.cards.reduce((m, c) => Math.max(m, c.y + c.h), 0);
-  return `${Math.max(bottom, 4) * GRID_ROW_HEIGHT + 24}px`;
+  return Math.max(bottom, 4);
+});
+
+/** 网格行高：适配窗口时按可用高度压缩，否则用固定行高（可滚动） */
+const rowHeight = computed(() => {
+  if (prefs.fitViewport) {
+    const avail = containerHeight.value - 8;
+    return Math.max(52, avail / totalRows.value);
+  }
+  return GRID_ROW_HEIGHT;
+});
+
+const containerStyle = computed(() => {
+  if (prefs.fitViewport) {
+    return { flex: "1", minHeight: "0", overflow: "hidden" as const };
+  }
+  return { height: `${totalRows.value * GRID_ROW_HEIGHT + 24}px` };
 });
 
 const gridLines = computed(() => {
   if (!layout.editing) return null;
   const cols = Array.from({ length: GRID_COLS - 1 }, (_, i) => i + 1);
-  const rows = Array.from(
-    { length: Math.max(layout.cards.reduce((m, c) => Math.max(m, c.y + c.h), 4) - 1, 0) },
-    (_, i) => i + 1
-  );
+  const rows = Array.from({ length: totalRows.value - 1 }, (_, i) => i + 1);
   return { cols, rows };
 });
 
@@ -38,6 +54,7 @@ onMounted(() => {
   ro = new ResizeObserver((entries) => {
     for (const entry of entries) {
       containerWidth.value = entry.contentRect.width;
+      containerHeight.value = entry.contentRect.height;
     }
   });
   if (containerRef.value) ro.observe(containerRef.value);
@@ -117,7 +134,7 @@ const doImport = (): void => {
     </div>
 
     <!-- 卡片布局区 -->
-    <div ref="containerRef" class="relative w-full" :style="{ height: containerHeight }">
+    <div ref="containerRef" class="relative w-full" :style="containerStyle">
       <!-- 编辑态网格背景线 -->
       <div v-if="gridLines" class="pointer-events-none absolute inset-0">
         <div
@@ -130,7 +147,7 @@ const doImport = (): void => {
           v-for="r in gridLines.rows"
           :key="`r${r}`"
           class="absolute left-0 w-full border-t border-dashed border-sky-400/15"
-          :style="{ top: `${r * GRID_ROW_HEIGHT}px` }"
+          :style="{ top: `${r * rowHeight}px` }"
         />
       </div>
 
@@ -140,6 +157,7 @@ const doImport = (): void => {
         :card="card"
         :editing="layout.editing"
         :container-width="containerWidth"
+        :row-height="rowHeight"
         @move="(x, y) => layout.moveCard(card.id, x, y)"
         @resize="(w, h) => layout.resizeCard(card.id, w, h)"
         @remove="layout.removeCard(card.id)"

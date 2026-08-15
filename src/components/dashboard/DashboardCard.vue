@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { GRID_ROW_HEIGHT, type DashboardCard, type GaugeType } from "@shared/dashboard";
+import { type DashboardCard, type GaugeType } from "@shared/dashboard";
 import LineContent from "./LineContent.vue";
 import BarContent from "./BarContent.vue";
 import ValueContent from "./ValueContent.vue";
@@ -14,6 +14,8 @@ const props = defineProps<{
   editing: boolean;
   /** 容器宽度（px），用于网格换算 */
   containerWidth: number;
+  /** 当前行高（px），随视口适配变化 */
+  rowHeight: number;
 }>();
 
 const emit = defineEmits<{
@@ -33,9 +35,9 @@ const types: { type: GaugeType; icon: string }[] = [
 
 const style = computed(() => ({
   left: `${(props.card.x / 12) * 100}%`,
-  top: `${props.card.y * GRID_ROW_HEIGHT}px`,
+  top: `${props.card.y * props.rowHeight}px`,
   width: `${(props.card.w / 12) * 100}%`,
-  height: `${props.card.h * GRID_ROW_HEIGHT}px`,
+  height: `${props.card.h * props.rowHeight}px`,
 }));
 
 const dragOffset = ref({ x: 0, y: 0 });
@@ -66,7 +68,7 @@ const onDragEnd = (): void => {
   if (!dragging) return;
   dragging = false;
   const nx = dragStart.cardX + dragOffset.value.x / colWidth();
-  const ny = dragStart.cardY + dragOffset.value.y / GRID_ROW_HEIGHT;
+  const ny = dragStart.cardY + dragOffset.value.y / props.rowHeight;
   emit("move", nx, ny);
   dragOffset.value = { x: 0, y: 0 };
 };
@@ -82,7 +84,7 @@ const onResizeMove = (e: PointerEvent): void => {
   if (!resizing) return;
   resizeOffset.value = {
     w: (e.clientX - resizeStart.x) / colWidth(),
-    h: (e.clientY - resizeStart.y) / GRID_ROW_HEIGHT,
+    h: (e.clientY - resizeStart.y) / props.rowHeight,
   };
 };
 

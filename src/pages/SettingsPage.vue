@@ -76,5 +76,63 @@ const selectLocale = (l: Locale): void => prefs.setLocale(l);
         </button>
       </div>
     </section>
+
+    <section class="glass-card flex flex-col gap-4 p-5">
+      <div>
+        <div class="text-primary font-medium">{{ t("settings.behavior") }}</div>
+        <div class="text-secondary mt-0.5 text-sm">{{ t("settings.behaviorDesc") }}</div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-primary text-sm">{{ t("settings.fitViewport") }}</div>
+          <div class="text-secondary mt-0.5 text-xs">{{ t("settings.fitViewportDesc") }}</div>
+        </div>
+        <button
+          class="relative h-6 w-11 rounded-full transition-colors"
+          :class="prefs.fitViewport ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
+          role="switch"
+          :aria-checked="prefs.fitViewport"
+          @click="
+            prefs.fitViewport = !prefs.fitViewport;
+            prefs.persist();
+          "
+        >
+          <span
+            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+            :class="prefs.fitViewport ? 'left-[22px]' : 'left-0.5'"
+          />
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-primary text-sm">{{ t("settings.showClearDtc") }}</span>
+            <span
+              class="rounded bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300"
+            >
+              {{ t("settings.experimental") }}
+            </span>
+          </div>
+          <div class="text-secondary mt-0.5 text-xs">{{ t("settings.showClearDtcDesc") }}</div>
+        </div>
+        <button
+          class="relative h-6 w-11 rounded-full transition-colors"
+          :class="prefs.showClearDtc ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
+          role="switch"
+          :aria-checked="prefs.showClearDtc"
+          @click="
+            prefs.showClearDtc = !prefs.showClearDtc;
+            prefs.persist();
+          "
+        >
+          <span
+            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+            :class="prefs.showClearDtc ? 'left-[22px]' : 'left-0.5'"
+          />
+        </button>
+      </div>
+    </section>
   </div>
 </template>

@@ -12,6 +12,8 @@ const STORAGE_KEY = "open-road-scope:prefs";
 interface PrefsSnapshot {
   theme: Theme;
   locale: Locale;
+  fitViewport?: boolean;
+  showClearDtc?: boolean;
 }
 
 const applyTheme = (theme: Theme): void => {
@@ -27,10 +29,14 @@ const applyLocale = (locale: Locale): void => {
   document.documentElement.lang = locale;
 };
 
-/** 用户偏好：主题与语言，持久化到 IndexedDB */
+/** 用户偏好：主题、语言与行为选项，持久化到 IndexedDB */
 export const usePrefsStore = defineStore("prefs", () => {
   const theme = ref<Theme>("dark");
   const locale = ref<Locale>("zh-CN");
+  /** 仪表盘内容是否适配窗口高度（不滚屏） */
+  const fitViewport = ref(true);
+  /** 是否显示「清除故障码」按钮（实验性，默认隐藏） */
+  const showClearDtc = ref(false);
   const loaded = ref(false);
 
   /** 从本地存储恢复偏好并应用到界面 */
@@ -40,6 +46,8 @@ export const usePrefsStore = defineStore("prefs", () => {
       if (saved) {
         theme.value = saved.theme;
         locale.value = saved.locale;
+        fitViewport.value = saved.fitViewport ?? true;
+        showClearDtc.value = saved.showClearDtc ?? false;
       }
     } catch {
       // 存储不可用时回退默认值
@@ -50,7 +58,12 @@ export const usePrefsStore = defineStore("prefs", () => {
   };
 
   const persist = (): void => {
-    void localforage.setItem(STORAGE_KEY, { theme: theme.value, locale: locale.value });
+    void localforage.setItem(STORAGE_KEY, {
+      theme: theme.value,
+      locale: locale.value,
+      fitViewport: fitViewport.value,
+      showClearDtc: showClearDtc.value,
+    });
   };
 
   /** 切换深色/浅色主题 */
@@ -70,5 +83,15 @@ export const usePrefsStore = defineStore("prefs", () => {
     persist();
   };
 
-  return { theme, locale, loaded, init, toggleTheme, setLocale };
+  return {
+    theme,
+    locale,
+    fitViewport,
+    showClearDtc,
+    loaded,
+    init,
+    toggleTheme,
+    setLocale,
+    persist,
+  };
 });

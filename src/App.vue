@@ -77,7 +77,8 @@ onMounted(() => {
             :title="isDark ? t('common.day') : t('common.night')"
             @click="prefs.toggleTheme()"
           >
-            <span :class="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="h-4 w-4" />
+            <!-- 图标显示当前主题状态：黑夜显示月亮，日间显示太阳 -->
+            <span :class="isDark ? 'i-lucide-moon' : 'i-lucide-sun'" class="h-4 w-4" />
           </button>
           <span class="text-secondary text-xs">
             {{ store.status.mode === "sim" ? t("status.sim") : t("status.real") }}

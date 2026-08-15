@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
 import { PID_META, type Pid } from "@shared/obd";
@@ -14,7 +13,6 @@ const props = defineProps<{
   max: number | null;
 }>();
 
-const { t } = useI18n();
 const store = useObdStore();
 const canvasRef = ref<HTMLCanvasElement>();
 let rafId = 0;
@@ -117,9 +115,8 @@ onBeforeUnmount(() => cancelAnimationFrame(rafId));
 </script>
 
 <template>
-  <div class="flex h-full flex-col gap-2">
-    <div class="flex items-baseline justify-between">
-      <span class="text-secondary text-xs font-medium tracking-wider">{{ t(`pid.${pid}`) }}</span>
+  <div class="flex h-full flex-col">
+    <div class="flex items-baseline justify-end">
       <span class="font-mono text-base font-semibold text-primary">
         {{ (store.latest[pid] ?? 0).toFixed(meta.decimals) }}
         <span class="text-secondary text-xs">{{ meta.unit }}</span>

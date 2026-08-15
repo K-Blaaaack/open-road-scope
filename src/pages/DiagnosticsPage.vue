@@ -3,9 +3,11 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
+import { usePrefsStore } from "@/stores/prefs";
 
 const { t } = useI18n();
 const store = useObdStore();
+const prefs = usePrefsStore();
 
 const dtcList = ref<string[]>([]);
 const vin = ref("");
@@ -22,6 +24,10 @@ const readDtc = async (): Promise<void> => {
 };
 
 const clearDtc = async (): Promise<void> => {
+  // 保留二次确认，防止误清除故障码
+  if (!window.confirm(t("diagnostics.confirmClear"))) {
+    return;
+  }
   busy.value = true;
   try {
     await store.query("CLEAR_DTC");
@@ -55,8 +61,10 @@ const readVin = async (): Promise<void> => {
         >
           {{ t("diagnostics.readDtc") }}
         </button>
+        <!-- 清除故障码按钮默认隐藏，需在设置中开启（实验性功能） -->
         <button
-          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
+          v-if="prefs.showClearDtc"
+          class="border-border text-red-300/90 hover:bg-red-400/10 rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
           :disabled="busy || !store.connected"
           @click="clearDtc"
         >
