@@ -165,5 +165,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body_path: release_body.md
+          update_release_body: true
           files: |
             release-assets/*
