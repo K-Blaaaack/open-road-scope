@@ -5,11 +5,13 @@ import { useRoute } from "vue-router";
 
 import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
+import { useDashboardStore } from "@/stores/dashboard";
 
 const { t } = useI18n();
 const route = useRoute();
 const store = useObdStore();
 const prefs = usePrefsStore();
+const layout = useDashboardStore();
 
 const statusText = computed(() => {
   const key = store.status.state as "idle" | "connecting" | "connected" | "error";
@@ -105,7 +107,7 @@ onMounted(() => {
           <span class="i-lucide-car text-primary h-5 w-5" />
           <span class="text-primary font-semibold tracking-wide">OpenRoadScope</span>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
           <!-- 主题切换按钮（原样式：常态背景随日夜模式切换） -->
           <button
             class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
@@ -123,6 +125,23 @@ onMounted(() => {
               class="h-4 w-4"
             />
           </button>
+          <!-- 仪表盘编辑按钮（仅仪表盘页面显示，样式与主题按钮一致） -->
+          <button
+            v-if="route.path === '/dashboard'"
+            class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+            :class="[
+              isDark
+                ? 'border-white/10 bg-white/10 hover:bg-white/20'
+                : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10',
+              layout.editing ? '!border-sky-400/60 !text-sky-300 bg-sky-400/10' : '',
+            ]"
+            :title="t('dashboard.edit')"
+            @click="layout.editing ? layout.cancelEdit() : layout.enterEdit()"
+          >
+            <span class="i-lucide-pen-line h-4 w-4" />
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
           <span class="text-secondary text-xs">
             {{ store.status.mode === "sim" ? t("status.sim") : t("status.real") }}
           </span>
