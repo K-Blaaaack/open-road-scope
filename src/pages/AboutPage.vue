@@ -48,7 +48,15 @@ const env = computed(() => {
       </div>
       <div class="mt-2 border-t border-[var(--color-border)] pt-3">
         <p class="text-secondary leading-relaxed">{{ t("about.desc") }}</p>
-        <p class="text-secondary/70 mt-2 text-xs leading-relaxed">{{ t("about.license") }}</p>
+        <div class="mt-3 flex items-center gap-2">
+          <span
+            class="rounded bg-emerald-400/15 px-2 py-0.5 font-mono text-[11px] font-semibold text-emerald-300"
+          >
+            GPL-2.0
+          </span>
+          <span class="text-secondary/80 text-xs">{{ t("about.license") }}</span>
+        </div>
+        <p class="text-secondary/60 mt-2 text-xs leading-relaxed">{{ t("about.licenseNote") }}</p>
       </div>
     </div>
   </div>
