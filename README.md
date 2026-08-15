@@ -40,12 +40,28 @@ pnpm dev
 
 测试：`pnpm test:all`（web + node + sidecar）
 
+## 平台支持
+
+| 平台 | 发行格式 | 说明 |
+|---|---|---|
+| Windows | NSIS 安装包 / 便携版 / MSI | `build:win` / `build:win:nsis` / `build:win:portable` / `build:win:msi` |
+| macOS | DMG / ZIP | `build:mac` / `build:mac:dmg` / `build:mac:zip`（ZIP 供自动更新） |
+| Linux | AppImage / deb / rpm / snap / tar.gz | `build:linux` 或按需 `build:linux:deb` 等 |
+| Android | — | Electron 不支持移动端；如需要可基于渲染层（Vue 3）以 Capacitor 迁移，OBD 采集需改用 Android USB/蓝牙方案 |
+
+> sidecar（PyInstaller）产物与平台绑定，跨平台打包需在**各目标平台**上分别执行（Windows 上打 Windows 包、macOS 上打 macOS 包）。
+
 ## 打包
 
 ```bash
-pnpm build:sidecar   # PyInstaller 打包 sidecar
-pnpm build:linux     # 或 build:win / build:mac
+pnpm build:sidecar      # 先构建当前平台的 sidecar
+pnpm build:linux        # 构建 Linux 全目标（AppImage + deb + rpm + snap + tar.gz）
+pnpm build:win          # 构建 Windows 全目标（NSIS + portable + MSI）
+pnpm build:mac          # 构建 macOS 全目标（DMG + ZIP）
+# 也可按需指定单一格式，如 pnpm build:linux:deb
 ```
+
+目标格式构建依赖对应平台工具链（deb/rpm 需 fpm、snap 需 snapcraft、MSI 需 WiX、macOS 需在 macOS 上构建）。
 
 ## 许可证
 

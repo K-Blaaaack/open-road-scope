@@ -14,15 +14,21 @@ const config: Configuration = {
     },
   ],
   win: {
-    target: ["nsis"],
+    // 常见 Windows 发行格式：NSIS 安装包 / 便携版 / MSI 企业部署
+    target: ["nsis", "portable", "msi"],
+    icon: undefined,
   },
   mac: {
-    target: ["dmg"],
+    // 常见 macOS 发行格式：DMG 镜像 / ZIP（自动更新用）
+    target: ["dmg", "zip"],
     category: "public.app-category.utilities",
+    icon: undefined,
   },
   linux: {
-    target: ["AppImage"],
+    // 常见 Linux 发行格式：AppImage / deb / rpm / snap / tar.gz
+    target: ["AppImage", "deb", "rpm", "snap", "tar.gz"],
     category: "Utility",
+    icon: undefined,
   },
   nsis: {
     oneClick: false,

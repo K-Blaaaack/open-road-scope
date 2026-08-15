@@ -3,6 +3,10 @@
   "productName": "OpenRoadScope",
   "version": "0.1.0",
   "description": "Cross-platform vehicle data dashboard powered by OBD-II (ELM327)",
+  "author": {
+    "name": "OpenRoadScope contributors",
+    "email": "dev@openroadscope.local"
+  },
   "type": "module",
   "packageManager": "pnpm@11.15.1",
   "main": "./out/main/index.js",
@@ -28,8 +32,18 @@
     "build": "rimraf out && pnpm typecheck && electron-vite build",
     "build:unpack": "pnpm build && pnpm build:sidecar && electron-builder --dir --config electron-builder.config.ts",
     "build:win": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --win",
+    "build:win:nsis": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --win nsis",
+    "build:win:portable": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --win portable",
+    "build:win:msi": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --win msi",
     "build:mac": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --mac",
-    "build:linux": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux"
+    "build:mac:dmg": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --mac dmg",
+    "build:mac:zip": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --mac zip",
+    "build:linux": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux",
+    "build:linux:appimage": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux AppImage",
+    "build:linux:deb": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux deb",
+    "build:linux:rpm": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux rpm",
+    "build:linux:snap": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux snap",
+    "build:linux:tar": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux tar.gz"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
