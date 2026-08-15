@@ -24,6 +24,10 @@ export const i18n = createI18n({
         showClearDtc: "显示清除故障码按钮",
         showClearDtcDesc: "在诊断页显示清除故障码按钮（默认隐藏）",
         experimental: "实验性",
+        experimentalTitle: "开启实验性功能",
+        experimentalDesc:
+          "「清除故障码」会移除车辆 ECU 中的故障码记录，可能影响后续诊断与年检。该功能尚未经过充分验证，请确认你了解相关风险后再开启。",
+        experimentalAccept: "我已了解，开启",
       },
       common: { day: "日间", night: "夜间", save: "保存", cancel: "取消" },
       status: {
@@ -131,6 +135,10 @@ export const i18n = createI18n({
         showClearDtc: "Show clear DTC button",
         showClearDtcDesc: "Show the clear DTC button on the diagnostics page (hidden by default)",
         experimental: "Experimental",
+        experimentalTitle: "Enable experimental feature",
+        experimentalDesc:
+          "Clearing DTCs removes fault records from the vehicle ECU, which may affect future diagnostics and inspections. This feature is not fully validated. Please make sure you understand the risks before enabling it.",
+        experimentalAccept: "I understand, enable",
       },
       common: { day: "Day", night: "Night", save: "Save", cancel: "Cancel" },
       status: {

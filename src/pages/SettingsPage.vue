@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { usePrefsStore, type Locale } from "@/stores/prefs";
@@ -7,6 +8,25 @@ const { t } = useI18n();
 const prefs = usePrefsStore();
 
 const selectLocale = (l: Locale): void => prefs.setLocale(l);
+
+/** 是否展示实验性功能开启确认弹窗 */
+const confirmingExperimental = ref(false);
+
+/** 点击实验性开关：开启时先弹醒目确认 */
+const toggleShowClearDtc = (): void => {
+  if (!prefs.showClearDtc) {
+    confirmingExperimental.value = true;
+    return;
+  }
+  prefs.showClearDtc = false;
+  prefs.persist();
+};
+
+const confirmEnableExperimental = (): void => {
+  prefs.showClearDtc = true;
+  prefs.persist();
+  confirmingExperimental.value = false;
+};
 </script>
 
 <template>
@@ -122,10 +142,7 @@ const selectLocale = (l: Locale): void => prefs.setLocale(l);
           :class="prefs.showClearDtc ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
           role="switch"
           :aria-checked="prefs.showClearDtc"
-          @click="
-            prefs.showClearDtc = !prefs.showClearDtc;
-            prefs.persist();
-          "
+          @click="toggleShowClearDtc"
         >
           <span
             class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
@@ -135,4 +152,45 @@ const selectLocale = (l: Locale): void => prefs.setLocale(l);
       </div>
     </section>
   </div>
+
+  <!-- 实验性功能开启确认弹窗 -->
+  <Teleport to="body">
+    <div v-if="confirmingExperimental" class="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        @click="confirmingExperimental = false"
+      />
+      <div
+        class="relative w-96 rounded-xl border border-red-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+      >
+        <div class="flex items-start gap-3">
+          <span
+            class="i-lucide-triangle-alert flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-400"
+          />
+          <div>
+            <h2 class="text-primary text-base font-semibold">
+              {{ t("settings.experimentalTitle") }}
+            </h2>
+            <p class="text-secondary mt-2 text-sm leading-relaxed">
+              {{ t("settings.experimentalDesc") }}
+            </p>
+          </div>
+        </div>
+        <div class="mt-5 flex justify-end gap-2">
+          <button
+            class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm"
+            @click="confirmingExperimental = false"
+          >
+            {{ t("common.cancel") }}
+          </button>
+          <button
+            class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-400"
+            @click="confirmEnableExperimental"
+          >
+            {{ t("settings.experimentalAccept") }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
