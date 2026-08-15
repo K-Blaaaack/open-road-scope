@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
@@ -14,6 +14,15 @@ const port = ref("");
 const ports = ref<{ name: string; description?: string }[]>([]);
 const fault = ref(false);
 const busy = ref(false);
+
+// 关闭模式选择时强制走实车连接（隐藏模拟入口）；immediate 保证重新挂载后立即生效
+watch(
+  () => prefs.showModeSelect,
+  (v) => {
+    if (!v) mode.value = "real";
+  },
+  { immediate: true }
+);
 
 const listPorts = async (): Promise<void> => {
   const result = (await window.obd.listPorts()) as {
