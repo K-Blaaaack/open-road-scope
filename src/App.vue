@@ -4,10 +4,12 @@ import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
 import { useObdStore } from "@/stores/obd";
+import { usePrefsStore } from "@/stores/prefs";
 
 const { t } = useI18n();
 const route = useRoute();
 const store = useObdStore();
+const prefs = usePrefsStore();
 
 const statusText = computed(() => {
   const key = store.status.state as "idle" | "connecting" | "connected" | "error";
@@ -28,10 +30,11 @@ const navItems = [
   { path: "/dashboard", icon: "i-lucide-gauge", key: "nav.dashboard" },
   { path: "/connection", icon: "i-lucide-cable", key: "nav.connection" },
   { path: "/diagnostics", icon: "i-lucide-stethoscope", key: "nav.diagnostics" },
+  { path: "/settings", icon: "i-lucide-settings", key: "nav.settings" },
 ];
 
 onMounted(() => {
-  store.setup();
+  void prefs.init().then(() => store.setup());
   if (store.status.state === "idle") {
     store
       .connect("sim")
@@ -50,8 +53,8 @@ onMounted(() => {
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="flex-center text-secondary hover:bg-white/5 hover:text-primary h-10 w-10 rounded-lg transition-colors"
-        :class="route.path === item.path ? '!text-primary bg-white/8' : ''"
+        class="flex-center text-secondary hover:bg-[var(--color-hover)] hover:text-primary h-10 w-10 rounded-lg transition-colors"
+        :class="route.path === item.path ? '!text-primary bg-[var(--color-active)]' : ''"
         :title="t(item.key)"
       >
         <span :class="item.icon" class="h-5 w-5" />
@@ -78,7 +81,11 @@ onMounted(() => {
       </header>
 
       <div class="min-h-0 flex-1 overflow-auto p-5">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <Transition name="page" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </Transition>
+        </router-view>
       </div>
     </main>
   </div>

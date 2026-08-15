@@ -6,7 +6,19 @@ export const i18n = createI18n({
   messages: {
     "zh-CN": {
       app: { name: "行车数据" },
-      nav: { dashboard: "仪表盘", connection: "连接", diagnostics: "诊断" },
+      nav: { dashboard: "仪表盘", connection: "连接", diagnostics: "诊断", settings: "设置" },
+      settings: {
+        title: "设置",
+        language: "界面语言",
+        languageDesc: "切换应用显示语言",
+        zh: "简体中文",
+        en: "English",
+        theme: "外观主题",
+        themeDesc: "切换深色与浅色外观",
+        dark: "深色",
+        light: "浅色",
+      },
+      common: { day: "日间", night: "夜间" },
       status: {
         idle: "未连接",
         connecting: "连接中",
@@ -67,7 +79,24 @@ export const i18n = createI18n({
     },
     "en-US": {
       app: { name: "Driving Data" },
-      nav: { dashboard: "Dashboard", connection: "Connection", diagnostics: "Diagnostics" },
+      nav: {
+        dashboard: "Dashboard",
+        connection: "Connection",
+        diagnostics: "Diagnostics",
+        settings: "Settings",
+      },
+      settings: {
+        title: "Settings",
+        language: "Language",
+        languageDesc: "Switch the display language",
+        zh: "简体中文",
+        en: "English",
+        theme: "Appearance",
+        themeDesc: "Switch between dark and light",
+        dark: "Dark",
+        light: "Light",
+      },
+      common: { day: "Day", night: "Night" },
       status: {
         idle: "Idle",
         connecting: "Connecting",

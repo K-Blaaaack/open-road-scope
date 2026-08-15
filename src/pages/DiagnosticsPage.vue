@@ -56,14 +56,14 @@ const readVin = async (): Promise<void> => {
           {{ t("diagnostics.readDtc") }}
         </button>
         <button
-          class="border-border text-secondary hover:bg-white/5 rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
+          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
           :disabled="busy || !store.connected"
           @click="clearDtc"
         >
           {{ t("diagnostics.clearDtc") }}
         </button>
         <button
-          class="border-border text-secondary hover:bg-white/5 rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
+          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
           :disabled="busy || !store.connected"
           @click="readVin"
         >

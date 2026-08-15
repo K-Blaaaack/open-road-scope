@@ -6,10 +6,26 @@
   --color-text-primary: #e6edf3;
   --color-text-secondary: #8b98a9;
   --color-accent: #38bdf8;
+  --color-accent-text: #7dd3fc;
   --color-accent-2: #34d399;
   --color-danger: #f87171;
   --color-warning: #fbbf24;
+  --color-hover: rgba(255, 255, 255, 0.06);
+  --color-active: rgba(255, 255, 255, 0.1);
   --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "SF Mono", monospace;
+}
+
+[data-theme="light"] {
+  --color-bg: #f2f4f7;
+  --color-bg-elevated: #ffffff;
+  --color-card: #ffffff;
+  --color-border: rgba(15, 23, 42, 0.1);
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  --color-accent: #0284c7;
+  --color-accent-text: #0369a1;
+  --color-hover: rgba(15, 23, 42, 0.06);
+  --color-active: rgba(15, 23, 42, 0.12);
 }
 
 * {
@@ -52,4 +68,22 @@ body {
 
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* 页面路由切换过渡动画 */
+.page-enter-active,
+.page-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }

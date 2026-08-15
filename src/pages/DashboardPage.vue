@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
+import { usePrefsStore } from "@/stores/prefs";
 import { PID_META, type Pid } from "@shared/obd";
 import PixiGauge from "@/components/PixiGauge.vue";
 import ValueCard from "@/components/ValueCard.vue";
@@ -10,6 +11,9 @@ import LineChart from "@/components/LineChart.vue";
 
 const { t } = useI18n();
 const store = useObdStore();
+const prefs = usePrefsStore();
+
+const isDark = computed(() => prefs.theme === "dark");
 
 const speedMeta = PID_META.SPEED;
 const rpmMeta = PID_META.RPM;
@@ -32,9 +36,19 @@ const hasData = computed(() => store.lastTs > 0);
 
 <template>
   <div class="flex flex-col gap-5">
-    <div>
-      <h1 class="text-primary text-lg font-semibold">{{ t("dashboard.title") }}</h1>
-      <p v-if="!hasData" class="text-secondary mt-1 text-sm">{{ t("dashboard.noData") }}</p>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-primary text-lg font-semibold">{{ t("dashboard.title") }}</h1>
+        <p v-if="!hasData" class="text-secondary mt-1 text-sm">{{ t("dashboard.noData") }}</p>
+      </div>
+      <button
+        class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors"
+        :title="isDark ? t('common.day') : t('common.night')"
+        @click="prefs.toggleTheme()"
+      >
+        <span :class="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="h-4 w-4" />
+        {{ isDark ? t("common.day") : t("common.night") }}
+      </button>
     </div>
 
     <div class="grid grid-cols-2 gap-5">

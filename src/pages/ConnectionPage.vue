@@ -58,8 +58,8 @@ onMounted(listPorts);
             class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
             :class="
               mode === 'sim'
-                ? 'border-sky-400/50 bg-sky-400/10 text-sky-300'
-                : 'border-border text-secondary hover:bg-white/5'
+                ? 'border-sky-400/50 bg-sky-400/10 text-[var(--color-accent-text)]'
+                : 'border-border text-secondary hover:bg-[var(--color-hover)]'
             "
             @click="mode = 'sim'"
           >
@@ -69,8 +69,8 @@ onMounted(listPorts);
             class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
             :class="
               mode === 'real'
-                ? 'border-sky-400/50 bg-sky-400/10 text-sky-300'
-                : 'border-border text-secondary hover:bg-white/5'
+                ? 'border-sky-400/50 bg-sky-400/10 text-[var(--color-accent-text)]'
+                : 'border-border text-secondary hover:bg-[var(--color-hover)]'
             "
             @click="mode = 'real'"
           >
@@ -93,7 +93,7 @@ onMounted(listPorts);
           </select>
         </div>
         <button
-          class="border-border text-secondary hover:bg-white/5 rounded-lg border px-3 py-2 text-sm"
+          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-2 text-sm"
           @click="listPorts"
         >
           {{ t("connection.refresh") }}
@@ -115,7 +115,7 @@ onMounted(listPorts);
         </button>
         <button
           v-if="store.status.state !== 'idle'"
-          class="border-border text-secondary hover:bg-white/5 rounded-lg border px-4 py-2.5 text-sm"
+          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2.5 text-sm"
           @click="disconnect"
         >
           {{ t("connection.disconnect") }}
