@@ -11,7 +11,14 @@ export const i18n = createI18n({
         connection: "连接",
         diagnostics: "诊断",
         settings: "设置",
+        about: "关于",
         developer: "开发者菜单",
+      },
+      about: {
+        subtitle: "OBD-II 行车数据可视化",
+        desc: "基于 OBD-II（ELM327）的跨平台行车数据软件：实时读取车辆传感器数据，提供可自定义的仪表盘布局、历史曲线与故障诊断能力。",
+        license:
+          "数据采集由 Python sidecar 承担（python-OBD，GNU GPL v2）；应用本体为独立发布，请遵守相应开源许可。",
       },
       settings: {
         title: "设置",
@@ -159,7 +166,14 @@ export const i18n = createI18n({
         connection: "Connection",
         diagnostics: "Diagnostics",
         settings: "Settings",
+        about: "About",
         developer: "Developer",
+      },
+      about: {
+        subtitle: "OBD-II vehicle data visualization",
+        desc: "A cross-platform vehicle data tool powered by OBD-II (ELM327): reads live sensor data, with customizable dashboard layouts, history charts and fault diagnostics.",
+        license:
+          "Data acquisition is handled by a Python sidecar (python-OBD, GNU GPL v2); the app itself is distributed independently. Please comply with the respective open-source licenses.",
       },
       settings: {
         title: "Settings",

@@ -37,6 +37,7 @@ const navItems = computed(() => {
     { path: "/connection", icon: "i-lucide-cable", key: "nav.connection" },
     { path: "/diagnostics", icon: "i-lucide-stethoscope", key: "nav.diagnostics" },
     { path: "/settings", icon: "i-lucide-settings", key: "nav.settings" },
+    { path: "/about", icon: "i-lucide-info", key: "nav.about" },
   ];
   if (prefs.devMode) {
     base.push({ path: "/developer", icon: "i-lucide-terminal", key: "nav.developer" });
