@@ -20,14 +20,22 @@ const store = useObdStore();
 
 const meta = computed(() => PID_META[props.pid]);
 
-/** 自动上限：取最近 30s 历史峰值 ×1.15，且不低于默认量程的 30% */
+/** 向上取整到「好看」的数值（1/2/5 × 10^n） */
+const ceilToNice = (v: number): number => {
+  const pow = 10 ** Math.floor(Math.log10(Math.max(v, 1)));
+  const d = v / pow;
+  const nice = d <= 1 ? 1 : d <= 2 ? 2 : d <= 5 ? 5 : 10;
+  return nice * pow;
+};
+
+/** 自动上限：取最近 30s 历史峰值 ×1.15，向上取整到整齐刻度，且不低于默认量程的 30% */
 const autoMax = computed(() => {
   const samples = store.history[props.pid].toArray();
   let peak = 0;
   for (const s of samples) {
     if (s.t >= store.lastTs - 30000 && s.v > peak) peak = s.v;
   }
-  return Math.max(meta.value.max * 0.3, peak * 1.15, store.latest[props.pid] ?? 0);
+  return Math.max(ceilToNice(meta.value.max * 0.3), ceilToNice(peak * 1.15));
 });
 
 const rangeMin = computed(() => props.min ?? 0);
