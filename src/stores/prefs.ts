@@ -15,6 +15,7 @@ interface PrefsSnapshot {
   fitViewport?: boolean;
   showClearDtc?: boolean;
   devMode?: boolean;
+  showSimBadge?: boolean;
 }
 
 const applyTheme = (theme: Theme): void => {
@@ -46,6 +47,8 @@ export const usePrefsStore = defineStore("prefs", () => {
   const showClearDtc = ref(false);
   /** 开发者模式（默认关闭，需设置页连续点击 5 次开启） */
   const devMode = ref(false);
+  /** 顶栏是否显示模拟/实车模式标识（默认显示，可在开发者菜单关闭） */
+  const showSimBadge = ref(true);
   /** 界面热重载：崩溃自动恢复与 F5/Ctrl+R 快捷键 */
   const loaded = ref(false);
 
@@ -59,6 +62,7 @@ export const usePrefsStore = defineStore("prefs", () => {
         fitViewport.value = saved.fitViewport ?? true;
         showClearDtc.value = saved.showClearDtc ?? false;
         devMode.value = saved.devMode ?? false;
+        showSimBadge.value = saved.showSimBadge ?? true;
       }
     } catch {
       // 存储不可用时回退默认值
@@ -75,6 +79,7 @@ export const usePrefsStore = defineStore("prefs", () => {
       fitViewport: fitViewport.value,
       showClearDtc: showClearDtc.value,
       devMode: devMode.value,
+      showSimBadge: showSimBadge.value,
     });
   };
 
@@ -101,6 +106,7 @@ export const usePrefsStore = defineStore("prefs", () => {
     fitViewport,
     showClearDtc,
     devMode,
+    showSimBadge,
     loaded,
     init,
     toggleTheme,

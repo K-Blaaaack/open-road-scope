@@ -2,7 +2,10 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { usePrefsStore } from "@/stores/prefs";
+
 const { t } = useI18n();
+const prefs = usePrefsStore();
 
 /** 从 UA 中解析运行环境版本 */
 const parseUA = (): { electron: string; chromium: string; node: string } => {
@@ -64,6 +67,29 @@ const openDevTools = (): void => {
       >
         <span class="i-lucide-bug h-4 w-4" />
         {{ t("developer.openDevtools") }}
+      </button>
+    </section>
+
+    <!-- 顶栏模拟模式标识显示控制 -->
+    <section class="glass-card flex items-center justify-between p-5">
+      <div>
+        <div class="text-primary text-sm">{{ t("developer.showSimBadge") }}</div>
+        <div class="text-secondary mt-0.5 text-xs">{{ t("developer.showSimBadgeDesc") }}</div>
+      </div>
+      <button
+        class="relative h-6 w-11 rounded-full transition-colors"
+        :class="prefs.showSimBadge ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
+        role="switch"
+        :aria-checked="prefs.showSimBadge"
+        @click="
+          prefs.showSimBadge = !prefs.showSimBadge;
+          prefs.persist();
+        "
+      >
+        <span
+          class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+          :class="prefs.showSimBadge ? 'left-[22px]' : 'left-0.5'"
+        />
       </button>
     </section>
   </div>

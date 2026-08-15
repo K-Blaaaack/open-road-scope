@@ -95,7 +95,8 @@ onMounted(() => {
               class="h-4 w-4"
             />
           </button>
-          <span class="text-secondary text-xs">
+          <!-- 模拟/实车模式标识，可在开发者菜单中控制显示 -->
+          <span v-if="prefs.showSimBadge" class="text-secondary text-xs">
             {{ store.status.mode === "sim" ? t("status.sim") : t("status.real") }}
           </span>
           <span class="flex items-center gap-1.5">

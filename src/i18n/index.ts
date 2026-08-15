@@ -64,6 +64,8 @@ export const i18n = createI18n({
         node: "Node.js",
         openDevtools: "打开开发者工具",
         devtoolsHint: "在独立窗口打开 Chromium 开发者工具",
+        showSimBadge: "显示模拟模式标识",
+        showSimBadgeDesc: "在顶栏显示当前为模拟设备还是实车设备",
       },
       dashboard: {
         title: "实时仪表",
@@ -199,6 +201,8 @@ export const i18n = createI18n({
         node: "Node.js",
         openDevtools: "Open DevTools",
         devtoolsHint: "Open Chromium DevTools in a separate window",
+        showSimBadge: "Show simulation badge",
+        showSimBadgeDesc: "Show whether the current device is simulated or live in the top bar",
       },
       dashboard: {
         title: "Live gauges",
