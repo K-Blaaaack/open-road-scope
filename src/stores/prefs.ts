@@ -22,6 +22,12 @@ const applyTheme = (theme: Theme): void => {
   } else {
     delete document.documentElement.dataset.theme;
   }
+  // 镜像到 localStorage，供启动页脚本同步明暗主题
+  try {
+    localStorage.setItem("open-road-scope:theme", theme);
+  } catch {
+    // 存储不可用时忽略
+  }
 };
 
 const applyLocale = (locale: Locale): void => {

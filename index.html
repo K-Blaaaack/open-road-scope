@@ -6,10 +6,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
     />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        background: #0b0f14;
+      }
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0b0f14;
+        color: #e6edf3;
+        transition: opacity 0.3s;
+      }
+      /* 日间主题（由启动脚本按本地存储镜像设置） */
+      html[data-theme="light"] #app-loading {
+        background: #f2f4f7;
+        color: #0f172a;
+      }
+      #app-loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .splash {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        transform: translateZ(0);
+      }
+      /* 仪表图标：上浮 + 描边绘制 + 呼吸闪烁 */
+      .splash-logo {
+        width: 84px;
+        height: 84px;
+        color: #38bdf8;
+        will-change: transform, opacity;
+        animation:
+          splash-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both,
+          splash-flicker 1.8s ease-in-out 0.5s infinite;
+      }
+      .splash-logo .letter {
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 300;
+        stroke-dashoffset: 300;
+        will-change: stroke-dashoffset;
+        animation: splash-draw 1s ease forwards;
+      }
+      .splash-logo .letter:nth-child(1) {
+        animation-delay: 0.15s;
+      }
+      .splash-logo .letter:nth-child(2) {
+        animation-delay: 0.45s;
+      }
+      .splash-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .splash-name {
+        font-family:
+          "Inter",
+          "PingFang SC",
+          "Microsoft YaHei",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        line-height: 1;
+        will-change: transform, opacity;
+        animation: splash-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+      }
+      .splash-sub {
+        font-size: 13px;
+        letter-spacing: 4px;
+        color: currentColor;
+        opacity: 0;
+        will-change: transform, opacity;
+        animation: splash-rise-sub 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+      }
+      .splash-footer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 32px;
+        text-align: center;
+        font-size: 12px;
+        opacity: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei",
+          sans-serif;
+        animation: splash-rise-sub 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.36s forwards;
+      }
+      @keyframes splash-rise {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes splash-rise-sub {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 0.55;
+          transform: translateY(0);
+        }
+      }
+      @keyframes splash-flicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+      @keyframes splash-draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+    </style>
+    <script>
+      // 记录 splash 动画起点
+      window.__splashStart = performance.now();
+      // 按本地存储的主题镜像确定启动页明暗，避免闪烁
+      (function () {
+        try {
+          if (localStorage.getItem("open-road-scope:theme") === "light") {
+            document.documentElement.dataset.theme = "light";
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
+
   <body>
+    <div id="app-loading">
+      <div class="splash">
+        <svg class="splash-logo" viewBox="0 0 24 24" aria-hidden="true">
+          <!-- lucide gauge：表盘 + 指针，描边绘制动画 -->
+          <path class="letter" d="m12 14 4-4" />
+          <path class="letter" d="M3.34 19a10 10 0 1 1 17.32 0" />
+        </svg>
+        <div class="splash-brand">
+          <span class="splash-name">OpenRoadScope</span>
+        </div>
+        <span class="splash-sub">行车数据 · OBD-II</span>
+      </div>
+      <div class="splash-footer">open-road-scope · v0.1.0</div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
