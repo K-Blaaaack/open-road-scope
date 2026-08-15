@@ -28,7 +28,7 @@ const display = computed(() => {
       <span class="font-mono text-5xl font-bold text-primary leading-none tabular-nums">{{
         display
       }}</span>
-      <span class="text-secondary text-sm font-medium">{{ meta.unit }}</span>
+      <span class="text-primary/70 text-base font-medium">{{ meta.unit }}</span>
     </div>
   </div>
 </template>

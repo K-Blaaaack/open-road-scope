@@ -185,7 +185,7 @@ const applyRange = (): void => {
         @pointerup="onDragEnd"
         @pointercancel="onDragEnd"
       >
-        <span class="text-secondary truncate text-xs font-medium tracking-wider">
+        <span class="text-primary/90 truncate text-sm font-semibold tracking-wide">
           {{ t(`pid.${card.pid}`) }}
         </span>
       </div>

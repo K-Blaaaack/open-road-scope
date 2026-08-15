@@ -59,7 +59,7 @@ const render = (): void => {
   const samples = store.history[props.pid].toArray();
   if (samples.length < 2) {
     ctx.fillStyle = "#8b98a9";
-    ctx.font = "12px sans-serif";
+    ctx.font = "13px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("—", width / 2, height / 2);
     return;
@@ -74,8 +74,8 @@ const render = (): void => {
   // 网格线（4 等分）+ 刻度值
   ctx.strokeStyle = "rgba(148,163,184,0.12)";
   ctx.lineWidth = 1;
-  ctx.font = "10px sans-serif";
-  ctx.fillStyle = "#64748b";
+  ctx.font = "11px sans-serif";
+  ctx.fillStyle = "#8b98a9";
   for (let i = 0; i <= 4; i += 1) {
     const y = pad + (plotH / 4) * i;
     ctx.beginPath();
@@ -117,9 +117,9 @@ onBeforeUnmount(() => cancelAnimationFrame(rafId));
 <template>
   <div class="flex h-full flex-col">
     <div class="flex items-baseline justify-end">
-      <span class="font-mono text-base font-semibold text-primary">
+      <span class="font-mono text-lg font-semibold text-primary tabular-nums">
         {{ (store.latest[pid] ?? 0).toFixed(meta.decimals) }}
-        <span class="text-secondary text-xs">{{ meta.unit }}</span>
+        <span class="text-primary/70 text-sm">{{ meta.unit }}</span>
       </span>
     </div>
     <canvas ref="canvasRef" class="min-h-0 flex-1 w-full"></canvas>
