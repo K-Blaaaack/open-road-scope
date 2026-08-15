@@ -9,8 +9,11 @@ import { SidecarManager } from "./sidecar/manager";
 const manager = new SidecarManager();
 let mainWindow: BrowserWindow | null = null;
 
-/** 安装界面恢复能力：渲染进程崩溃自动重载，并拦截 F5 / Ctrl+R 手动重载 */
-function setupHotReload(win: BrowserWindow): void {
+/** 安装窗口快捷键与恢复能力：
+ * - 渲染进程崩溃自动重载
+ * - F5 / Ctrl+R 手动重载
+ * - F12 / Ctrl+Shift+I 强制打开内核开发者工具（不受应用内开发者模式限制） */
+function setupWindowShortcuts(win: BrowserWindow): void {
   win.webContents.on("render-process-gone", (_event, details) => {
     if (details.reason === "clean-exit") return;
     log.warn(`[hot-reload] renderer gone (${details.reason}), reloading…`);
@@ -20,12 +23,23 @@ function setupHotReload(win: BrowserWindow): void {
   });
 
   win.webContents.on("before-input-event", (event, input) => {
-    const isF5 = input.type === "keyDown" && input.key === "F5";
-    const isCtrlR = input.type === "keyDown" && input.control && input.key.toLowerCase() === "r";
+    if (input.type !== "keyDown") return;
+    const key = input.key.toLowerCase();
+    const isF5 = input.key === "F5";
+    const isCtrlR = input.control && key === "r";
     if (isF5 || isCtrlR) {
       event.preventDefault();
       log.info("[hot-reload] manual reload via shortcut");
       win.webContents.reload();
+      return;
+    }
+    // 强制打开内核开发者调试工具（开发者模式关闭时同样可用）
+    const isF12 = input.key === "F12";
+    const isCtrlShiftI = input.control && input.shift && key === "i";
+    if (isF12 || isCtrlShiftI) {
+      event.preventDefault();
+      log.info("[devtools] opened via shortcut");
+      win.webContents.openDevTools();
     }
   });
 }
@@ -47,7 +61,7 @@ function createWindow(): void {
   });
 
   mainWindow.on("ready-to-show", () => mainWindow?.show());
-  setupHotReload(mainWindow);
+  setupWindowShortcuts(mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
