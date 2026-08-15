@@ -45,6 +45,7 @@ export const i18n = createI18n({
         hotReloadDesc: "界面异常时点击立即重载，也可按 F5 / Ctrl+R",
         developer: "开发者模式",
         developerDesc: "连续点击下方按钮 5 次进入开发者模式",
+        devClickHint: "再点击 {n} 次开启开发者模式",
         developerActive: "开发者模式已开启",
         developerWarningTitle: "开启开发者模式",
         developerWarningDesc:
@@ -201,6 +202,7 @@ export const i18n = createI18n({
         hotReloadDesc: "Reload the UI instantly when it misbehaves, or press F5 / Ctrl+R",
         developer: "Developer mode",
         developerDesc: "Click the button below 5 times to enter developer mode",
+        devClickHint: "Tap {n} more time(s) to enable developer mode",
         developerActive: "Developer mode enabled",
         developerWarningTitle: "Enable developer mode",
         developerWarningDesc:

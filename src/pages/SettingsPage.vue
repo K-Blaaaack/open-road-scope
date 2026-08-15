@@ -33,10 +33,23 @@ const reloadUI = (): void => {
   void window.obd.reloadUI();
 };
 
-/** 开发者模式：连续点击 5 次触发，5 秒无点击重置计数 */
+/** 开发者模式：连续点击 5 次触发（Toast 倒数提示），5 秒无点击重置计数 */
 const devClickCount = ref(0);
 const confirmingDevMode = ref(false);
 let devClickTimer: number | undefined;
+
+/** Toast 提示内容（空则不显示） */
+const devToast = ref("");
+let devToastTimer: number | undefined;
+
+/** 显示 Toast 并自动消失 */
+const showDevToast = (message: string): void => {
+  devToast.value = message;
+  window.clearTimeout(devToastTimer);
+  devToastTimer = window.setTimeout(() => {
+    devToast.value = "";
+  }, 1800);
+};
 
 const onDevButtonClick = (): void => {
   devClickCount.value += 1;
@@ -47,7 +60,9 @@ const onDevButtonClick = (): void => {
   if (devClickCount.value >= 5) {
     devClickCount.value = 0;
     confirmingDevMode.value = true;
+    return;
   }
+  showDevToast(t("settings.devClickHint", { n: 5 - devClickCount.value }));
 };
 
 const confirmDevMode = (): void => {
@@ -347,6 +362,18 @@ const disableDevMode = (): void => {
           </div>
         </div>
       </div>
+    </Teleport>
+
+    <!-- 开发者模式点击倒数 Toast -->
+    <Teleport to="body">
+      <Transition name="toast">
+        <div
+          v-if="devToast"
+          class="border-border fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 rounded-lg border bg-[var(--color-bg-elevated)] px-4 py-2 text-sm text-[var(--color-text-primary)] shadow-xl"
+        >
+          {{ devToast }}
+        </div>
+      </Transition>
     </Teleport>
   </div>
 </template>
