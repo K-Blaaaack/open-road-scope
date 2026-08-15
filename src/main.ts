@@ -32,6 +32,11 @@ const removeSplash = (): void => {
 // 保证路由守卫读取到持久化状态；splash 动画完整播放后淡出
 void (async () => {
   await usePrefsStore().init();
+  // splash 底部版本号跟随 package.json（构建期注入）
+  const splashVersion = document.getElementById("splash-version");
+  if (splashVersion) {
+    splashVersion.textContent = `v${__APP_VERSION__}`;
+  }
   app.use(router);
   app.use(i18n);
   app.mount("#app");

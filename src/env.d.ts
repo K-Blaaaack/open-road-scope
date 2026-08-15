@@ -3,6 +3,9 @@
 import type { ObdApi } from "@shared/obd";
 
 declare global {
+  /** 构建期注入的应用版本（electron.vite.config.ts，跟随 package.json） */
+  const __APP_VERSION__: string;
+
   interface Window {
     electron: typeof import("@electron-toolkit/preload").electronAPI;
     obd: ObdApi;

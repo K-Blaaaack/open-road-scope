@@ -29,6 +29,12 @@ export default defineConfig(
   },
   {
     files: ["**/*.{ts,mts,tsx,vue}"],
+    languageOptions: {
+      globals: {
+        // 构建期注入（electron.vite.config.ts define）
+        __APP_VERSION__: "readonly",
+      },
+    },
     rules: {
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-explicit-any": "warn",

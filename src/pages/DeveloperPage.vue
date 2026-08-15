@@ -18,7 +18,7 @@ const parseUA = (): { electron: string; chromium: string; node: string } => {
 
 const env = parseUA();
 
-const appVersion = "0.1.0";
+const appVersion = __APP_VERSION__;
 
 const platform = computed(() => {
   const p = navigator.platform;

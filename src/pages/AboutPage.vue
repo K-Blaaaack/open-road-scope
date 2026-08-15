@@ -4,6 +4,9 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
+/** 构建期注入的应用版本 */
+const appVersion = __APP_VERSION__;
+
 /** 运行环境与依赖信息（从 UA 解析） */
 const env = computed(() => {
   const ua = navigator.userAgent;
@@ -32,7 +35,7 @@ const env = computed(() => {
     <div class="glass-card flex w-full max-w-md flex-col gap-3 p-6 text-sm">
       <div class="flex justify-between">
         <span class="text-secondary">{{ t("developer.version") }}</span>
-        <span class="text-primary font-mono">v0.1.0</span>
+        <span class="text-primary font-mono">v{{ appVersion }}</span>
       </div>
       <div class="flex justify-between">
         <span class="text-secondary">{{ t("developer.electron") }}</span>
