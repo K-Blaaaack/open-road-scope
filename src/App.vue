@@ -73,7 +73,12 @@ onMounted(() => {
         </div>
         <div class="flex items-center gap-3">
           <button
-            class="border-[var(--color-border)] hover:bg-[var(--color-hover)] flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+            class="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+            :class="
+              isDark
+                ? 'border-white/10 bg-white/10 hover:bg-white/20'
+                : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10'
+            "
             :title="isDark ? t('common.day') : t('common.night')"
             @click="prefs.toggleTheme()"
           >
