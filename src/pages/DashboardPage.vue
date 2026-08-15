@@ -37,7 +37,8 @@ const rowHeight = computed(() => {
 
 const containerStyle = computed(() => {
   if (prefs.fitViewport) {
-    return { flex: "1", minHeight: "0", overflow: "hidden" as const };
+    // 适配模式：高度随窗口伸缩；行高有下限，窗口过小时允许滚动而不是裁掉内容
+    return { flex: "1", minHeight: "0", overflow: "auto" as const };
   }
   return { height: `${totalRows.value * GRID_ROW_HEIGHT + 24}px` };
 });
