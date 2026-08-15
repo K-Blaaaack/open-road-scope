@@ -15,15 +15,15 @@ jobs:
           - os: ubuntu-latest
             args: --linux AppImage deb rpm tar.gz
             artifact: linux
-            sidecar_python: .venv/bin/python
+            sidecar_python: sidecar/.venv/bin/python
           - os: windows-latest
             args: --win nsis portable msi
             artifact: windows
-            sidecar_python: .venv/Scripts/python.exe
+            sidecar_python: sidecar/.venv/Scripts/python.exe
           - os: macos-latest
             args: --mac dmg zip
             artifact: macos
-            sidecar_python: .venv/bin/python
+            sidecar_python: sidecar/.venv/bin/python
     runs-on: ${{ matrix.os }}
     steps:
       - name: 检出代码
