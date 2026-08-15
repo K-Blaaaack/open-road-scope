@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { useObdStore } from "@/stores/obd";
 import { PID_META, type Pid } from "@shared/obd";
+import { formatTime } from "@/utils/format";
 
 const props = defineProps<{
   /** 数据源 PID */
@@ -84,6 +85,16 @@ const render = (): void => {
     ctx.stroke();
     const v = range.value.hi - (span / 4) * i;
     ctx.fillText(v.toFixed(0), 2, y + 3);
+  }
+
+  // X 轴时间刻度（窗口起点 / 中间 / 当前时间）
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#8b98a9";
+  for (let i = 0; i < 3; i += 1) {
+    const frac = i / 2;
+    const t = last - 60000 + frac * 60000;
+    const x = pad + plotW * frac;
+    ctx.fillText(formatTime(t), x, height - 3);
   }
 
   // 曲线
