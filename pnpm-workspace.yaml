@@ -12,3 +12,4 @@ allowBuilds:
   esbuild: true
   electron-winstaller: true
   vue-demi: true
+  sharp: true
