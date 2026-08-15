@@ -104,7 +104,7 @@ const doImport = (): void => {
       </div>
       <div class="flex items-center gap-2">
         <button
-          class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+          class="border-border text-secondary hover:text-primary bg-[var(--color-btn)] hover:bg-[var(--color-btn-hover)] flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
           :class="layout.editing ? '!border-sky-400/60 !text-sky-300 bg-sky-400/10' : ''"
           :title="t('dashboard.edit')"
           @click="layout.editing ? layout.cancelEdit() : layout.enterEdit()"

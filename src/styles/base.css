@@ -12,6 +12,9 @@
   --color-warning: #fbbf24;
   --color-hover: rgba(255, 255, 255, 0.06);
   --color-active: rgba(255, 255, 255, 0.1);
+  /* 功能按钮背景：常态半透明白（深色底），悬停变浅 */
+  --color-btn: rgba(255, 255, 255, 0.08);
+  --color-btn-hover: rgba(255, 255, 255, 0.16);
   --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "SF Mono", monospace;
 }
 
@@ -26,6 +29,9 @@
   --color-accent-text: #0369a1;
   --color-hover: rgba(15, 23, 42, 0.06);
   --color-active: rgba(15, 23, 42, 0.12);
+  /* 日间模式：按钮常态浅灰，悬停加深 */
+  --color-btn: rgba(15, 23, 42, 0.06);
+  --color-btn-hover: rgba(15, 23, 42, 0.12);
 }
 
 * {
