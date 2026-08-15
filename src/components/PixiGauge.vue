@@ -65,7 +65,7 @@ const drawFace = (size: number): Container => {
       .lineTo(Math.cos(endA) * r2, Math.sin(endA) * r2)
       .arc(0, 0, r2, endA, startA, true)
       .closePath()
-      .fill({ color: 0xf87171, alpha: 0.18 });
+      .fill({ color: 0xf87171, alpha: 0.28 });
     arc.position.set(center, center);
     face.addChild(arc);
   }
@@ -124,6 +124,7 @@ onMounted(async () => {
     height: size,
     backgroundAlpha: 0,
     antialias: true,
+    preserveDrawingBuffer: true,
     resolution: window.devicePixelRatio || 1,
     autoDensity: true,
   });
@@ -176,7 +177,7 @@ onBeforeUnmount(() => {
       </span>
       <span
         class="text-secondary font-mono absolute text-[11px]"
-        style="left: 50%; top: calc(50% + 35.2%); transform: translate(-50%, -50%)"
+        style="left: 50%; top: calc(50% - 35.2%); transform: translate(-50%, -50%)"
       >
         {{ Math.round(max) }}
       </span>
