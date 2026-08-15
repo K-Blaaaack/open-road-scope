@@ -5,6 +5,9 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build ${{ matrix.artifact }}
@@ -84,6 +87,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             dist/*.AppImage
             dist/*.deb
@@ -93,3 +97,57 @@ jobs:
             dist/*.msi
             dist/*.dmg
             dist/*.zip
+
+  android:
+    name: Build android
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装 Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 安装依赖
+        run: pnpm install
+
+      - name: 构建 Web 渲染层
+        run: pnpm build:web
+
+      - name: 同步 Capacitor
+        run: pnpm exec cap sync android
+
+      - name: 构建 APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: 上传 APK 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: android
+          if-no-files-found: error
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: 发布 Release（APK）
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: android/app/build/outputs/apk/debug/app-debug.apk

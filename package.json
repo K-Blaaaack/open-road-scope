@@ -30,6 +30,9 @@
     "start": "electron-vite preview",
     "dev": "tsx scripts/dev.ts",
     "build": "rimraf out && pnpm typecheck && electron-vite build",
+    "build:web": "vite build --config vite.config.web.ts",
+    "cap:sync": "pnpm build:web && cap sync",
+    "cap:add:android": "cap add android",
     "build:unpack": "pnpm build && pnpm build:sidecar && electron-builder --dir --config electron-builder.config.ts",
     "build:win": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --win",
     "build:win:nsis": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --win nsis",
@@ -49,6 +52,9 @@
     "release:push": "git push --follow-tags"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "electron-log": "^5.4.4",
