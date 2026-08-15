@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
 
+import { usePrefsStore } from "@/stores/prefs";
 import {
   PIDS,
   type Command,
@@ -35,9 +36,7 @@ export interface Sample {
 }
 
 /** 无 Electron 环境（纯 Web / 安卓）时的内置演示桥接 */
-const startDemoBridge = (
-  handleEvent: (event: RpcEvent) => void
-): (() => void) => {
+const startDemoBridge = (handleEvent: (event: RpcEvent) => void): (() => void) => {
   handleEvent({
     event: "status",
     params: { state: "connected", mode: "sim", protocol: "DEMO (内置模拟)" },
@@ -92,8 +91,11 @@ export const useObdStore = defineStore("obd", () => {
 
   const connected = computed(() => status.value.state === "connected");
 
-  /** 演示模式下是否可用 */
-  const isDemo = computed(() => !window.obd);
+  /** 演示模式：无 Electron 桥接且开发者模式开启时才可用 */
+  const isDemo = computed(() => !window.obd && usePrefsStore().devMode);
+
+  /** 无 Electron 桥接时是否允许启用内置演示数据 */
+  const demoAllowed = (): boolean => !window.obd && usePrefsStore().devMode;
 
   /** sidecar 事件处理（数据 / 状态） */
   const handleEvent = (event: RpcEvent): void => {
@@ -113,10 +115,11 @@ export const useObdStore = defineStore("obd", () => {
   const setup = (): void => {
     if (window.obd) {
       window.obd.onEvent(handleEvent);
-    } else {
-      // 纯 Web / 安卓环境：启用内置演示数据
+    } else if (demoAllowed()) {
+      // 纯 Web / 安卓环境且开启开发者模式：启用内置演示数据
       startDemoBridge(handleEvent);
     }
+    // 其他情况（无桥接且开发者模式关闭）：不注入任何数据
   };
 
   /**
@@ -129,8 +132,11 @@ export const useObdStore = defineStore("obd", () => {
     options?: { port?: string; fault?: boolean }
   ): Promise<void> => {
     if (!window.obd) {
-      status.value = { state: "connected", mode, protocol: "DEMO (内置模拟)" };
-      return;
+      if (demoAllowed()) {
+        status.value = { state: "connected", mode, protocol: "DEMO (内置模拟)" };
+        return;
+      }
+      throw new Error("OBD 桥接不可用（仅开发者模式下支持内置模拟）");
     }
     const result = (await window.obd.connect(mode, options)) as { ok: boolean; error?: string };
     if (!result.ok) throw new Error(result.error);
@@ -151,7 +157,10 @@ export const useObdStore = defineStore("obd", () => {
    * @param interval - 轮询间隔 ms
    */
   const subscribe = async (pids: Pid[] = DEFAULT_PIDS, interval = 500): Promise<void> => {
-    if (!window.obd) return;
+    if (!window.obd) {
+      if (demoAllowed()) return;
+      throw new Error("OBD 桥接不可用");
+    }
     const result = (await window.obd.subscribe({ pids, interval })) as {
       ok: boolean;
       error?: string;
@@ -165,11 +174,14 @@ export const useObdStore = defineStore("obd", () => {
    */
   const query = async (cmd: Command): Promise<unknown> => {
     if (!window.obd) {
-      // 演示模式返回固定数据
-      if (cmd === "GET_DTC") return ["P0420"];
-      if (cmd === "CLEAR_DTC") return true;
-      if (cmd === "VIN") return "WEBDEMO000001";
-      return null;
+      // 仅开发者模式下返回演示数据
+      if (demoAllowed()) {
+        if (cmd === "GET_DTC") return ["P0420"];
+        if (cmd === "CLEAR_DTC") return true;
+        if (cmd === "VIN") return "WEBDEMO000001";
+        return null;
+      }
+      throw new Error("OBD 桥接不可用");
     }
     const result = (await window.obd.query(cmd)) as {
       ok: boolean;

@@ -1,9 +1,11 @@
 # 更新日志
+
 ## [0.1.1](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.0...v0.1.1) (2026-08-15)
 
 ### 🤖 CI
 
-* 回退删除旧 Release 步骤 ([46028e2](https://github.com/K-Blaaaack/open-road-scope/commit/46028e21271fd9ffeb64c2fffbb9bf9557bee242))
+- 回退删除旧 Release 步骤 ([46028e2](https://github.com/K-Blaaaack/open-road-scope/commit/46028e21271fd9ffeb64c2fffbb9bf9557bee242))
+
 ## 0.1.0 (2026-08-15)
 
 ### ✨ 新功能
