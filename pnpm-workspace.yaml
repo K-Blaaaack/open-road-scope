@@ -1,0 +1,14 @@
+packages:
+  - .
+
+onlyBuiltDependencies:
+  - electron
+  - esbuild
+  - electron-winstaller
+  - vue-demi
+
+allowBuilds:
+  electron: true
+  esbuild: true
+  electron-winstaller: true
+  vue-demi: true

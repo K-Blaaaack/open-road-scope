@@ -1,0 +1,14 @@
+node_modules/
+out/
+dist/
+sidecar/.venv/
+sidecar/build/
+sidecar/dist/
+resources/
+*.log
+.DS_Store
+coverage/
+.eslintcache
+sidecar/*.egg-info/
+sidecar/**/__pycache__/
+sidecar/tests/__pycache__/

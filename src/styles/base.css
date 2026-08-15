@@ -1,0 +1,55 @@
+:root {
+  --color-bg: #0b0f14;
+  --color-bg-elevated: #11161d;
+  --color-card: #141a22;
+  --color-border: rgba(148, 163, 184, 0.14);
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b98a9;
+  --color-accent: #38bdf8;
+  --color-accent-2: #34d399;
+  --color-danger: #f87171;
+  --color-warning: #fbbf24;
+  --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "SF Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family:
+    "Inter",
+    "PingFang SC",
+    "Microsoft YaHei",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
