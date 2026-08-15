@@ -62,8 +62,9 @@ onMounted(listPorts);
     <h1 class="text-primary text-lg font-semibold">{{ t("connection.title") }}</h1>
 
     <div class="glass-card flex flex-col gap-4 p-5">
+      <!-- 以下连接配置仅在未连接时显示 -->
       <!-- 模拟/实车模式选择，可在开发者菜单中控制显示 -->
-      <div v-if="prefs.showModeSelect">
+      <div v-if="prefs.showModeSelect && store.status.state === 'idle'">
         <div class="text-secondary mb-2 text-sm">{{ t("connection.mode") }}</div>
         <div class="flex gap-2">
           <button
@@ -91,7 +92,7 @@ onMounted(listPorts);
         </div>
       </div>
 
-      <div v-if="mode === 'real'" class="flex items-end gap-2">
+      <div v-if="mode === 'real' && store.status.state === 'idle'" class="flex items-end gap-2">
         <div class="flex-1">
           <div class="text-secondary mb-2 text-sm">{{ t("connection.port") }}</div>
           <select
@@ -112,15 +113,16 @@ onMounted(listPorts);
         </button>
       </div>
 
-      <div v-if="mode === 'sim'" class="flex items-center gap-2">
+      <div v-if="mode === 'sim' && store.status.state === 'idle'" class="flex items-center gap-2">
         <input id="sim-fault" v-model="fault" type="checkbox" class="accent-sky-400" />
         <label for="sim-fault" class="text-secondary text-sm">{{ t("connection.fault") }}</label>
       </div>
 
       <div class="flex gap-2">
         <button
+          v-if="store.status.state === 'idle'"
           class="flex-1 rounded-lg bg-sky-500/90 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:opacity-50"
-          :disabled="busy || store.status.state === 'connecting'"
+          :disabled="busy"
           @click="connect"
         >
           {{ t("connection.connect") }}
