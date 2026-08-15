@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.artifact }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            args: --linux AppImage deb rpm tar.gz
+            artifact: linux
+            sidecar_python: .venv/bin/python
+          - os: windows-latest
+            args: --win nsis portable msi
+            artifact: windows
+            sidecar_python: .venv/Scripts/python.exe
+          - os: macos-latest
+            args: --mac dmg zip
+            artifact: macos
+            sidecar_python: .venv/bin/python
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: sidecar/pyproject.toml
+
+      - name: 准备 sidecar 虚拟环境
+        run: |
+          python -m venv sidecar/.venv
+          ${{ matrix.sidecar_python }} -m pip install -e "sidecar/[dev]" pyinstaller
+        shell: bash
+
+      - name: 安装前端依赖
+        run: pnpm install
+
+      - name: 构建应用
+        run: pnpm build
+
+      - name: 构建 sidecar
+        run: pnpm build:sidecar
+
+      - name: 打包发行物
+        run: pnpm exec electron-builder --config electron-builder.config.ts ${{ matrix.args }} --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          if-no-files-found: error
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.exe
+            dist/*.msi
+            dist/*.dmg
+            dist/*.zip
+
+      - name: 发布 Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.exe
+            dist/*.msi
+            dist/*.dmg
+            dist/*.zip

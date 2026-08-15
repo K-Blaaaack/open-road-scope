@@ -36,7 +36,7 @@ const config: Configuration = {
   },
   publish: {
     provider: "github",
-    owner: "open-road-scope",
+    owner: "K-Blaaaack",
     repo: "open-road-scope",
   },
 };
