@@ -27,6 +27,11 @@ const confirmEnableExperimental = (): void => {
   prefs.persist();
   confirmingExperimental.value = false;
 };
+
+/** 立即重载界面（应对突发界面异常） */
+const reloadUI = (): void => {
+  void window.obd.reloadUI();
+};
 </script>
 
 <template>
@@ -164,19 +169,11 @@ const confirmEnableExperimental = (): void => {
           <div class="text-secondary mt-0.5 text-xs">{{ t("settings.hotReloadDesc") }}</div>
         </div>
         <button
-          class="relative h-6 w-11 rounded-full transition-colors"
-          :class="prefs.hotReload ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
-          role="switch"
-          :aria-checked="prefs.hotReload"
-          @click="
-            prefs.hotReload = !prefs.hotReload;
-            prefs.persist();
-          "
+          class="flex items-center gap-1.5 rounded-lg bg-sky-500/90 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-500"
+          @click="reloadUI"
         >
-          <span
-            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
-            :class="prefs.hotReload ? 'left-[22px]' : 'left-0.5'"
-          />
+          <span class="i-lucide-refresh-cw h-4 w-4" />
+          {{ t("settings.reloadNow") }}
         </button>
       </div>
     </section>

@@ -14,7 +14,6 @@ interface PrefsSnapshot {
   locale: Locale;
   fitViewport?: boolean;
   showClearDtc?: boolean;
-  hotReload?: boolean;
 }
 
 const applyTheme = (theme: Theme): void => {
@@ -45,7 +44,6 @@ export const usePrefsStore = defineStore("prefs", () => {
   /** 是否显示「清除故障码」按钮（实验性，默认隐藏） */
   const showClearDtc = ref(false);
   /** 界面热重载：崩溃自动恢复与 F5/Ctrl+R 快捷键 */
-  const hotReload = ref(true);
   const loaded = ref(false);
 
   /** 从本地存储恢复偏好并应用到界面 */
@@ -57,7 +55,6 @@ export const usePrefsStore = defineStore("prefs", () => {
         locale.value = saved.locale;
         fitViewport.value = saved.fitViewport ?? true;
         showClearDtc.value = saved.showClearDtc ?? false;
-        hotReload.value = saved.hotReload ?? true;
       }
     } catch {
       // 存储不可用时回退默认值
@@ -73,7 +70,6 @@ export const usePrefsStore = defineStore("prefs", () => {
       locale: locale.value,
       fitViewport: fitViewport.value,
       showClearDtc: showClearDtc.value,
-      hotReload: hotReload.value,
     });
   };
 
@@ -99,7 +95,6 @@ export const usePrefsStore = defineStore("prefs", () => {
     locale,
     fitViewport,
     showClearDtc,
-    hotReload,
     loaded,
     init,
     toggleTheme,

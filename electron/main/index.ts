@@ -8,13 +8,10 @@ import { SidecarManager } from "./sidecar/manager";
 
 const manager = new SidecarManager();
 let mainWindow: BrowserWindow | null = null;
-/** 界面热重载开关：崩溃自动恢复 + F5/Ctrl+R 快捷键 */
-let hotReloadEnabled = true;
 
-/** 安装热重载：渲染进程崩溃自动恢复，并拦截 F5 / Ctrl+R 重载界面 */
+/** 安装界面恢复能力：渲染进程崩溃自动重载，并拦截 F5 / Ctrl+R 手动重载 */
 function setupHotReload(win: BrowserWindow): void {
   win.webContents.on("render-process-gone", (_event, details) => {
-    if (!hotReloadEnabled) return;
     if (details.reason === "clean-exit") return;
     log.warn(`[hot-reload] renderer gone (${details.reason}), reloading…`);
     setTimeout(() => {
@@ -23,7 +20,6 @@ function setupHotReload(win: BrowserWindow): void {
   });
 
   win.webContents.on("before-input-event", (event, input) => {
-    if (!hotReloadEnabled) return;
     const isF5 = input.type === "keyDown" && input.key === "F5";
     const isCtrlR = input.type === "keyDown" && input.control && input.key.toLowerCase() === "r";
     if (isF5 || isCtrlR) {
@@ -75,11 +71,15 @@ app.whenReady().then(() => {
     getWindow: () => mainWindow,
   });
 
-  // 渲染进程同步热重载开关
-  ipcMain.handle("app:setHotReload", (_e, enabled: boolean) => {
-    hotReloadEnabled = enabled === true;
-    log.info(`[hot-reload] ${hotReloadEnabled ? "enabled" : "disabled"}`);
-    return { ok: true, enabled: hotReloadEnabled };
+  // 手动重载界面（设置页按钮触发）
+  ipcMain.handle("app:reloadUI", () => {
+    const win = mainWindow;
+    if (win && !win.isDestroyed()) {
+      log.info("[hot-reload] manual reload via button");
+      win.webContents.reload();
+      return { ok: true };
+    }
+    return { ok: false, error: "no window" };
   });
 
   createWindow();

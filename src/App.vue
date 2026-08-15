@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
@@ -36,11 +36,7 @@ const navItems = [
 ];
 
 onMounted(() => {
-  void prefs.init().then(() => {
-    store.setup();
-    // 同步热重载开关到主进程
-    void window.obd.setHotReload(prefs.hotReload);
-  });
+  void prefs.init().then(() => store.setup());
   if (store.status.state === "idle") {
     store
       .connect("sim")
@@ -48,13 +44,6 @@ onMounted(() => {
       .catch(() => {});
   }
 });
-
-watch(
-  () => prefs.hotReload,
-  (v) => {
-    void window.obd.setHotReload(v);
-  }
-);
 </script>
 
 <template>
