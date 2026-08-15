@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 // CSP 禁止 unsafe-eval，导入 pixi.js 无 eval 补丁（副作用安装）
 import "pixi.js/unsafe-eval";
-import { Application, Container, Graphics } from "pixi.js";
+import { Application, Container, Graphics, Text } from "pixi.js";
 
 const props = defineProps<{
   /** 标签文本 */
@@ -24,55 +24,97 @@ const props = defineProps<{
 const containerRef = ref<HTMLDivElement>();
 const displayValue = ref(props.value);
 
-// 表盘扫过 240°，起始角 150°（屏幕左下），顺时针
+// 表盘 240° 扫掠：0 值在左下（-150°，钟表 8 点），max 在顶部（90°，钟表 12 点），
+// 指针沿顺时针扫过底部（钟表 6 点），符合标准汽车仪表方向
 const SWEEP = (240 * Math.PI) / 180;
-const START = (150 * Math.PI) / 180;
+const START = (-150 * Math.PI) / 180;
 
 let app: Application | null = null;
 let pointer: Container | null = null;
-let dangerArc: Graphics | null = null;
 let targetValue = props.value;
 let rafId = 0;
 
+/** 值 → 指针旋转角（弧度） */
 const angleOf = (v: number): number => {
   const frac = Math.min(1, Math.max(0, (v - props.min) / (props.max - props.min)));
   return START + frac * SWEEP;
 };
 
-const drawTicks = (g: Graphics, radius: number): void => {
-  const ticks = 12;
-  g.clear();
-  g.circle(0, 0, radius + 6).fill(0x1b2530);
-  for (let i = 0; i <= ticks; i += 1) {
-    const frac = i / ticks;
+/** 绘制表盘背景圆与刻度（全部使用 fill，避开该环境下 stroke 渲染不可靠的问题） */
+const drawFace = (size: number): Container => {
+  const face = new Container();
+  const center = size / 2;
+  const radius = size / 2 - 18;
+
+  // 背景圆盘
+  const bg = new Graphics();
+  bg.circle(0, 0, radius + 6).fill(0x1b2530);
+  bg.position.set(center, center);
+  face.addChild(bg);
+
+  // 危险区环带（RPM 表红区），圆环扇形 fill
+  if (props.dangerAt !== undefined) {
+    const startA = angleOf(props.dangerAt);
+    const endA = START + SWEEP;
+    const r1 = radius - 6;
+    const r2 = radius - 16;
+    const arc = new Graphics();
+    arc
+      .moveTo(Math.cos(startA) * r1, Math.sin(startA) * r1)
+      .arc(0, 0, r1, startA, endA)
+      .lineTo(Math.cos(endA) * r2, Math.sin(endA) * r2)
+      .arc(0, 0, r2, endA, startA, true)
+      .closePath()
+      .fill({ color: 0xf87171, alpha: 0.18 });
+    arc.position.set(center, center);
+    face.addChild(arc);
+  }
+
+  // 刻度：每个刻度是独立矩形 fill + 旋转，12 个主刻度 + 细分
+  const tickCount = 12;
+  for (let i = 0; i <= tickCount; i += 1) {
+    const frac = i / tickCount;
     const angle = START + frac * SWEEP;
-    const isDanger =
+    const inDanger =
       props.dangerAt !== undefined &&
       frac >= (props.dangerAt - props.min) / (props.max - props.min);
     const major = i % 2 === 0;
-    const inner = radius - (major ? 16 : 9);
-    g.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner)
-      .lineTo(Math.cos(angle) * (radius - 2), Math.sin(angle) * (radius - 2))
-      .stroke({ width: major ? 2.5 : 1.2, color: isDanger ? 0xf87171 : 0x475569 });
+    const color = inDanger ? 0xf87171 : major ? 0x94a3b8 : 0x64748b;
+    const len = major ? 14 : 8;
+    const w = major ? 3 : 1.5;
+    const g = new Graphics();
+    g.rect(-w / 2, -(radius - 2) - len, w, len).fill(color);
+    g.position.set(center, center);
+    g.rotation = angle;
+    face.addChild(g);
   }
+
+  // 主刻度数字标签（0 / 中值 / max）
+  for (const frac of [0, 0.5, 1]) {
+    const angle = START + frac * SWEEP;
+    const r = radius - 26;
+    const label = new Text({
+      text: String(Math.round(props.min + frac * (props.max - props.min))),
+      style: { fontFamily: "JetBrains Mono, monospace", fontSize: 11, fill: 0x94a3b8 },
+    });
+    label.anchor.set(0.5);
+    label.position.set(center + Math.cos(angle) * r, center + Math.sin(angle) * r);
+    face.addChild(label);
+  }
+
+  return face;
 };
 
-const drawDangerArc = (g: Graphics, radius: number): void => {
-  g.clear();
-  if (props.dangerAt === undefined) return;
-  const frac = Math.min(1, Math.max(0, (props.dangerAt - props.min) / (props.max - props.min)));
-  const start = START + frac * SWEEP;
-  g.moveTo(Math.cos(start) * (radius - 20), Math.sin(start) * (radius - 20))
-    .arc(0, 0, radius - 20, start, START + SWEEP)
-    .stroke({ width: 7, color: 0xf87171, alpha: 0.85 });
-};
-
+/** 指针：菱形表针 + 中心轴，绕表盘中心旋转 */
 const drawPointer = (): Container => {
   const group = new Container();
   const needle = new Graphics();
-  needle.moveTo(-4, 8).lineTo(0, -26).lineTo(4, 8).closePath().fill(0xf43f5e);
+  needle.moveTo(0, 6).lineTo(-5, -22).lineTo(0, -26).lineTo(5, -22).closePath().fill(0xf43f5e);
   group.addChild(needle);
-  group.pivot.set(0, 0);
+  const hub = new Graphics();
+  hub.circle(0, 0, 5).fill(0x1b2530);
+  hub.circle(0, 0, 3.5).fill(0xf43f5e);
+  group.addChild(hub);
   return group;
 };
 
@@ -102,21 +144,10 @@ onMounted(async () => {
   app.canvas.style.height = "100%";
   el.appendChild(app.canvas);
 
-  const center = size / 2;
-  const radius = size / 2 - 18;
-
-  const base = new Graphics();
-  drawTicks(base, radius);
-  base.position.set(center, center);
-  app.stage.addChild(base);
-
-  dangerArc = new Graphics();
-  drawDangerArc(dangerArc, radius);
-  dangerArc.position.set(center, center);
-  app.stage.addChild(dangerArc);
+  app.stage.addChild(drawFace(size));
 
   pointer = drawPointer();
-  pointer.position.set(center, center);
+  pointer.position.set(size / 2, size / 2);
   pointer.rotation = angleOf(displayValue.value);
   app.stage.addChild(pointer);
 
