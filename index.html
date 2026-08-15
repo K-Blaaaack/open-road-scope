@@ -89,7 +89,22 @@
         letter-spacing: 0.5px;
         line-height: 1;
         will-change: transform, opacity;
-        animation: splash-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+      }
+      /* 品牌名逐字入场：每个字符上浮缩放淡入 */
+      .splash-letter {
+        display: inline-block;
+        will-change: transform, opacity;
+        animation: splash-letter-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes splash-letter-in {
+        from {
+          opacity: 0;
+          transform: translateY(16px) scale(0.85);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
       .splash-sub {
         font-size: 13px;
@@ -177,6 +192,22 @@
       <div class="splash-footer">open-road-scope · v0.1.0</div>
     </div>
     <div id="app"></div>
+    <script>
+      // 品牌名逐字拆分为动画节点，依次上浮入场
+      (function () {
+        var name = document.querySelector(".splash-name");
+        if (!name) return;
+        var text = name.textContent;
+        name.textContent = "";
+        for (var i = 0; i < text.length; i++) {
+          var s = document.createElement("span");
+          s.className = "splash-letter";
+          s.textContent = text[i];
+          s.style.animationDelay = (0.1 + i * 0.045).toFixed(3) + "s";
+          name.appendChild(s);
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
