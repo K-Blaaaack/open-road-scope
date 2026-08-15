@@ -75,10 +75,15 @@ onMounted(() => {
         <span v-if="prefs.showNavLabels" class="truncate">{{ t(item.key) }}</span>
       </router-link>
 
-      <!-- 底部无文字快捷按钮：切换导航文字说明显示（背景随日夜模式自动切换） -->
+      <!-- 底部无文字快捷按钮：切换导航文字说明显示（样式与顶部日夜切换按钮一致） -->
       <button
-        class="text-secondary hover:text-primary border-border bg-[var(--color-btn)] hover:bg-[var(--color-btn-hover)] mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors"
-        :class="prefs.showNavLabels ? '' : 'mx-auto'"
+        class="text-secondary hover:text-primary mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors"
+        :class="[
+          isDark
+            ? 'border-white/10 bg-white/10 hover:bg-white/20'
+            : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10',
+          prefs.showNavLabels ? '' : 'mx-auto',
+        ]"
         :title="t('settings.showNavLabels')"
         @click="
           prefs.showNavLabels = !prefs.showNavLabels;
@@ -101,9 +106,14 @@ onMounted(() => {
           <span class="text-primary font-semibold tracking-wide">OpenRoadScope</span>
         </div>
         <div class="flex items-center gap-3">
-          <!-- 主题切换按钮：背景随日夜模式自动切换 -->
+          <!-- 主题切换按钮（原样式：常态背景随日夜模式切换） -->
           <button
-            class="text-secondary hover:text-primary border-border bg-[var(--color-btn)] hover:bg-[var(--color-btn-hover)] flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+            class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+            :class="
+              isDark
+                ? 'border-white/10 bg-white/10 hover:bg-white/20'
+                : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10'
+            "
             :title="isDark ? t('common.day') : t('common.night')"
             @click="prefs.toggleTheme()"
           >
