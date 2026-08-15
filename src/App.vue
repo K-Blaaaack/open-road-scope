@@ -16,6 +16,8 @@ const statusText = computed(() => {
   return t(`status.${key}`);
 });
 
+const isDark = computed(() => prefs.theme === "dark");
+
 const statusColor = computed(() => {
   const map: Record<string, string> = {
     idle: "bg-gray-500",
@@ -70,6 +72,13 @@ onMounted(() => {
           <span class="text-primary font-semibold tracking-wide">OpenRoadScope</span>
         </div>
         <div class="flex items-center gap-3">
+          <button
+            class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
+            :title="isDark ? t('common.day') : t('common.night')"
+            @click="prefs.toggleTheme()"
+          >
+            <span :class="isDark ? 'i-lucide-sun' : 'i-lucide-moon'" class="h-4 w-4" />
+          </button>
           <span class="text-secondary text-xs">
             {{ store.status.mode === "sim" ? t("status.sim") : t("status.real") }}
           </span>
