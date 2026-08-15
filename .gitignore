@@ -12,3 +12,5 @@ coverage/
 sidecar/*.egg-info/
 sidecar/**/__pycache__/
 sidecar/tests/__pycache__/
+.playwright-mcp/
+*.png
