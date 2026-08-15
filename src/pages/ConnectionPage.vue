@@ -21,11 +21,11 @@ const netPort = ref("35000");
 const fault = ref(false);
 const busy = ref(false);
 
-// 关闭模式选择时强制走实车连接（隐藏模拟入口）；immediate 保证重新挂载后立即生效
+// 关闭模式选择或未开启开发者模式时，强制走实车连接（隐藏模拟入口）；immediate 保证重新挂载后立即生效
 watch(
-  () => prefs.showModeSelect,
-  (v) => {
-    if (!v) mode.value = "real";
+  [() => prefs.showModeSelect, () => prefs.devMode],
+  ([showSelect, devMode]) => {
+    if (!showSelect || !devMode) mode.value = "real";
   },
   { immediate: true }
 );
@@ -86,7 +86,8 @@ onMounted(listPorts);
     <div class="glass-card flex flex-col gap-4 p-5">
       <!-- 以下连接配置仅在未连接时显示 -->
       <!-- 模拟/实车模式选择，可在开发者菜单中控制显示 -->
-      <div v-if="prefs.showModeSelect && store.status.state === 'idle'">
+      <!-- 模拟/实车模式选择：需开启开发者模式且未连接，可在开发者菜单中控制显示 -->
+      <div v-if="prefs.showModeSelect && prefs.devMode && store.status.state === 'idle'">
         <div class="text-secondary mb-2 text-sm">{{ t("connection.mode") }}</div>
         <div class="flex flex-wrap gap-2">
           <button
