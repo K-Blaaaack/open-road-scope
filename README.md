@@ -40,6 +40,27 @@ pnpm dev
 
 测试：`pnpm test:all`（web + node + sidecar）
 
+## 版本发布
+
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)（vX.Y.Z），由提交信息（[Conventional Commits](https://www.conventionalcommits.org/zh-hans/)）自动计算：
+
+```bash
+pnpm release:dry        # 预览将要产生的版本号与变更
+pnpm release            # 更新版本号 + 生成 CHANGELOG.md + 打 tag（如 v0.2.0）
+pnpm release:push       # 推送提交与 tag，触发 CI 自动构建并发布 Release
+```
+
+版本规则：
+
+| 提交类型 | 版本变化 |
+|---|---|
+| `feat:`（新功能） | minor（0.1.0 → 0.2.0） |
+| `fix:`（修复） | patch（0.1.0 → 0.1.1） |
+| `feat!:` / `BREAKING CHANGE` | major（0.1.0 → 1.0.0） |
+| 其他（docs/chore/ci...） | 不产生新版本 |
+
+> 注意：`release` 会基于 **最后一个版本 tag 之后** 的提交计算版本，且要求提交信息符合常规提交格式。
+
 ## 平台支持
 
 | 平台 | 发行格式 | 说明 |

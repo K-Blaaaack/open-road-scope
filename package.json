@@ -43,7 +43,10 @@
     "build:linux:deb": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux deb",
     "build:linux:rpm": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux rpm",
     "build:linux:snap": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux snap",
-    "build:linux:tar": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux tar.gz"
+    "build:linux:tar": "pnpm build && pnpm build:sidecar && electron-builder --config electron-builder.config.ts --linux tar.gz",
+    "release": "commit-and-tag-version",
+    "release:dry": "commit-and-tag-version --dry-run",
+    "release:push": "git push --follow-tags"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -60,6 +63,7 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/test-utils": "^2.4.11",
     "@vueuse/core": "^14.4.0",
+    "commit-and-tag-version": "^13.1.2",
     "electron": "~43.2.0",
     "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
@@ -82,9 +86,9 @@
     "vite": "^7.3.6",
     "vitest": "^4.1.10",
     "vue": "^3.5.41",
+    "vue-eslint-parser": "^10.4.0",
     "vue-i18n": "^11.4.8",
     "vue-router": "^5.2.0",
-    "vue-tsc": "^3.3.9",
-    "vue-eslint-parser": "^10.4.0"
+    "vue-tsc": "^3.3.9"
   }
 }
