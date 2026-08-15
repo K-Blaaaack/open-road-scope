@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 // CSP 禁止 unsafe-eval，导入 pixi.js 无 eval 补丁（副作用安装）
 import "pixi.js/unsafe-eval";
-import { Application, Container, Graphics, Text } from "pixi.js";
+import { Application, Container, Graphics } from "pixi.js";
 
 const props = defineProps<{
   /** 标签文本 */
@@ -89,19 +89,6 @@ const drawFace = (size: number): Container => {
     face.addChild(g);
   }
 
-  // 主刻度数字标签（0 / 中值 / max）
-  for (const frac of [0, 0.5, 1]) {
-    const angle = START + frac * SWEEP;
-    const r = radius - 26;
-    const label = new Text({
-      text: String(Math.round(props.min + frac * (props.max - props.min))),
-      style: { fontFamily: "JetBrains Mono, monospace", fontSize: 11, fill: 0x94a3b8 },
-    });
-    label.anchor.set(0.5);
-    label.position.set(center + Math.cos(angle) * r, center + Math.sin(angle) * r);
-    face.addChild(label);
-  }
-
   return face;
 };
 
@@ -163,15 +150,36 @@ watch(
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId);
-  app?.destroy(true, { children: true });
-  app = null;
+  if (app) {
+    app.destroy(true, { children: true });
+    app = null;
+  }
 });
 </script>
 
 <template>
   <div class="relative flex flex-col items-center">
     <div class="text-secondary mb-1 text-xs font-medium tracking-wider">{{ label }}</div>
-    <div ref="containerRef" class="h-44 w-44 sm:h-52 sm:w-52">
+    <div ref="containerRef" class="relative h-44 w-44 sm:h-52 sm:w-52">
+      <!-- 主刻度数字标签（DOM 渲染，半径约为容器 35%） -->
+      <span
+        class="text-secondary font-mono absolute text-[11px]"
+        style="left: calc(50% - 30.5%); top: calc(50% - 17.6%); transform: translate(-50%, -50%)"
+      >
+        {{ Math.round(min) }}
+      </span>
+      <span
+        class="text-secondary font-mono absolute text-[11px]"
+        style="left: calc(50% + 30.5%); top: calc(50% - 17.6%); transform: translate(-50%, -50%)"
+      >
+        {{ Math.round((min + max) / 2) }}
+      </span>
+      <span
+        class="text-secondary font-mono absolute text-[11px]"
+        style="left: 50%; top: calc(50% + 35.2%); transform: translate(-50%, -50%)"
+      >
+        {{ Math.round(max) }}
+      </span>
       <!-- Pixi 画布挂载点 -->
     </div>
     <div class="pointer-events-none absolute bottom-1 flex items-baseline gap-1">
