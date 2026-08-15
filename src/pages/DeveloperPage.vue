@@ -70,25 +70,25 @@ const openDevTools = (): void => {
       </button>
     </section>
 
-    <!-- 顶栏模拟模式标识显示控制 -->
+    <!-- 连接页模式选择显示控制 -->
     <section class="glass-card flex items-center justify-between p-5">
       <div>
-        <div class="text-primary text-sm">{{ t("developer.showSimBadge") }}</div>
-        <div class="text-secondary mt-0.5 text-xs">{{ t("developer.showSimBadgeDesc") }}</div>
+        <div class="text-primary text-sm">{{ t("developer.showModeSelect") }}</div>
+        <div class="text-secondary mt-0.5 text-xs">{{ t("developer.showModeSelectDesc") }}</div>
       </div>
       <button
         class="relative h-6 w-11 rounded-full transition-colors"
-        :class="prefs.showSimBadge ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
+        :class="prefs.showModeSelect ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
         role="switch"
-        :aria-checked="prefs.showSimBadge"
+        :aria-checked="prefs.showModeSelect"
         @click="
-          prefs.showSimBadge = !prefs.showSimBadge;
+          prefs.showModeSelect = !prefs.showModeSelect;
           prefs.persist();
         "
       >
         <span
           class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
-          :class="prefs.showSimBadge ? 'left-[22px]' : 'left-0.5'"
+          :class="prefs.showModeSelect ? 'left-[22px]' : 'left-0.5'"
         />
       </button>
     </section>

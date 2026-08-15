@@ -3,9 +3,11 @@ import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
+import { usePrefsStore } from "@/stores/prefs";
 
 const { t } = useI18n();
 const store = useObdStore();
+const prefs = usePrefsStore();
 
 const mode = ref<"sim" | "real">(store.status.mode === "real" ? "real" : "sim");
 const port = ref("");
@@ -51,7 +53,8 @@ onMounted(listPorts);
     <h1 class="text-primary text-lg font-semibold">{{ t("connection.title") }}</h1>
 
     <div class="glass-card flex flex-col gap-4 p-5">
-      <div>
+      <!-- 模拟/实车模式选择，可在开发者菜单中控制显示 -->
+      <div v-if="prefs.showModeSelect">
         <div class="text-secondary mb-2 text-sm">{{ t("connection.mode") }}</div>
         <div class="flex gap-2">
           <button
