@@ -84,9 +84,11 @@ export class SidecarManager extends EventEmitter {
       if (this.opts.drop) args.push("--drop", String(this.opts.drop));
       return { command, args: args.filter(Boolean), cwd: sidecarDir };
     }
+    // Windows 下 PyInstaller 产物带 .exe 后缀
+    const binName = process.platform === "win32" ? "obd-sidecar.exe" : "obd-sidecar";
     const bin = app.isPackaged
-      ? join(process.resourcesPath, "obd-sidecar")
-      : join(app.getAppPath(), "resources/obd-sidecar");
+      ? join(process.resourcesPath, binName)
+      : join(app.getAppPath(), "resources", binName);
     const args = [this.opts.mode === "sim" ? "--sim" : ""];
     if (this.opts.mode === "real" && this.opts.port) args.push("--port", this.opts.port);
     return { command: bin, args: args.filter(Boolean), cwd: process.resourcesPath };

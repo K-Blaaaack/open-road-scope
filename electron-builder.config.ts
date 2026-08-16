@@ -1,5 +1,8 @@
 import type { Configuration } from "electron-builder";
 
+// Windows 下 PyInstaller 产物带 .exe 后缀，其余平台无后缀
+const sidecarName = process.platform === "win32" ? "obd-sidecar.exe" : "obd-sidecar";
+
 const config: Configuration = {
   appId: "dev.openroadscope.app",
   productName: "OpenRoadScope",
@@ -9,8 +12,8 @@ const config: Configuration = {
   files: ["out/**/*", "package.json"],
   extraResources: [
     {
-      from: "resources/obd-sidecar",
-      to: "obd-sidecar",
+      from: `resources/${sidecarName}`,
+      to: sidecarName,
     },
   ],
   win: {
