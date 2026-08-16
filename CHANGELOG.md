@@ -1,5 +1,10 @@
 # 更新日志
+## [0.1.4](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.3...v0.1.4) (2026-08-16)
 
+### ✨ 新功能
+
+* 安全引导改为每次显示并支持勾选不再显示（二次确认） ([a62e904](https://github.com/K-Blaaaack/open-road-scope/commit/a62e904b96ddfab290a0d690cc9872ce6aca4f1c))
+* 首次使用引导与行车安全警告 ([b6ac7cd](https://github.com/K-Blaaaack/open-road-scope/commit/b6ac7cd5778e23331ff687d730d58f0e61747562))
 ## [0.1.3](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.2...v0.1.3) (2026-08-16)
 
 ### 🐛 修复
