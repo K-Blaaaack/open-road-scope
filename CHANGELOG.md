@@ -1,4 +1,13 @@
 # 更新日志
+## [0.1.3](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.2...v0.1.3) (2026-08-16)
+
+### 🐛 修复
+
+* Windows 打包内置 sidecar（.exe 平台条件） ([502a7c6](https://github.com/K-Blaaaack/open-road-scope/commit/502a7c61301d57014bbada5f6acc706a6dbfebc1))
+
+### 🤖 CI
+
+* 修复 CHANGELOG 版本标题链接格式的提取 ([99efe01](https://github.com/K-Blaaaack/open-road-scope/commit/99efe017f2048fecb8853edffeec866095fa122d))
 ## [0.1.2](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.1...v0.1.2) (2026-08-15)
 
 ### ✨ 新功能
