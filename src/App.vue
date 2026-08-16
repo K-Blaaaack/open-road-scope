@@ -158,6 +158,6 @@ onMounted(() => {
     </main>
   </div>
 
-  <!-- 首次使用引导 -->
-  <OnboardingOverlay v-if="!prefs.onboardingDone" />
+  <!-- 安全引导：每次启动显示，除非勾选「不再显示」并确认 -->
+  <OnboardingOverlay v-if="!prefs.skipOnboarding" />
 </template>

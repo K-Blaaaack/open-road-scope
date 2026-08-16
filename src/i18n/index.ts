@@ -33,6 +33,11 @@ export const i18n = createI18n({
         featureDiagnostics: "故障诊断",
         featureDiagnosticsDesc: "读取与清除故障码（DTC）、读取车辆识别码（VIN）。",
         start: "我已了解，开始使用",
+        dontShowAgain: "不再显示此提示",
+        confirmSkipTitle: "不再显示安全提示？",
+        confirmSkipDesc:
+          "将不再显示行车安全提示。若需要重新查看，请前往「关于」页面了解使用须知。确定不再显示吗？",
+        confirmSkipAccept: "确定不再显示",
       },
       settings: {
         title: "设置",
@@ -204,6 +209,11 @@ export const i18n = createI18n({
         featureDiagnostics: "Diagnostics",
         featureDiagnosticsDesc: "Read and clear fault codes (DTC) and read the VIN.",
         start: "I understand, let's go",
+        dontShowAgain: "Don't show this notice again",
+        confirmSkipTitle: "Hide the safety notice?",
+        confirmSkipDesc:
+          "The driving safety notice will no longer be shown. If you need to review it later, please refer to the About page. Hide it anyway?",
+        confirmSkipAccept: "Yes, hide it",
       },
       settings: {
         title: "Settings",
