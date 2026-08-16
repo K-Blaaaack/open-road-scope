@@ -1,4 +1,9 @@
 # 更新日志
+## [0.1.5](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.4...v0.1.5) (2026-08-16)
+
+### 🐛 修复
+
+* 安卓 splash 增加 CSS 自动隐藏兜底并解耦移除调度 ([5aeffb7](https://github.com/K-Blaaaack/open-road-scope/commit/5aeffb71066698c803389b4566791cdd9053eb27))
 ## [0.1.4](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.3...v0.1.4) (2026-08-16)
 
 ### ✨ 新功能
