@@ -15,6 +15,7 @@ declare module 'vue' {
     DashboardCard: typeof import('./src/components/dashboard/DashboardCard.vue')['default']
     LineChart: typeof import('./src/components/LineChart.vue')['default']
     LineContent: typeof import('./src/components/dashboard/LineContent.vue')['default']
+    OnboardingOverlay: typeof import('./src/components/OnboardingOverlay.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ValueCard: typeof import('./src/components/ValueCard.vue')['default']

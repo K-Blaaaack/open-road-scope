@@ -1,25 +1,28 @@
 # 更新日志
+
 ## [0.1.3](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.2...v0.1.3) (2026-08-16)
 
 ### 🐛 修复
 
-* Windows 打包内置 sidecar（.exe 平台条件） ([502a7c6](https://github.com/K-Blaaaack/open-road-scope/commit/502a7c61301d57014bbada5f6acc706a6dbfebc1))
+- Windows 打包内置 sidecar（.exe 平台条件） ([502a7c6](https://github.com/K-Blaaaack/open-road-scope/commit/502a7c61301d57014bbada5f6acc706a6dbfebc1))
 
 ### 🤖 CI
 
-* 修复 CHANGELOG 版本标题链接格式的提取 ([99efe01](https://github.com/K-Blaaaack/open-road-scope/commit/99efe017f2048fecb8853edffeec866095fa122d))
+- 修复 CHANGELOG 版本标题链接格式的提取 ([99efe01](https://github.com/K-Blaaaack/open-road-scope/commit/99efe017f2048fecb8853edffeec866095fa122d))
+
 ## [0.1.2](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.1...v0.1.2) (2026-08-15)
 
 ### ✨ 新功能
 
-* 开发者模式按钮加入 Toast 点击倒数提示 ([bc1c968](https://github.com/K-Blaaaack/open-road-scope/commit/bc1c9682c971d27f3a2b3372b00bac23037b85e6))
+- 开发者模式按钮加入 Toast 点击倒数提示 ([bc1c968](https://github.com/K-Blaaaack/open-road-scope/commit/bc1c9682c971d27f3a2b3372b00bac23037b85e6))
 
 ### 🐛 修复
 
-* 安卓端 splash 卡死（init 超时兜底与双保险移除） ([b56b2d5](https://github.com/K-Blaaaack/open-road-scope/commit/b56b2d52bf65e22a6edaa96d57ca03fb96f11275))
-* 模拟模式选项仅开发者模式开启时显示 ([17b7ee4](https://github.com/K-Blaaaack/open-road-scope/commit/17b7ee479c772c6491a45f2156baf802c44f33b4))
-* 内置模拟数据仅开发者模式开启时激活 ([f3d7a0f](https://github.com/K-Blaaaack/open-road-scope/commit/f3d7a0f43d2b6ec0ee5c4a2e3bc0a4a8117900af))
-* 移除启动自动连接模拟设备，未连接不显示模式标识 ([975cd81](https://github.com/K-Blaaaack/open-road-scope/commit/975cd811d51bd8aba38ddd9d2a21a8fae221e252))
+- 安卓端 splash 卡死（init 超时兜底与双保险移除） ([b56b2d5](https://github.com/K-Blaaaack/open-road-scope/commit/b56b2d52bf65e22a6edaa96d57ca03fb96f11275))
+- 模拟模式选项仅开发者模式开启时显示 ([17b7ee4](https://github.com/K-Blaaaack/open-road-scope/commit/17b7ee479c772c6491a45f2156baf802c44f33b4))
+- 内置模拟数据仅开发者模式开启时激活 ([f3d7a0f](https://github.com/K-Blaaaack/open-road-scope/commit/f3d7a0f43d2b6ec0ee5c4a2e3bc0a4a8117900af))
+- 移除启动自动连接模拟设备，未连接不显示模式标识 ([975cd81](https://github.com/K-Blaaaack/open-road-scope/commit/975cd811d51bd8aba38ddd9d2a21a8fae221e252))
+
 ## [0.1.1](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.0...v0.1.1) (2026-08-15)
 
 ### 🤖 CI

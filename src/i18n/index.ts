@@ -21,6 +21,19 @@ export const i18n = createI18n({
         licenseNote:
           "数据采集由 Python sidecar 承担（python-OBD，GNU GPL v2），随软件整体分发；使用与再分发请遵守 GPL-2.0 条款。",
       },
+      onboarding: {
+        welcome: "欢迎使用，请先阅读以下重要提示",
+        safetyTitle: "行车安全警告",
+        safetyDesc:
+          "本软件直接与车辆 OBD 系统通讯，操作不当或行驶中分散注意力可能影响行车安全，甚至造成车辆故障。请务必在驻车状态下连接与操作，行驶期间谨慎使用，自行承担使用风险。",
+        featureConnect: "多种连接方式",
+        featureConnectDesc: "支持 USB 串口、蓝牙与网络（RJ45）适配器，或使用内置模拟模式体验功能。",
+        featureDashboard: "自定义仪表盘",
+        featureDashboardDesc: "卡片化布局可自由拖拽、缩放，支持折线图、柱状图与数值呈现。",
+        featureDiagnostics: "故障诊断",
+        featureDiagnosticsDesc: "读取与清除故障码（DTC）、读取车辆识别码（VIN）。",
+        start: "我已了解，开始使用",
+      },
       settings: {
         title: "设置",
         language: "界面语言",
@@ -177,6 +190,20 @@ export const i18n = createI18n({
         license: "This software is released under the GNU General Public License v2.0",
         licenseNote:
           "Data acquisition is handled by a Python sidecar (python-OBD, GNU GPL v2) distributed together with the app; redistribution must comply with the GPL-2.0 terms.",
+      },
+      onboarding: {
+        welcome: "Welcome! Please read the important notice below",
+        safetyTitle: "Driving safety warning",
+        safetyDesc:
+          "This software communicates directly with the vehicle's OBD system. Improper operation or distracted driving may affect driving safety and could even damage the vehicle. Please connect and operate only while the vehicle is parked, use caution while driving, and use this software at your own risk.",
+        featureConnect: "Multiple connection options",
+        featureConnectDesc:
+          "USB, Bluetooth and network (RJ45) adapters are supported, plus a built-in simulation mode.",
+        featureDashboard: "Customizable dashboard",
+        featureDashboardDesc: "Drag-and-drop card layout with line, bar and value displays.",
+        featureDiagnostics: "Diagnostics",
+        featureDiagnosticsDesc: "Read and clear fault codes (DTC) and read the VIN.",
+        start: "I understand, let's go",
       },
       settings: {
         title: "Settings",

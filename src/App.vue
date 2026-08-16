@@ -6,6 +6,7 @@ import { useRoute } from "vue-router";
 import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
 import { useDashboardStore } from "@/stores/dashboard";
+import OnboardingOverlay from "@/components/OnboardingOverlay.vue";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -156,4 +157,7 @@ onMounted(() => {
       </div>
     </main>
   </div>
+
+  <!-- 首次使用引导 -->
+  <OnboardingOverlay v-if="!prefs.onboardingDone" />
 </template>

@@ -17,6 +17,7 @@ interface PrefsSnapshot {
   devMode?: boolean;
   showModeSelect?: boolean;
   showNavLabels?: boolean;
+  onboardingDone?: boolean;
 }
 
 const applyTheme = (theme: Theme): void => {
@@ -52,6 +53,8 @@ export const usePrefsStore = defineStore("prefs", () => {
   const showModeSelect = ref(true);
   /** 左侧导航是否显示文字说明（默认显示） */
   const showNavLabels = ref(true);
+  /** 首次使用引导是否已完成 */
+  const onboardingDone = ref(false);
   /** 界面热重载：崩溃自动恢复与 F5/Ctrl+R 快捷键 */
   const loaded = ref(false);
 
@@ -67,6 +70,7 @@ export const usePrefsStore = defineStore("prefs", () => {
         devMode.value = saved.devMode ?? false;
         showModeSelect.value = saved.showModeSelect ?? true;
         showNavLabels.value = saved.showNavLabels ?? true;
+        onboardingDone.value = saved.onboardingDone ?? false;
       }
     } catch {
       // 存储不可用时回退默认值
@@ -85,6 +89,7 @@ export const usePrefsStore = defineStore("prefs", () => {
       devMode: devMode.value,
       showModeSelect: showModeSelect.value,
       showNavLabels: showNavLabels.value,
+      onboardingDone: onboardingDone.value,
     });
   };
 
@@ -113,6 +118,7 @@ export const usePrefsStore = defineStore("prefs", () => {
     devMode,
     showModeSelect,
     showNavLabels,
+    onboardingDone,
     loaded,
     init,
     toggleTheme,
