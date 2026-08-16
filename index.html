@@ -37,6 +37,18 @@
         opacity: 0;
         pointer-events: none;
       }
+      /* JS 兜底：无论脚本是否正常执行，动画结束后自动隐藏（Android WebView 防卡死） */
+      #app-loading {
+        animation: splash-auto-hide 0.4s ease 3.4s forwards;
+        -webkit-animation: splash-auto-hide 0.4s ease 3.4s forwards;
+      }
+      @keyframes splash-auto-hide {
+        to {
+          opacity: 0;
+          pointer-events: none;
+          visibility: hidden;
+        }
+      }
       .splash {
         display: flex;
         flex-direction: column;

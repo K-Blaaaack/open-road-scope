@@ -31,11 +31,23 @@ const removeSplash = (): void => {
   );
 };
 
+// 顶层立即调度 splash 移除：与 init/mount 完全解耦，
+// 即使偏好加载挂起或脚本后续异常，splash 也会按时消失（Android WebView 防卡死）
+setTimeout(removeSplash, SPLASH_ANIM_MS + 800);
+
+// 全局错误捕获：辅助排查 WebView 下脚本异常（输出到控制台）
+window.addEventListener("error", (e) => {
+  console.error("[boot] error:", e.message);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  console.error("[boot] unhandled rejection:", e.reason);
+});
+
 // 先加载用户偏好（开发者模式等），再安装路由触发初始导航，
-// 保证路由守卫读取到持久化状态；splash 动画完整播放后淡出
+// 保证路由守卫读取到持久化状态
 void (async () => {
   // 偏好加载带超时兜底：Android WebView 下 IndexedDB 可能挂起，
-  // 避免 init 永不完成导致 splash 卡死
+  // 避免 init 永不完成导致应用无法启动
   try {
     await Promise.race([
       usePrefsStore().init(),
@@ -52,9 +64,4 @@ void (async () => {
   app.use(router);
   app.use(i18n);
   app.mount("#app");
-  const elapsed = performance.now() - (window.__splashStart ?? 0);
-  const remaining = Math.max(0, SPLASH_ANIM_MS - elapsed);
-  setTimeout(removeSplash, remaining);
-  // 极端兜底：无论挂载是否成功，最多 6 秒后强制移除 splash
-  setTimeout(removeSplash, 6000);
 })();
