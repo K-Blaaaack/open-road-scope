@@ -71,6 +71,7 @@ jobs:
       # 产物命名统一：OpenRoadScope-<版本>-<平台>-<架构>.<扩展名>
       # electron-builder 的 arch 输出为 x64，平台为 win/mac，此处统一为 x86_64 与 windows/macos
       - name: 统一产物命名
+        shell: bash
         run: |
           for f in dist/*; do
             base="$(basename "$f")"
