@@ -1,4 +1,26 @@
 # 更新日志
+## [0.1.6](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.5...v0.1.6) (2026-08-20)
+
+### ✨ 新功能
+
+* 安卓支持实车连接：蓝牙 SPP / USB 串口 / 网络（RJ45）三种方式，内置 ELM327 协议引擎（PID 轮询、故障码读取/清除、VIN、电瓶电压） ([ede2382](https://github.com/K-Blaaaack/open-road-scope/commit/ede238230efb8303e72a09126a1ae55ecab5703d))
+* 安卓构建迁移为原生 WebView（移除 Capacitor），兼容既有界面与连接体验
+* 关于页支持联网检查新版本 ([7906183](https://github.com/K-Blaaaack/open-road-scope/commit/79061831082a482c9b73f52837a62978c780d53e))
+
+### 🐛 修复
+
+* 连接页在无桥接环境下避免枚举串口崩溃 ([851dac6](https://github.com/K-Blaaaack/open-road-scope/commit/851dac65213aad974537632dfef2bf7565acacf1))
+
+### ⚡ 性能
+
+* 路由预取、页面缓存、骨架屏与构建分包等性能优化 ([4172a12](https://github.com/K-Blaaaack/open-road-scope/commit/4172a1214eeef7ffd9926996daf0f7a966478a96))
+
+### 🤖 CI
+
+* 安卓 APK 按 CPU 架构拆分（arm64-v8a / armeabi-v7a / x86_64）并上传 Release
+* 产物命名统一为「平台-架构」格式（linux-x86_64 / windows-x86_64 / macos-arm64）
+* 修复安卓 SDK 包列表分隔符与 Windows 产物命名脚本外壳 ([e2edc8e](https://github.com/K-Blaaaack/open-road-scope/commit/e2edc8e096a7245be1c4564426cea326a0cb7fff))
+
 ## [0.1.5](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.4...v0.1.5) (2026-08-16)
 
 ### 🐛 修复
