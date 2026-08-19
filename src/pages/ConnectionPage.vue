@@ -38,6 +38,8 @@ const filteredPorts = computed(() => {
 });
 
 const listPorts = async (): Promise<void> => {
+  // 无桥接环境（纯浏览器预览）下静默跳过
+  if (!window.obd) return;
   const result = (await window.obd.listPorts()) as {
     ok: boolean;
     result?: { ports: typeof ports.value };
