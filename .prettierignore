@@ -5,3 +5,7 @@ sidecar/.venv
 sidecar/build
 sidecar/dist
 pnpm-lock.yaml
+auto-imports.d.ts
+auto-eslint.mjs
+components.d.ts
+CHANGELOG.md

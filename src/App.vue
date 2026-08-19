@@ -6,7 +6,9 @@ import { useRoute } from "vue-router";
 import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
 import { useDashboardStore } from "@/stores/dashboard";
+import { prefetchRoutes } from "@/router";
 import OnboardingOverlay from "@/components/OnboardingOverlay.vue";
+import PageSkeleton from "@/components/PageSkeleton.vue";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -49,6 +51,8 @@ const navItems = computed(() => {
 onMounted(() => {
   void prefs.init().then(() => store.setup());
   // 不自动连接任何设备：由用户在连接页主动选择模拟/实车
+  // 空闲时预取路由 chunk，避免后续切换页面等待加载
+  prefetchRoutes();
 });
 </script>
 
@@ -149,11 +153,20 @@ onMounted(() => {
       </header>
 
       <div class="min-h-0 flex-1 overflow-auto p-5 max-sm:p-3">
-        <router-view v-slot="{ Component }">
-          <Transition name="page" mode="out-in">
-            <component :is="Component" :key="route.path" />
-          </Transition>
-        </router-view>
+        <Suspense>
+          <router-view v-slot="{ Component }">
+            <Transition name="page" mode="out-in">
+              <!-- KeepAlive：缓存页面组件，切换回来不重建（组件缓存） -->
+              <KeepAlive>
+                <component :is="Component" :key="route.path" />
+              </KeepAlive>
+            </Transition>
+          </router-view>
+          <!-- 路由 chunk 加载期间显示骨架占位 -->
+          <template #fallback>
+            <PageSkeleton />
+          </template>
+        </Suspense>
       </div>
     </main>
   </div>

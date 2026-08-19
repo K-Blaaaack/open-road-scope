@@ -42,3 +42,26 @@ router.beforeEach((to) => {
   }
   return true;
 });
+
+/**
+ * 空闲时预取全部路由 chunk（预加载 / 缓存预热），
+ * 用户在切换页面时无需再等待动态导入完成
+ */
+export const prefetchRoutes = (): void => {
+  const load = (): void => {
+    for (const route of router.getRoutes()) {
+      const loader = route.components?.default;
+      if (typeof loader === "function" && route.path !== router.currentRoute.value.path) {
+        void (loader as () => Promise<unknown>)().catch(() => {
+          // 预取失败静默忽略，不影响后续按需加载
+        });
+      }
+    }
+  };
+  // requestIdleCallback 空闲调度，低优先级不抢占首屏渲染；不支持时降级为延迟执行
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(load, { timeout: 3000 });
+  } else {
+    window.setTimeout(load, 800);
+  }
+};

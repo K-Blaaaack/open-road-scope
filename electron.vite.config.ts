@@ -43,9 +43,17 @@ export default defineConfig({
       port: 14559,
     },
     build: {
+      assetsInlineLimit: 16384,
+      chunkSizeWarningLimit: 800,
       rollupOptions: {
         input: {
           index: resolve(__dirname, "index.html"),
+        },
+        output: {
+          // 公共代码提取 / 分包加载：核心框架独立 vendor 块，便于增量缓存与并行加载
+          manualChunks: {
+            vue: ["vue", "vue-router", "pinia", "vue-i18n"],
+          },
         },
       },
     },

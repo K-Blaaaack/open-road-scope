@@ -81,10 +81,17 @@ export const useDashboardStore = defineStore("dashboard", () => {
     await resubscribe();
   };
 
+  // 防抖合并写入：连续布局编辑只落盘一次（写入合并）
+  let persistTimer: ReturnType<typeof setTimeout> | null = null;
+
   const persist = (): void => {
-    // 序列化为 JSON 字符串存储，规避响应式对象无法被 IndexedDB 克隆的问题
-    const json = JSON.stringify({ version: 1, cards: cards.value } satisfies DashboardLayout);
-    void localforage.setItem(STORAGE_KEY, json);
+    if (persistTimer) return;
+    persistTimer = setTimeout(() => {
+      persistTimer = null;
+      // 序列化为 JSON 字符串存储，规避响应式对象无法被 IndexedDB 克隆的问题
+      const json = JSON.stringify({ version: 1, cards: cards.value } satisfies DashboardLayout);
+      void localforage.setItem(STORAGE_KEY, json);
+    }, 250);
   };
 
   /** 按当前卡片 PID 集合重订阅数据流 */

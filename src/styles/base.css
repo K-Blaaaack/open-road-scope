@@ -81,6 +81,36 @@ body {
   background: transparent;
 }
 
+/* 骨架屏占位：微光扫过动画（GPU 加速：仅用 transform 平移避免重绘） */
+.skeleton {
+  background: rgba(148, 163, 184, 0.14);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+[data-theme="light"] .skeleton {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 /* 页面路由切换过渡动画 */
 .page-enter-active,
 .page-leave-active {

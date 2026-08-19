@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import { useObdStore } from "@/stores/obd";
 
@@ -21,17 +21,37 @@ const props = defineProps<{
 const store = useObdStore();
 const canvasRef = ref<HTMLCanvasElement>();
 let rafId = 0;
+// 脏检查：仅当数据或尺寸变化时才重绘，避免每帧空转（重绘优化）
+let dirty = true;
+let lastTs = -1;
+let lastW = -1;
+let lastH = -1;
 
 const render = (): void => {
   rafId = requestAnimationFrame(render);
   const canvas = canvasRef.value;
   if (!canvas) return;
+
+  // 尺寸检测（只读布局属性，不触发强制同步布局）
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  if (width !== lastW || height !== lastH) {
+    lastW = width;
+    lastH = height;
+    dirty = true;
+  }
+  const ts = store.lastTs;
+  if (ts !== lastTs) {
+    lastTs = ts;
+    dirty = true;
+  }
+  if (!dirty) return;
+  dirty = false;
+
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
   const dpr = window.devicePixelRatio || 1;
-  const width = canvas.clientWidth;
-  const height = canvas.clientHeight;
   if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
     canvas.width = width * dpr;
     canvas.height = height * dpr;
@@ -95,6 +115,14 @@ const render = (): void => {
 
 onMounted(() => render());
 onBeforeUnmount(() => cancelAnimationFrame(rafId));
+
+// 量程或数据源变化时标记重绘
+watch(
+  () => [props.pid, props.min, props.max],
+  () => {
+    dirty = true;
+  }
+);
 </script>
 
 <template>

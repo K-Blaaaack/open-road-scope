@@ -81,17 +81,24 @@ export const usePrefsStore = defineStore("prefs", () => {
     loaded.value = true;
   };
 
+  // 防抖合并写入：短时间内的连续修改只落盘一次（请求合并 / 写入合并）
+  let persistTimer: ReturnType<typeof setTimeout> | null = null;
+
   const persist = (): void => {
-    void localforage.setItem(STORAGE_KEY, {
-      theme: theme.value,
-      locale: locale.value,
-      fitViewport: fitViewport.value,
-      showClearDtc: showClearDtc.value,
-      devMode: devMode.value,
-      showModeSelect: showModeSelect.value,
-      showNavLabels: showNavLabels.value,
-      skipOnboarding: skipOnboarding.value,
-    });
+    if (persistTimer) return;
+    persistTimer = setTimeout(() => {
+      persistTimer = null;
+      void localforage.setItem(STORAGE_KEY, {
+        theme: theme.value,
+        locale: locale.value,
+        fitViewport: fitViewport.value,
+        showClearDtc: showClearDtc.value,
+        devMode: devMode.value,
+        showModeSelect: showModeSelect.value,
+        showNavLabels: showNavLabels.value,
+        skipOnboarding: skipOnboarding.value,
+      });
+    }, 250);
   };
 
   /** 切换深色/浅色主题 */
