@@ -1,7 +1,7 @@
 {
   "name": "open-road-scope",
   "productName": "OpenRoadScope",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Cross-platform vehicle data dashboard powered by OBD-II (ELM327)",
   "author": {
     "name": "OpenRoadScope contributors",
