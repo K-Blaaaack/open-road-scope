@@ -26,13 +26,15 @@ const updateState = ref<"idle" | "checking" | "available" | "not-available" | "e
 const updateVersion = ref("");
 const updateMessage = ref("");
 
-/** 是否有原生桥接（无桥接的浏览器预览环境隐藏检查按钮） */
-const hasBridge = computed(() => Boolean(window.obd));
-
 let unsubscribe: (() => void) | undefined;
 
 const checkForUpdates = (): void => {
-  if (!window.obd) return;
+  if (!window.obd) {
+    // 无原生桥接（WebView / 浏览器预览）：无更新通道，明确提示
+    updateState.value = "error";
+    updateMessage.value = t("about.updateUnsupported");
+    return;
+  }
   updateState.value = "checking";
   void window.obd
     .checkForUpdates()
@@ -134,7 +136,6 @@ onBeforeUnmount(() => {
           </template>
         </div>
         <button
-          v-if="hasBridge"
           class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="updateState === 'checking'"
           @click="checkForUpdates"

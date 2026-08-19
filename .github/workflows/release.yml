@@ -68,20 +68,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # 产物命名统一：OpenRoadScope-<版本>-<平台>-<架构>.<扩展名>
+      # electron-builder 的 arch 输出为 x64，平台为 win/mac，此处统一为 x86_64 与 windows/macos
+      - name: 统一产物命名
+        run: |
+          for f in dist/*; do
+            base="$(basename "$f")"
+            new="${base/-win-/-windows-}"
+            new="${new/-mac-/-macos-}"
+            new="${new/-x64./-x86_64.}"
+            if [ "$new" != "$base" ]; then mv "$f" "dist/$new"; fi
+          done
+          ls -1 dist/
+
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           if-no-files-found: error
-          path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-            dist/*.exe
-            dist/*.msi
-            dist/*.dmg
-            dist/*.zip
+          path: dist/*
 
   android:
     name: Build android
@@ -107,28 +112,30 @@ jobs:
 
       - name: 安装 Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools, platforms;android-36, build-tools;36.0.0"
 
       - name: 安装依赖
         run: pnpm install
 
       - name: 构建 Web 渲染层
-        run: pnpm build:web
+        run: pnpm build:android-web
 
-      - name: 同步 Capacitor
-        run: pnpm exec cap sync android
+      - name: 同步 Web 产物到安卓工程
+        run: pnpm sync:android
 
-      - name: 构建 APK
+      - name: 构建 APK（按 CPU 架构拆分）
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: 上传 APK 产物
         uses: actions/upload-artifact@v4
         with:
           name: android
           if-no-files-found: error
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/OpenRoadScope-*.apk
 
   publish:
     name: 发布 Release

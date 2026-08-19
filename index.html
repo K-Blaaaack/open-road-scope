@@ -37,10 +37,11 @@
         opacity: 0;
         pointer-events: none;
       }
-      /* JS 兜底：无论脚本是否正常执行，动画结束后自动隐藏（Android WebView 防卡死） */
+      /* JS 兜底：首次冷启动时 WebView 渲染进程就绪可能需数十秒，
+         期间保持 splash 显示（防"加载完动画后黑屏"），由 JS 挂载成功后移除 */
       #app-loading {
-        animation: splash-auto-hide 0.4s ease 3.4s forwards;
-        -webkit-animation: splash-auto-hide 0.4s ease 3.4s forwards;
+        animation: splash-auto-hide 0.4s ease 25s forwards;
+        -webkit-animation: splash-auto-hide 0.4s ease 25s forwards;
       }
       @keyframes splash-auto-hide {
         to {

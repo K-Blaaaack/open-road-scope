@@ -26,7 +26,8 @@ const platform = computed(() => {
 });
 
 const openDevTools = (): void => {
-  void window.obd.openDevTools();
+  // 仅 Electron 环境存在 preload 桥接（WebView/浏览器下无 DevTools 通道）
+  void window.obd?.openDevTools?.();
 };
 </script>
 

@@ -11,6 +11,7 @@ export default defineConfig(
     "**/out/",
     "**/build/",
     "**/dist-web/",
+    "**/dist-android/",
     "**/resources/",
     "**/.venv/",
     "**/.git/",

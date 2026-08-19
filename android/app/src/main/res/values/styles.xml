@@ -1,22 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <!-- 应用主题：深色背景，与 Web 端启动页一致，避免白闪 -->
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0b0f14</item>
+        <item name="android:statusBarColor">#0b0f14</item>
+        <item name="android:navigationBarColor">#0b0f14</item>
+        <!-- Android 15+ 默认强制 edge-to-edge（状态栏透明、内容上顶），
+             退出该约束以保持 WebView 布局与桌面端一致 -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="android:background">@null</item>
-    </style>
-
-
-    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+    <!-- 启动主题：以 splash 图为窗口背景直出，避免兼容 splash 层动画残留；
+             系统 splash（Android 12+ 自动）负责图标展示，随后过渡到应用主题 -->
+    <style name="AppTheme.NoActionBarLaunch" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:statusBarColor">#0b0f14</item>
+        <item name="android:navigationBarColor">#0b0f14</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 </resources>

@@ -2,6 +2,4 @@
 <resources>
     <string name="app_name">OpenRoadScope</string>
     <string name="title_activity_main">OpenRoadScope</string>
-    <string name="package_name">dev.openroadscope.app</string>
-    <string name="custom_url_scheme">dev.openroadscope.app</string>
 </resources>

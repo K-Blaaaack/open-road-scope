@@ -9,3 +9,5 @@ auto-imports.d.ts
 auto-eslint.mjs
 components.d.ts
 CHANGELOG.md
+dist-android
+android/app/src/main/assets

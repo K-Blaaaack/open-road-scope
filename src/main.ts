@@ -6,6 +6,10 @@ import App from "./App.vue";
 import { router } from "./router";
 import { i18n } from "./i18n";
 import { usePrefsStore } from "./stores/prefs";
+import { installAndroidBridge } from "./obd/android-bridge";
+
+// 安卓 WebView 下无 Electron preload：安装原生 OBD 桥（蓝牙/USB/TCP → ELM327）
+installAndroidBridge();
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -56,12 +60,25 @@ void (async () => {
   } catch {
     // 加载失败时按默认偏好继续启动
   }
-  // splash 底部版本号跟随 package.json（构建期注入）
-  const splashVersion = document.getElementById("splash-version");
-  if (splashVersion) {
-    splashVersion.textContent = `v${__APP_VERSION__}`;
-  }
   app.use(router);
   app.use(i18n);
-  app.mount("#app");
+  try {
+    // splash 底部版本号跟随 package.json（构建期注入）
+    const splashVersion = document.getElementById("splash-version");
+    if (splashVersion) {
+      splashVersion.textContent = `v${__APP_VERSION__}`;
+    }
+    app.mount("#app");
+  } catch (err) {
+    // 挂载失败时展示错误信息而非黑屏（Android WebView 下脚本异常时可读）
+    console.error("[boot] mount failed:", err);
+    removeSplash();
+    const el = document.getElementById("app");
+    if (el) {
+      el.innerHTML =
+        `<div style="padding:24px;color:#e5e7eb;font:14px/1.7 system-ui,monospace;">` +
+        `<h2 style="font-size:16px;margin:0 0 8px;">应用启动失败</h2>` +
+        `<pre style="white-space:pre-wrap;color:#f87171;">${String(err)}</pre></div>`;
+    }
+  }
 })();

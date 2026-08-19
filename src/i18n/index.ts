@@ -26,6 +26,7 @@ export const i18n = createI18n({
         updateAvailable: "发现新版本 v{version}",
         updateFail: "检查失败",
         updateDevOnly: "开发模式下无法联网检测（打包安装后可用）",
+        updateUnsupported: "当前环境不支持检查更新（仅桌面端可用）",
       },
       onboarding: {
         welcome: "欢迎使用，请先阅读以下重要提示",
@@ -146,6 +147,9 @@ export const i18n = createI18n({
         networkPort: "端口",
         networkPlaceholder: "例如 192.168.0.10",
         refresh: "刷新",
+        noBridgeTitle: "当前平台不支持实车连接",
+        noBridgeDesc:
+          "串口 / 蓝牙 / 网络连接需要桌面端支持。可在开发者菜单开启开发者模式，使用内置模拟模式体验完整功能。",
         connect: "连接",
         disconnect: "断开",
         fault: "注入随机故障",
@@ -207,6 +211,7 @@ export const i18n = createI18n({
         updateAvailable: "New version v{version} available",
         updateFail: "Check failed",
         updateDevOnly: "Update check requires a packaged build",
+        updateUnsupported: "Update check is unavailable on this platform",
       },
       onboarding: {
         welcome: "Welcome! Please read the important notice below",
@@ -328,6 +333,9 @@ export const i18n = createI18n({
         networkPort: "Port",
         networkPlaceholder: "e.g. 192.168.0.10",
         refresh: "Refresh",
+        noBridgeTitle: "Real-vehicle connection is unavailable on this platform",
+        noBridgeDesc:
+          "Serial / Bluetooth / network connections require the desktop app. Enable Developer Mode from the developer menu to try the built-in simulation.",
         connect: "Connect",
         disconnect: "Disconnect",
         fault: "Inject random faults",

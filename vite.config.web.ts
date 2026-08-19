@@ -1,4 +1,5 @@
 import { resolve } from "path";
+import { readFileSync } from "fs";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { VitePWA } from "vite-plugin-pwa";
@@ -8,10 +9,16 @@ import Icons from "unplugin-icons/vite";
 import IconsResolver from "unplugin-icons/resolver";
 import Components from "unplugin-vue-components/vite";
 
-// 纯 Web 构建（供 Capacitor 安卓打包 / 浏览器演示）
+// 纯 Web 构建（浏览器演示 / 部署）
+const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf-8"));
+
 export default defineConfig({
   base: "./",
   root: ".",
+  define: {
+    // electron-vite 在桌面构建自动注入，此处为 Web 构建补齐
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     vue(),
     UnoCSS(),

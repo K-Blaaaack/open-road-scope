@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// 版本号与 Web/桌面端保持一致：统一从根目录 package.json 读取
+def pkg = new groovy.json.JsonSlurper().parseText(file('../../package.json').text)
+def appVersion = pkg.version as String
+def versionParts = appVersion.tokenize('.')
+def appVersionCode = versionParts.size() >= 3
+        ? versionParts[0].toInteger() * 10000 + versionParts[1].toInteger() * 100 + versionParts[2].toInteger()
+        : 1
+
 android {
     namespace = "dev.openroadscope.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,12 +15,11 @@ android {
         applicationId "dev.openroadscope.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            // Files and dirs to omit from the packaged assets dir
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
@@ -20,35 +27,42 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // CI 无签名密钥：release 暂用 debug 签名，保证产物可直接安装
+            signingConfig signingConfigs.debug
         }
     }
-}
-
-repositories {
-    flatDir{
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    // 按 CPU 架构拆分 APK：arm64-v8a（主流）/ armeabi-v7a（32 位旧机）/ x86_64（模拟器）
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+        }
+    }
+    // APK 产物统一命名：OpenRoadScope-<版本>-android-<架构>.apk
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            output.outputFileName = "OpenRoadScope-${appVersion}-android-${abi}.apk"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
-    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
-    implementation project(':capacitor-android')
-    testImplementation "junit:junit:$junitVersion"
-    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
-    implementation project(':capacitor-cordova-android-plugins')
+    implementation "androidx.webkit:webkit:$androidxWebkitVersion"
+    implementation "androidx.core:core:1.17.0"
+    // USB 串口（ELM327 OTG 适配器）
+    implementation "com.github.felHR85:UsbSerial:6.1.0"
 }
 
-apply from: 'capacitor.build.gradle'
-
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+repositories {
+    // felHR85/UsbSerial 托管于 jitpack
+    maven { url 'https://jitpack.io' }
 }
