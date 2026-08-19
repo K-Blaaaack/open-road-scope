@@ -1,10 +1,13 @@
 import { join } from "node:path";
 import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { electronApp, optimizer } from "@electron-toolkit/utils";
+import electronUpdater from "electron-updater";
+const { autoUpdater } = electronUpdater;
 import log from "electron-log/main";
 
 import { registerObdIpc } from "./ipc/obd";
 import { SidecarManager } from "./sidecar/manager";
+import type { UpdateEventParams } from "../../shared/obd";
 
 const manager = new SidecarManager();
 let mainWindow: BrowserWindow | null = null;
@@ -83,6 +86,43 @@ app.whenReady().then(() => {
   registerObdIpc({
     getManager: () => manager,
     getWindow: () => mainWindow,
+  });
+
+  /* ---------- 版本检查（electron-updater） ---------- */
+
+  // 不自动下载，只做版本检测，由用户在关于页手动触发
+  autoUpdater.autoDownload = false;
+
+  const broadcastUpdate = (event: UpdateEventParams): void => {
+    const win = mainWindow;
+    if (win && !win.isDestroyed()) {
+      win.webContents.send("app:updateEvent", event);
+    }
+  };
+
+  autoUpdater.on("checking-for-update", () => broadcastUpdate({ state: "checking" }));
+  autoUpdater.on("update-available", (info) =>
+    broadcastUpdate({ state: "available", version: info.version })
+  );
+  autoUpdater.on("update-not-available", () => broadcastUpdate({ state: "not-available" }));
+  autoUpdater.on("error", (err) => broadcastUpdate({ state: "error", message: String(err) }));
+
+  // 检查更新（关于页按钮触发）
+  ipcMain.handle("app:checkForUpdates", async () => {
+    // 开发模式未打包，无发布源可查（electron-updater 依赖安装包上下文）
+    if (!app.isPackaged) {
+      return { ok: false, error: "dev" };
+    }
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return {
+        ok: true,
+        result: result?.updateInfo ? { version: result.updateInfo.version } : null,
+      };
+    } catch (err) {
+      log.warn("[updater] checkForUpdates failed:", err);
+      return { ok: false, error: String(err) };
+    }
   });
 
   // 手动重载界面（设置页按钮触发）

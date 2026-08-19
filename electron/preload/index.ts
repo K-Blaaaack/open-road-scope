@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
 
-import type { ObdApi } from "../../shared/obd";
+import type { ObdApi, UpdateEventParams } from "../../shared/obd";
 
 const obdApi: ObdApi = {
   connect: (mode, options) => ipcRenderer.invoke("obd:connect", mode, options),
@@ -13,6 +13,12 @@ const obdApi: ObdApi = {
   listPorts: () => ipcRenderer.invoke("obd:listPorts"),
   reloadUI: () => ipcRenderer.invoke("app:reloadUI"),
   openDevTools: () => ipcRenderer.invoke("app:openDevTools"),
+  checkForUpdates: () => ipcRenderer.invoke("app:checkForUpdates"),
+  onUpdateEvent: (callback) => {
+    const listener = (_e: unknown, event: unknown): void => callback(event as UpdateEventParams);
+    ipcRenderer.on("app:updateEvent", listener);
+    return () => ipcRenderer.removeListener("app:updateEvent", listener);
+  },
   onEvent: (callback) => {
     const listener = (_e: unknown, event: unknown): void => callback(event as never);
     ipcRenderer.on("obd:event", listener);

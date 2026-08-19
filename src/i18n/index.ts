@@ -20,6 +20,12 @@ export const i18n = createI18n({
         license: "本软件以 GNU General Public License v2.0 发布",
         licenseNote:
           "数据采集由 Python sidecar 承担（python-OBD，GNU GPL v2），随软件整体分发；使用与再分发请遵守 GPL-2.0 条款。",
+        checkUpdate: "检查更新",
+        updating: "正在检查新版本…",
+        upToDate: "已是最新版本",
+        updateAvailable: "发现新版本 v{version}",
+        updateFail: "检查失败",
+        updateDevOnly: "开发模式下无法联网检测（打包安装后可用）",
       },
       onboarding: {
         welcome: "欢迎使用，请先阅读以下重要提示",
@@ -195,6 +201,12 @@ export const i18n = createI18n({
         license: "This software is released under the GNU General Public License v2.0",
         licenseNote:
           "Data acquisition is handled by a Python sidecar (python-OBD, GNU GPL v2) distributed together with the app; redistribution must comply with the GPL-2.0 terms.",
+        checkUpdate: "Check for updates",
+        updating: "Checking for updates…",
+        upToDate: "You're up to date",
+        updateAvailable: "New version v{version} available",
+        updateFail: "Check failed",
+        updateDevOnly: "Update check requires a packaged build",
       },
       onboarding: {
         welcome: "Welcome! Please read the important notice below",

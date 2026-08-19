@@ -115,6 +115,14 @@ export interface ListPortsResult {
   ports: SerialPortInfo[];
 }
 
+/** 版本检查状态事件 */
+export interface UpdateEventParams {
+  state: "checking" | "available" | "not-available" | "error";
+  /** 新版本号（available 时携带） */
+  version?: string;
+  message?: string;
+}
+
 /** preload 通过 contextBridge 暴露给渲染进程的 API */
 export interface ObdApi {
   connect(mode: "sim" | "real", options?: { port?: string; fault?: boolean }): Promise<unknown>;
@@ -129,4 +137,8 @@ export interface ObdApi {
   reloadUI(): Promise<unknown>;
   /** 打开 Chromium 开发者工具（独立窗口） */
   openDevTools(): Promise<unknown>;
+  /** 检查是否有新版本（electron-updater，仅打包版本可用） */
+  checkForUpdates(): Promise<unknown>;
+  /** 订阅版本检查状态事件 */
+  onUpdateEvent(callback: (event: UpdateEventParams) => void): () => void;
 }
