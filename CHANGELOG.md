@@ -1,4 +1,11 @@
 # 更新日志
+## [0.1.8](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.7...v0.1.8) (2026-08-28)
+
+### ✨ 新功能
+
+* 首页卡片窄屏改为流式堆叠布局 ([bd4a773](https://github.com/K-Blaaaack/open-road-scope/commit/bd4a773ffeb326b027d278f74386ed6888c77c34))
+* 统一品牌图标为关于页仪表标识 ([9475c22](https://github.com/K-Blaaaack/open-road-scope/commit/9475c22b56ef5cb209afe1ad724795c3bcbe91a3))
+* 页面标题移入顶栏并按屏幕形态切换导航布局 ([bdc6ec8](https://github.com/K-Blaaaack/open-road-scope/commit/bdc6ec815c67e3b60dc436b5e3fc6ceab3ea0885))
 ## [0.1.7](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.6...v0.1.7) (2026-08-28)
 
 ### 🐛 修复
