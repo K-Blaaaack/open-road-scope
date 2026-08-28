@@ -27,6 +27,7 @@
     "test:sidecar": "cd sidecar && .venv/bin/pytest -q",
     "test:all": "pnpm test && pnpm test:sidecar",
     "build:sidecar": "tsx scripts/build-sidecar.ts",
+    "gen:icons": "tsx scripts/gen-icons.ts",
     "start": "electron-vite preview",
     "dev": "tsx scripts/dev.ts",
     "build": "rimraf out && pnpm typecheck && electron-vite build",

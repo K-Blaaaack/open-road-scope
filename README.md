@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" width="96" alt="OpenRoadScope" />
+</p>
+
 # OpenRoadScope
 
 基于 OBD-II（ELM327）的跨平台行车数据可视化软件。实时读取车辆传感器数据，提供可自定义的仪表盘布局、历史曲线与故障诊断能力。
@@ -40,6 +44,8 @@ pnpm dev
 ```
 
 测试：`pnpm test:all`（web + node + sidecar）
+
+品牌图标：`pnpm gen:icons` 从 `scripts/gen-icons.ts` 中的单一字形定义生成全套产物（桌面 `build/icon.*`、安卓启动器图标与启动图、Web favicon 与 PWA 图标、仓库 `assets/logo.svg`），依赖 `rsvg-convert` 与 ImageMagick。
 
 ## 版本发布
 

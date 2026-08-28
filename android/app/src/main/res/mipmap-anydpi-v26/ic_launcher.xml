@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background>
-        <inset android:drawable="@mipmap/ic_launcher_background" android:inset="16.7%" />
-    </background>
-    <foreground>
-        <inset android:drawable="@mipmap/ic_launcher_foreground" android:inset="16.7%" />
-    </foreground>
+    <!-- 背景铺满 108dp 画布（不可 inset，否则遮罩后图标会缩小一圈） -->
+    <background android:drawable="@color/ic_launcher_background" />
+    <!-- 前景图内容已收在安全区内，无需再次 inset -->
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>
