@@ -2,35 +2,52 @@ import { createRouter, createWebHashHistory } from "vue-router";
 
 import { usePrefsStore } from "@/stores/prefs";
 
+declare module "vue-router" {
+  interface RouteMeta {
+    /** 顶栏展示的页面标题 i18n key（页面内不再重复渲染标题） */
+    titleKey?: string;
+  }
+}
+
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: "/", redirect: "/dashboard" },
-    { path: "/dashboard", name: "dashboard", component: () => import("@/pages/DashboardPage.vue") },
+    {
+      path: "/dashboard",
+      name: "dashboard",
+      component: () => import("@/pages/DashboardPage.vue"),
+      meta: { titleKey: "dashboard.title" },
+    },
     {
       path: "/connection",
       name: "connection",
       component: () => import("@/pages/ConnectionPage.vue"),
+      meta: { titleKey: "connection.title" },
     },
     {
       path: "/diagnostics",
       name: "diagnostics",
       component: () => import("@/pages/DiagnosticsPage.vue"),
+      meta: { titleKey: "diagnostics.title" },
     },
     {
       path: "/settings",
       name: "settings",
       component: () => import("@/pages/SettingsPage.vue"),
+      meta: { titleKey: "settings.title" },
     },
     {
       path: "/about",
       name: "about",
       component: () => import("@/pages/AboutPage.vue"),
+      meta: { titleKey: "nav.about" },
     },
     {
       path: "/developer",
       name: "developer",
       component: () => import("@/pages/DeveloperPage.vue"),
+      meta: { titleKey: "developer.title" },
     },
   ],
 });

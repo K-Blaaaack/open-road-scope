@@ -33,8 +33,6 @@ const openDevTools = (): void => {
 
 <template>
   <div class="mx-auto flex max-w-2xl flex-col gap-5">
-    <h1 class="text-primary text-lg font-semibold">{{ t("developer.title") }}</h1>
-
     <section class="glass-card flex flex-col gap-3 p-5 text-sm">
       <div class="text-primary font-medium">{{ t("developer.appInfo") }}</div>
       <div class="flex justify-between">

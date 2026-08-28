@@ -113,8 +113,6 @@ onMounted(listPorts);
 
 <template>
   <div class="mx-auto flex max-w-2xl flex-col gap-5">
-    <h1 class="text-primary text-lg font-semibold">{{ t("connection.title") }}</h1>
-
     <div class="glass-card flex flex-col gap-4 p-5">
       <!-- 以下连接配置仅在未连接时显示 -->
       <!-- 模拟/实车模式选择，可在开发者菜单中控制显示 -->

@@ -50,8 +50,6 @@ const readVin = async (): Promise<void> => {
 
 <template>
   <div class="mx-auto flex max-w-2xl flex-col gap-5">
-    <h1 class="text-primary text-lg font-semibold">{{ t("diagnostics.title") }}</h1>
-
     <div class="glass-card flex flex-col gap-4 p-5">
       <div class="flex flex-wrap gap-2">
         <button

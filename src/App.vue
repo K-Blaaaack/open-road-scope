@@ -2,6 +2,7 @@
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
+import { useMediaQuery } from "@vueuse/core";
 
 import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
@@ -23,6 +24,30 @@ const statusText = computed(() => {
 
 const isDark = computed(() => prefs.theme === "dark");
 
+/** 当前页面标题（取自路由 meta，替代各页面自带的 h1，省出垂直空间） */
+const pageTitle = computed(() => (route.meta.titleKey ? t(route.meta.titleKey) : ""));
+
+/**
+ * 手机竖屏：导航改为底部标签栏。
+ * 竖屏时宽度稀缺（侧栏要吃掉 56px）而高度充裕；横屏（车载常见放置）保持侧栏，
+ * 避免再压缩本就紧张的高度。
+ */
+const bottomNav = useMediaQuery("(max-width: 640px) and (orientation: portrait)");
+
+/**
+ * 侧栏收成图标条：窄窗或横屏手机下文字标签太占宽度，
+ * 忽略用户的文字开关强制收窄（回到桌面尺寸后自动恢复）。
+ */
+const compactRail = useMediaQuery("(max-width: 640px), (max-height: 480px)");
+
+/** 侧栏是否显示文字标签 */
+const railLabels = computed(() => prefs.showNavLabels && !compactRail.value);
+
+/** 仪表盘已连接但还没收到第一帧数据 */
+const waitingData = computed(
+  () => route.path === "/dashboard" && store.status.state === "connected" && store.lastTs === 0
+);
+
 const statusColor = computed(() => {
   const map: Record<string, string> = {
     idle: "bg-gray-500",
@@ -36,7 +61,7 @@ const statusColor = computed(() => {
 /** 导航项：开发者模式开启时追加开发者菜单 */
 const navItems = computed(() => {
   const base = [
-    { path: "/dashboard", icon: "i-lucide-gauge", key: "nav.dashboard" },
+    { path: "/dashboard", icon: "i-lucide-layout-dashboard", key: "nav.dashboard" },
     { path: "/connection", icon: "i-lucide-cable", key: "nav.connection" },
     { path: "/diagnostics", icon: "i-lucide-stethoscope", key: "nav.diagnostics" },
     { path: "/settings", icon: "i-lucide-settings", key: "nav.settings" },
@@ -57,35 +82,52 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-full">
-    <aside
-      class="border-border flex flex-col gap-2 border-r bg-[var(--color-bg-elevated)] py-4 max-sm:w-14 max-sm:items-center"
-      :class="prefs.showNavLabels ? 'w-44 items-stretch px-2' : 'w-14 items-center'"
+  <!-- 手机竖屏用 flex-col-reverse 把导航翻到底部，桌面/横屏保持左侧栏 -->
+  <div class="flex h-full" :class="bottomNav ? 'flex-col-reverse' : ''">
+    <component
+      :is="bottomNav ? 'nav' : 'aside'"
+      class="border-border bg-[var(--color-bg-elevated)]"
+      :class="
+        bottomNav
+          ? 'flex shrink-0 items-stretch justify-around gap-1 border-t px-1 py-1'
+          : [
+              'flex flex-col gap-2 border-r py-4',
+              railLabels ? 'w-44 items-stretch px-2' : 'w-14 items-center',
+            ]
+      "
     >
       <router-link
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex items-center gap-2.5 rounded-lg transition-colors max-sm:flex-center max-sm:h-10 max-sm:w-10"
+        class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex items-center rounded-lg transition-colors"
         :class="[
-          prefs.showNavLabels ? 'px-3 py-2 text-sm' : 'flex-center h-10 w-10',
+          bottomNav
+            ? 'min-w-0 flex-1 flex-col justify-center gap-0.5 py-1.5'
+            : railLabels
+              ? 'gap-2.5 px-3 py-2 text-sm'
+              : 'flex-center h-10 w-10 gap-2.5',
           route.path === item.path ? '!text-primary bg-[var(--color-active)]' : '',
         ]"
         :title="t(item.key)"
       >
         <span :class="item.icon" class="h-5 w-5 shrink-0" />
-        <!-- 导航文字说明，可在设置中控制显示（手机窄屏下隐藏） -->
-        <span v-if="prefs.showNavLabels" class="truncate max-sm:hidden">{{ t(item.key) }}</span>
+        <!-- 底部标签栏固定带文字；侧栏文字可在设置中开关 -->
+        <span v-if="bottomNav" class="w-full truncate text-center text-[10px] leading-tight">
+          {{ t(item.key) }}
+        </span>
+        <span v-else-if="railLabels" class="truncate">{{ t(item.key) }}</span>
       </router-link>
 
-      <!-- 底部无文字快捷按钮：切换导航文字说明显示（样式与顶部日夜切换按钮一致） -->
+      <!-- 切换导航文字说明（底部标签栏与强制收窄状态下无意义，隐藏） -->
       <button
-        class="text-secondary hover:text-primary mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors max-sm:mx-auto"
+        v-if="!bottomNav && !compactRail"
+        class="text-secondary hover:text-primary mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors"
         :class="[
           isDark
             ? 'border-white/10 bg-white/10 hover:bg-white/20'
             : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10',
-          prefs.showNavLabels ? '' : 'mx-auto',
+          railLabels ? '' : 'mx-auto',
         ]"
         :title="t('settings.showNavLabels')"
         @click="
@@ -98,17 +140,25 @@ onMounted(() => {
           class="h-4 w-4"
         />
       </button>
-    </aside>
+    </component>
 
-    <main class="flex min-w-0 flex-1 flex-col">
+    <main class="flex min-h-0 min-w-0 flex-1 flex-col">
       <header
-        class="border-border flex items-center justify-between border-b bg-[var(--color-bg-elevated)]/60 px-5 py-3"
+        class="border-border flex items-center justify-between gap-2 border-b bg-[var(--color-bg-elevated)]/60 px-5 py-3 max-sm:px-3 max-sm:py-2"
       >
-        <div class="flex items-center gap-2">
-          <span class="i-lucide-car text-primary h-5 w-5" />
-          <span class="text-primary font-semibold tracking-wide max-sm:hidden">OpenRoadScope</span>
+        <!-- 品牌标识 + 当前页面标题（页面内不再重复渲染标题） -->
+        <div class="flex min-w-0 items-center gap-2">
+          <span class="i-lucide-gauge text-[var(--color-accent)] h-5 w-5 shrink-0" />
+          <!-- h1 无浏览器默认边距/字号，避免顶栏被撑高 -->
+          <h1 class="text-primary my-0 truncate text-base font-semibold tracking-wide">
+            {{ pageTitle }}
+          </h1>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex shrink-0 items-center gap-3 max-sm:gap-2">
+          <!-- 仪表盘等待首帧数据：占用顶栏空位提示，不再单独占一行 -->
+          <span v-if="waitingData" class="text-secondary text-xs max-sm:hidden">
+            {{ t("dashboard.noData") }}
+          </span>
           <!-- 主题切换按钮（原样式：常态背景随日夜模式切换） -->
           <button
             class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
@@ -152,7 +202,7 @@ onMounted(() => {
         </div>
       </header>
 
-      <div class="min-h-0 flex-1 overflow-auto p-5 max-sm:p-3">
+      <div class="min-h-0 flex-1 overflow-auto p-5 max-sm:p-2">
         <Suspense>
           <router-view v-slot="{ Component }">
             <Transition name="page" mode="out-in">

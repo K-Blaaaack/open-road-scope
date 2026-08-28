@@ -79,7 +79,8 @@ onBeforeUnmount(() => {
         class="i-lucide-gauge text-[var(--color-accent)] flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]"
       />
       <div class="text-center">
-        <h1 class="text-primary text-2xl font-bold tracking-wide">OpenRoadScope</h1>
+        <!-- 顶栏已有页面标题 h1，此处仅作品牌展示 -->
+        <div class="text-primary text-2xl font-bold tracking-wide">OpenRoadScope</div>
         <p class="text-secondary mt-1 text-sm">{{ t("about.subtitle") }}</p>
       </div>
     </div>
