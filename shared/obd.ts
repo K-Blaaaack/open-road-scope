@@ -104,16 +104,21 @@ export interface StatusEventParams {
   message?: string;
 }
 
-export interface SerialPortInfo {
-  name: string;
-  description?: string;
-  /** 串口类型：usb 串口 / 蓝牙串口 / 其他 */
-  type: "usb" | "bluetooth" | "other";
-}
+export const serialPortInfoSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  /** 硬件 ID（pyserial hwid），用于排查「枚举不到串口」 */
+  hwid: z.string().optional(),
+  /** 串口类型：usb 串口 / 蓝牙串口 / 其他；未知取值归为 other */
+  type: z.enum(["usb", "bluetooth", "other"]).catch("other"),
+});
 
-export interface ListPortsResult {
-  ports: SerialPortInfo[];
-}
+export const listPortsResultSchema = z.object({
+  ports: z.array(serialPortInfoSchema),
+});
+
+export type SerialPortInfo = z.infer<typeof serialPortInfoSchema>;
+export type ListPortsResult = z.infer<typeof listPortsResultSchema>;
 
 /** 版本检查状态事件 */
 export interface UpdateEventParams {

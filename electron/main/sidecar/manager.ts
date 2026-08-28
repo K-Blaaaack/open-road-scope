@@ -7,6 +7,11 @@ import log from "electron-log/main";
 import { is } from "@electron-toolkit/utils";
 
 import { SidecarRpc } from "./rpc";
+import { parseListPortsOutput } from "./ports";
+import { listPortsResultSchema, type ListPortsResult } from "../../../shared/obd";
+
+/** 串口枚举超时（一次性拉起时需覆盖 PyInstaller 冷启动） */
+const LIST_PORTS_TIMEOUT = 10000;
 
 export interface SidecarLaunchOptions {
   mode: "sim" | "real";
@@ -69,29 +74,94 @@ export class SidecarManager extends EventEmitter {
     this.startHeartbeat();
   }
 
-  private buildCommand(): { command: string; args: string[]; cwd: string } {
+  private buildCommand(argv?: string[]): { command: string; args: string[]; cwd: string } {
     if (is.dev) {
       const sidecarDir = join(app.getAppPath(), "sidecar");
-      const venvPython = join(sidecarDir, ".venv/bin/python");
-      const command = existsSync(venvPython)
-        ? venvPython
-        : process.platform === "win32"
-          ? join(sidecarDir, ".venv/Scripts/python.exe")
-          : "python3";
-      const args = ["-m", "obd_sidecar.main", this.opts.mode === "sim" ? "--sim" : ""];
-      if (this.opts.mode === "real" && this.opts.port) args.push("--port", this.opts.port);
-      if (this.opts.fault) args.push("--fault");
-      if (this.opts.drop) args.push("--drop", String(this.opts.drop));
-      return { command, args: args.filter(Boolean), cwd: sidecarDir };
+      const command = this.resolveDevPython(sidecarDir);
+      const args = ["-m", "obd_sidecar.main", ...(argv ?? this.launchArgs())];
+      return { command, args, cwd: sidecarDir };
     }
     // Windows 下 PyInstaller 产物带 .exe 后缀
     const binName = process.platform === "win32" ? "obd-sidecar.exe" : "obd-sidecar";
     const bin = app.isPackaged
       ? join(process.resourcesPath, binName)
       : join(app.getAppPath(), "resources", binName);
+    return { command: bin, args: argv ?? this.launchArgs(), cwd: process.resourcesPath };
+  }
+
+  /** dev 模式解析 python：优先 sidecar venv，缺失时退回系统 python */
+  private resolveDevPython(sidecarDir: string): string {
+    const candidates =
+      process.platform === "win32"
+        ? [join(sidecarDir, ".venv/Scripts/python.exe"), join(sidecarDir, ".venv/bin/python.exe")]
+        : [join(sidecarDir, ".venv/bin/python")];
+    const found = candidates.find((candidate) => existsSync(candidate));
+    if (found) return found;
+    return process.platform === "win32" ? "python" : "python3";
+  }
+
+  /** 由当前启动选项拼出 sidecar 命令行参数 */
+  private launchArgs(): string[] {
     const args = [this.opts.mode === "sim" ? "--sim" : ""];
     if (this.opts.mode === "real" && this.opts.port) args.push("--port", this.opts.port);
-    return { command: bin, args: args.filter(Boolean), cwd: process.resourcesPath };
+    if (this.opts.fault) args.push("--fault");
+    if (this.opts.drop) args.push("--drop", String(this.opts.drop));
+    return args.filter(Boolean);
+  }
+
+  /**
+   * 枚举可用串口。sidecar 已在运行时走 RPC，否则一次性拉起 `--list-ports`
+   * 子进程 —— 连接前没有常驻 sidecar，刷新串口不能依赖 RPC 通道。
+   * @returns 串口列表
+   */
+  async listPorts(): Promise<ListPortsResult> {
+    if (this.running) {
+      const result = await this.rpc.send("list_ports", undefined, LIST_PORTS_TIMEOUT);
+      return listPortsResultSchema.parse(result);
+    }
+    return this.listPortsOneShot();
+  }
+
+  /** 一次性子进程枚举串口：读完 stdout 即退出，不影响常驻 sidecar 生命周期 */
+  private listPortsOneShot(): Promise<ListPortsResult> {
+    return new Promise((resolve, reject) => {
+      const { command, args, cwd } = this.buildCommand(["--list-ports"]);
+      log.info(`[sidecar] list ports: ${command} ${args.join(" ")}`);
+      const child = spawn(command, args, {
+        cwd,
+        stdio: ["ignore", "pipe", "pipe"],
+        env: { ...process.env, PYTHONUNBUFFERED: "1" },
+        windowsHide: true,
+      });
+      let stdout = "";
+      let stderr = "";
+      const timer = setTimeout(() => {
+        child.kill();
+        reject(new Error("list ports timed out"));
+      }, LIST_PORTS_TIMEOUT);
+      child.stdout?.on("data", (chunk) => {
+        stdout += chunk.toString();
+      });
+      child.stderr?.on("data", (chunk) => {
+        stderr += chunk.toString();
+      });
+      child.on("error", (err) => {
+        clearTimeout(timer);
+        reject(new Error(`failed to launch sidecar (${command}): ${err.message}`));
+      });
+      child.on("close", (code) => {
+        clearTimeout(timer);
+        if (code !== 0) {
+          reject(new Error(`sidecar --list-ports exited with ${code}: ${stderr.trim()}`));
+          return;
+        }
+        try {
+          resolve(parseListPortsOutput(stdout));
+        } catch (err) {
+          reject(err instanceof Error ? err : new Error(String(err)));
+        }
+      });
+    });
   }
 
   private onExit(): void {

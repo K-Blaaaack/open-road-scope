@@ -2,6 +2,7 @@
 
 Usage:
   python -m sidecar.main [--sim] [--port /dev/ttyUSB0] [--fault] [--drop N]
+  python -m sidecar.main --list-ports      # 一次性输出串口列表后退出
 """
 
 from __future__ import annotations
@@ -13,7 +14,8 @@ import threading
 import time
 
 from . import protocol as p
-from .device import Device, DeviceError, list_serial_ports
+from .device import Device, DeviceError
+from .ports import list_serial_ports
 from .scheduler import Scheduler
 from .sim import SimDevice
 
@@ -193,6 +195,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--port", type=str, default=None, help="serial port for real device")
     parser.add_argument("--fault", action="store_true", help="sim: inject random frame failures")
     parser.add_argument("--drop", type=float, default=None, help="sim: disconnect every N seconds")
+    parser.add_argument(
+        "--list-ports",
+        action="store_true",
+        help="print available serial ports as one JSON line and exit",
+    )
     parser.add_argument("--verbose", action="store_true", help="debug logging to stderr")
     return parser.parse_args(argv)
 
@@ -204,6 +211,14 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.WARNING,
         format="%(asctime)s %(name)s %(levelname)s %(message)s",
     )
+    # 一次性枚举串口：不建设备、不起 RPC 循环，供连接前的「刷新串口」调用
+    if args.list_ports:
+        try:
+            p.send({"ports": list_serial_ports()})
+        except Exception as e:  # noqa: BLE001
+            print(f"list ports failed: {e}", file=sys.stderr)
+            return 1
+        return 0
     mode = "sim" if args.sim else "real"
     app = SidecarApp(mode=mode, port=args.port, fault=args.fault, drop=args.drop)
     try:

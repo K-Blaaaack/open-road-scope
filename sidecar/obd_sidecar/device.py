@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import logging
-import time
 from abc import ABC, abstractmethod
 from typing import Any
 
 import obd
-import serial.tools.list_ports
 
 logger = logging.getLogger("sidecar.real")
 
@@ -71,45 +69,6 @@ _PID_TO_CMD = {
     "TIMING_ADVANCE": "TIMING_ADVANCE",
     "DISTANCE_SINCE_DTC_CLEAR": "DISTANCE_SINCE_DTC_CLEAR",
 }
-
-
-def _classify_port(p) -> str:
-    """按设备名/硬件信息将串口分为 usb / bluetooth / other"""
-    name = (p.device or "").lower()
-    hwid = (p.hwid or "").lower()
-    desc = (p.description or "").lower()
-    if (
-        "rfcomm" in name
-        or "bluetooth" in name
-        or "bluetooth" in hwid
-        or "bt" in hwid
-        or "bluetooth" in desc
-        or name.startswith("tty.bt")
-        or name.startswith("tty.bluetooth")
-    ):
-        return "bluetooth"
-    if (
-        "usb" in name
-        or "usb" in hwid
-        or "ttyusb" in name
-        or "ttyacm" in name
-        or "tty.usb" in name
-        or p.vid is not None
-    ):
-        return "usb"
-    return "other"
-
-
-def list_serial_ports() -> list[dict[str, str]]:
-    """枚举串口并按类型分类，供连接页分组展示"""
-    return [
-        {
-            "name": p.device,
-            "description": p.description or "",
-            "type": _classify_port(p),
-        }
-        for p in serial.tools.list_ports.comports()
-    ]
 
 
 class RealDevice(Device):
@@ -223,13 +182,3 @@ class RealDevice(Device):
             except Exception:  # noqa: BLE001
                 pass
             self._conn = None
-
-
-def wait_for_port(port: str, timeout: float = 10.0) -> bool:
-    """Block until the given port appears (handles adapter power-up race)."""
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if any(p["name"] == port for p in list_serial_ports()):
-            return True
-        time.sleep(0.5)
-    return False

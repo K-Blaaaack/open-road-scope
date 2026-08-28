@@ -158,7 +158,10 @@ export const i18n = createI18n({
         state: "状态",
         modeLabel: "模式",
         message: "消息",
-        scanning: "未发现串口",
+        scanning: "正在扫描…",
+        noPorts: "未发现串口",
+        scanFailed: "串口枚举失败",
+        btPairHint: "未发现蓝牙串口？请先在系统蓝牙设置中与 ELM327 适配器完成配对。",
       },
       diagnostics: {
         title: "故障诊断",
@@ -344,7 +347,11 @@ export const i18n = createI18n({
         state: "State",
         modeLabel: "Mode",
         message: "Message",
-        scanning: "No ports found",
+        scanning: "Scanning…",
+        noPorts: "No ports found",
+        scanFailed: "Port enumeration failed",
+        btPairHint:
+          "No Bluetooth port? Pair the ELM327 adapter in your system Bluetooth settings first.",
       },
       diagnostics: {
         title: "Diagnostics",

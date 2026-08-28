@@ -101,9 +101,15 @@ export function registerObdIpc(opts: ObdIpcOptions): void {
 
   ipcMain.handle("obd:listPorts", async () => {
     try {
-      const result = await getManager().rpc.send("list_ports", undefined, PING_TIMEOUT);
+      const result = await getManager().listPorts();
+      // 记录枚举明细：用户报「刷新不到串口」时可直接从日志判断是枚举为空还是分类偏差
+      log.info(
+        `[ipc] listPorts -> ${result.ports.length} port(s)`,
+        result.ports.map((p) => `${p.name}[${p.type}] ${p.hwid ?? ""}`.trim())
+      );
       return { ok: true, result };
     } catch (err) {
+      log.error("[ipc] obd:listPorts failed", err);
       return { ok: false, error: String(err) };
     }
   });

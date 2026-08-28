@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
-import type { SerialPortInfo } from "@shared/obd";
+import type { ListPortsResult, SerialPortInfo } from "@shared/obd";
 
 const { t } = useI18n();
 const store = useObdStore();
@@ -18,6 +18,10 @@ const mode = ref<"sim" | "real">(store.status.mode === "real" ? "real" : "sim");
 const connType = ref<"usb" | "bluetooth" | "network">("usb");
 const port = ref("");
 const ports = ref<SerialPortInfo[]>([]);
+/** 串口枚举进行中 */
+const scanning = ref(false);
+/** 串口枚举失败原因（空串表示无错误） */
+const scanError = ref("");
 /** 网络串口（RJ45 OBD）地址 */
 const netHost = ref("");
 const netPort = ref("35000");
@@ -40,20 +44,43 @@ const filteredPorts = computed(() => {
   return ports.value.filter((p) => target.includes(p.type));
 });
 
+/** 保持选中项落在当前连接方式的可选串口内 */
+const syncSelectedPort = (): void => {
+  const list = filteredPorts.value;
+  if (!list.some((p) => p.name === port.value)) {
+    port.value = list.length > 0 ? list[0].name : "";
+  }
+};
+
+/** 枚举串口；失败原因显示在界面上，避免点击刷新「没反应」 */
 const listPorts = async (): Promise<void> => {
   // 无桥接环境（纯浏览器预览）下静默跳过
   if (!window.obd) return;
-  const result = (await window.obd.listPorts()) as {
-    ok: boolean;
-    result?: { ports: typeof ports.value };
-  };
-  if (result.ok && result.result) {
-    ports.value = result.result.ports;
-    if (!port.value && filteredPorts.value.length > 0) {
-      port.value = filteredPorts.value[0].name;
+  scanning.value = true;
+  scanError.value = "";
+  try {
+    const response = (await window.obd.listPorts()) as {
+      ok: boolean;
+      result?: ListPortsResult;
+      error?: string;
+    };
+    if (!response.ok || !response.result) {
+      ports.value = [];
+      scanError.value = response.error || t("connection.scanFailed");
+      return;
     }
+    ports.value = response.result.ports;
+    syncSelectedPort();
+  } catch (err) {
+    ports.value = [];
+    scanError.value = String(err);
+  } finally {
+    scanning.value = false;
   }
 };
+
+// 切换连接方式后，选中项需要跟着换到该分类下的串口
+watch(connType, syncSelectedPort);
 
 const connect = async (): Promise<void> => {
   busy.value = true;
@@ -156,29 +183,54 @@ onMounted(listPorts);
           </div>
 
           <!-- USB / 蓝牙串口下拉 -->
-          <div v-if="connType !== 'network'" class="flex items-end gap-2">
-            <div class="flex-1">
-              <div class="text-secondary mb-2 text-sm">
-                {{ connType === "usb" ? t("connection.portUsb") : t("connection.portBluetooth") }}
+          <div v-if="connType !== 'network'" class="flex flex-col gap-2">
+            <div class="flex items-end gap-2">
+              <div class="flex-1">
+                <div class="text-secondary mb-2 text-sm">
+                  {{ connType === "usb" ? t("connection.portUsb") : t("connection.portBluetooth") }}
+                </div>
+                <select
+                  v-model="port"
+                  class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
+                >
+                  <option v-if="filteredPorts.length === 0" value="" disabled>
+                    {{
+                      scanning
+                        ? t("connection.scanning")
+                        : scanError
+                          ? t("connection.scanFailed")
+                          : t("connection.noPorts")
+                    }}
+                  </option>
+                  <option v-for="p in filteredPorts" :key="p.name" :value="p.name">
+                    {{ p.name }}{{ p.description ? `（${p.description}）` : "" }}
+                  </option>
+                </select>
               </div>
-              <select
-                v-model="port"
-                class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
+              <button
+                class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-2 text-sm disabled:opacity-50"
+                :disabled="scanning"
+                @click="listPorts"
               >
-                <option v-if="filteredPorts.length === 0" value="" disabled>
-                  {{ t("connection.scanning") }}
-                </option>
-                <option v-for="p in filteredPorts" :key="p.name" :value="p.name">
-                  {{ p.name }}{{ p.description ? `（${p.description}）` : "" }}
-                </option>
-              </select>
+                {{ scanning ? t("connection.scanning") : t("connection.refresh") }}
+              </button>
             </div>
-            <button
-              class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-2 text-sm"
-              @click="listPorts"
+
+            <!-- 枚举失败：带上底层错误，便于定位（sidecar 缺失 / 权限 / 超时） -->
+            <div
+              v-if="scanError"
+              class="rounded-lg border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs leading-relaxed text-rose-200/90"
             >
-              {{ t("connection.refresh") }}
-            </button>
+              {{ t("connection.scanFailed") }}
+              <div class="mt-1 font-mono break-all text-rose-200/60">{{ scanError }}</div>
+            </div>
+            <!-- 蓝牙串口需先在系统层面配对，否则枚举不到 -->
+            <div
+              v-else-if="connType === 'bluetooth' && !scanning && filteredPorts.length === 0"
+              class="text-secondary text-xs leading-relaxed"
+            >
+              {{ t("connection.btPairHint") }}
+            </div>
           </div>
 
           <!-- 网络串口（RJ45 OBD）：IP + 端口 -->
