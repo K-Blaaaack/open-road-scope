@@ -26,6 +26,7 @@ Electron 主进程（进程管理 / IPC）
 - 数据采集由 Python sidecar（`sidecar/`）承担，通过 stdio JSON-RPC 与主进程通信
 - 三层架构：主进程（`electron/`）/ 预加载 contextBridge / 渲染进程（`src/`）
 - 共享契约位于 `shared/`
+- 安卓端（`android/`）以原生 WebView 承载同一套渲染层，采集换成 Java 侧 ELM327 引擎（蓝牙 SPP / USB 串口 / 网络），不使用 sidecar
 
 ## 开发
 
@@ -63,12 +64,12 @@ pnpm release:push       # 推送提交与 tag，触发 CI 自动构建并发布 
 
 ## 平台支持
 
-| 平台    | 发行格式                             | 说明                                                                                                     |
-| ------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| Windows | NSIS 安装包 / 便携版 / MSI           | `build:win` / `build:win:nsis` / `build:win:portable` / `build:win:msi`                                  |
-| macOS   | DMG / ZIP                            | `build:mac` / `build:mac:dmg` / `build:mac:zip`（ZIP 供自动更新）                                        |
-| Linux   | AppImage / deb / rpm / snap / tar.gz | `build:linux` 或按需 `build:linux:deb` 等                                                                |
-| Android | —                                    | Electron 不支持移动端；如需要可基于渲染层（Vue 3）以 Capacitor 迁移，OBD 采集需改用 Android USB/蓝牙方案 |
+| 平台    | 发行格式                                | 说明                                                                                                                                          |
+| ------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows | NSIS 安装包 / 便携版 / MSI              | `build:win` / `build:win:nsis` / `build:win:portable` / `build:win:msi`                                                                       |
+| macOS   | DMG / ZIP                               | `build:mac` / `build:mac:dmg` / `build:mac:zip`（ZIP 供自动更新）                                                                             |
+| Linux   | AppImage / deb / rpm / snap / tar.gz    | `build:linux` 或按需 `build:linux:deb` 等                                                                                                     |
+| Android | APK（arm64-v8a / armeabi-v7a / x86_64） | `build:android` / `build:android:release`；原生 WebView 承载渲染层，OBD 采集由 Android 侧蓝牙 SPP / USB 串口 / 网络桥接实现（不使用 sidecar） |
 
 > sidecar（PyInstaller）产物与平台绑定，跨平台打包需在**各目标平台**上分别执行（Windows 上打 Windows 包、macOS 上打 macOS 包）。
 
