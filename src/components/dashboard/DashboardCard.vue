@@ -16,6 +16,8 @@ const props = defineProps<{
   containerWidth: number;
   /** 当前行高（px），随视口适配变化 */
   rowHeight: number;
+  /** 流式布局（窄屏堆叠）：由外层容器决定尺寸，不做网格定位与拖拽缩放 */
+  flow?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -33,12 +35,19 @@ const types: { type: GaugeType; icon: string }[] = [
   { type: "value", icon: "i-lucide-text" },
 ];
 
-const style = computed(() => ({
-  left: `${(props.card.x / 12) * 100}%`,
-  top: `${props.card.y * props.rowHeight}px`,
-  width: `${(props.card.w / 12) * 100}%`,
-  height: `${props.card.h * props.rowHeight}px`,
-}));
+const style = computed(() => {
+  // 流式布局下尺寸由外层网格单元决定
+  if (props.flow) return {};
+  return {
+    left: `${(props.card.x / 12) * 100}%`,
+    top: `${props.card.y * props.rowHeight}px`,
+    width: `${(props.card.w / 12) * 100}%`,
+    height: `${props.card.h * props.rowHeight}px`,
+  };
+});
+
+/** 是否可拖拽/缩放：流式布局下网格坐标无意义，禁用 */
+const movable = computed(() => props.editing && !props.flow);
 
 const dragOffset = ref({ x: 0, y: 0 });
 const resizeOffset = ref({ w: 0, h: 0 });
@@ -50,7 +59,7 @@ let resizeStart = { x: 0, y: 0, cardW: 0, cardH: 0 };
 const colWidth = (): number => props.containerWidth / 12;
 
 const onDragStart = (e: PointerEvent): void => {
-  if (!props.editing) return;
+  if (!movable.value) return;
   dragging = true;
   dragStart = { x: e.clientX, y: e.clientY, cardX: props.card.x, cardY: props.card.y };
   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -74,7 +83,7 @@ const onDragEnd = (): void => {
 };
 
 const onResizeStart = (e: PointerEvent): void => {
-  if (!props.editing) return;
+  if (!movable.value) return;
   resizing = true;
   resizeStart = { x: e.clientX, y: e.clientY, cardW: props.card.w, cardH: props.card.h };
   (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -121,9 +130,10 @@ const adjustFont = (delta: number): void => {
 </script>
 
 <template>
-  <!-- 定位层：网格定位 + 卡片间距（p-2） -->
+  <!-- 定位层：网格定位 + 卡片间距（p-2）；流式布局下填满外层单元 -->
   <div
-    class="absolute flex flex-col p-2"
+    class="flex flex-col"
+    :class="flow ? 'relative h-full w-full' : 'absolute p-2'"
     :style="{
       ...style,
       transform:
@@ -205,10 +215,10 @@ const adjustFont = (delta: number): void => {
         </div>
       </div>
 
-      <!-- 标题（拖拽手柄） -->
+      <!-- 标题（网格布局下兼作拖拽手柄） -->
       <div
         class="flex items-center justify-between px-3 pt-2.5"
-        :class="editing ? 'cursor-grab active:cursor-grabbing' : ''"
+        :class="movable ? 'cursor-grab active:cursor-grabbing' : ''"
         @pointerdown="onDragStart"
         @pointermove="onDragMove"
         @pointerup="onDragEnd"
@@ -231,9 +241,9 @@ const adjustFont = (delta: number): void => {
         <ValueContent v-else :pid="card.pid" :font-scale="card.fontScale" />
       </div>
 
-      <!-- 缩放句柄（编辑态） -->
+      <!-- 缩放句柄（编辑态，仅网格布局） -->
       <div
-        v-if="editing"
+        v-if="movable"
         class="absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize"
         @pointerdown="onResizeStart"
         @pointermove="onResizeMove"
