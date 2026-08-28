@@ -1,4 +1,22 @@
 # 更新日志
+## [0.1.7](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.6...v0.1.7) (2026-08-28)
+
+### 🐛 修复
+
+* 连接前刷新可正常枚举串口 ([6053ade](https://github.com/K-Blaaaack/open-road-scope/commit/6053adee19c0599f619903d7db643c9b920cb472))
+
+### 📝 文档
+
+* 更新 0.1.6 版本日志 ([a0c609f](https://github.com/K-Blaaaack/open-road-scope/commit/a0c609f700f083a150a0cbe94d8161fa4362c87d))
+* 更新 README 安卓平台支持说明 ([0f7250f](https://github.com/K-Blaaaack/open-road-scope/commit/0f7250f531d274e84d2094070c60a6f9ee8b4dec))
+
+### 🤖 CI
+
+* 产物命名统一 macos（darwin→macos） ([3d6eb18](https://github.com/K-Blaaaack/open-road-scope/commit/3d6eb1866241af520a3d5f74c671d6093e181bc6))
+
+### 🧹 杂项
+
+* 移除安卓 Capacitor 遗留示例测试 ([87791d8](https://github.com/K-Blaaaack/open-road-scope/commit/87791d8f35c6165cf8d5e9349d1805ea44f03dde))
 ## [0.1.6](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.5...v0.1.6) (2026-08-20)
 
 ### ✨ 新功能
