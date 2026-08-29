@@ -88,23 +88,15 @@ const disableDevMode = (): void => {
       </div>
       <div class="flex gap-2">
         <button
-          class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-          :class="
-            prefs.locale === 'zh-CN'
-              ? 'border-sky-400/50 bg-sky-400/10 text-sky-400'
-              : 'border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)]'
-          "
+          class="btn-ghost btn-md flex-1"
+          :class="prefs.locale === 'zh-CN' ? 'btn-selected' : ''"
           @click="selectLocale('zh-CN')"
         >
           {{ t("settings.zh") }}
         </button>
         <button
-          class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-          :class="
-            prefs.locale === 'en-US'
-              ? 'border-sky-400/50 bg-sky-400/10 text-sky-400'
-              : 'border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)]'
-          "
+          class="btn-ghost btn-md flex-1"
+          :class="prefs.locale === 'en-US' ? 'btn-selected' : ''"
           @click="selectLocale('en-US')"
         >
           {{ t("settings.en") }}
@@ -119,27 +111,19 @@ const disableDevMode = (): void => {
       </div>
       <div class="flex gap-2">
         <button
-          class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-          :class="
-            prefs.theme === 'dark'
-              ? 'border-sky-400/50 bg-sky-400/10 text-sky-400'
-              : 'border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)]'
-          "
-          @click="prefs.theme !== 'dark' && prefs.toggleTheme()"
+          class="btn-ghost btn-md flex-1"
+          :class="prefs.theme === 'dark' ? 'btn-selected' : ''"
+          @click="prefs.setTheme('dark')"
         >
-          <span class="i-lucide-moon inline-block h-4 w-4 align-[-2px]" />
+          <span class="i-lucide-moon h-4 w-4" />
           {{ t("settings.dark") }}
         </button>
         <button
-          class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-          :class="
-            prefs.theme === 'light'
-              ? 'border-sky-400/50 bg-sky-400/10 text-sky-400'
-              : 'border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)]'
-          "
-          @click="prefs.theme !== 'light' && prefs.toggleTheme()"
+          class="btn-ghost btn-md flex-1"
+          :class="prefs.theme === 'light' ? 'btn-selected' : ''"
+          @click="prefs.setTheme('light')"
         >
-          <span class="i-lucide-sun inline-block h-4 w-4 align-[-2px]" />
+          <span class="i-lucide-sun h-4 w-4" />
           {{ t("settings.light") }}
         </button>
       </div>
@@ -151,106 +135,72 @@ const disableDevMode = (): void => {
         <div class="text-secondary mt-0.5 text-sm">{{ t("settings.behaviorDesc") }}</div>
       </div>
 
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-4">
         <div>
           <div class="text-primary text-sm">{{ t("settings.showNavLabels") }}</div>
           <div class="text-secondary mt-0.5 text-xs">{{ t("settings.showNavLabelsDesc") }}</div>
         </div>
-        <button
-          class="relative h-6 w-11 rounded-full transition-colors"
-          :class="prefs.showNavLabels ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
-          role="switch"
-          :aria-checked="prefs.showNavLabels"
-          @click="
-            prefs.showNavLabels = !prefs.showNavLabels;
-            prefs.persist();
-          "
-        >
-          <span
-            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
-            :class="prefs.showNavLabels ? 'left-[22px]' : 'left-0.5'"
-          />
-        </button>
+        <ToggleSwitch
+          v-model="prefs.showNavLabels"
+          :label="t('settings.showNavLabels')"
+          @toggle="prefs.persist()"
+        />
       </div>
 
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-4">
         <div>
           <div class="text-primary text-sm">{{ t("settings.fitViewport") }}</div>
           <div class="text-secondary mt-0.5 text-xs">{{ t("settings.fitViewportDesc") }}</div>
         </div>
-        <button
-          class="relative h-6 w-11 rounded-full transition-colors"
-          :class="prefs.fitViewport ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
-          role="switch"
-          :aria-checked="prefs.fitViewport"
-          @click="
-            prefs.fitViewport = !prefs.fitViewport;
-            prefs.persist();
-          "
-        >
-          <span
-            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
-            :class="prefs.fitViewport ? 'left-[22px]' : 'left-0.5'"
-          />
-        </button>
+        <ToggleSwitch
+          v-model="prefs.fitViewport"
+          :label="t('settings.fitViewport')"
+          @toggle="prefs.persist()"
+        />
       </div>
 
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-1.5">
             <span class="text-primary text-sm">{{ t("settings.showClearDtc") }}</span>
-            <span
-              class="rounded bg-amber-400/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300"
-            >
+            <span class="badge-warning">
               {{ t("settings.experimental") }}
             </span>
           </div>
           <div class="text-secondary mt-0.5 text-xs">{{ t("settings.showClearDtcDesc") }}</div>
         </div>
-        <button
-          class="relative h-6 w-11 rounded-full transition-colors"
-          :class="prefs.showClearDtc ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
-          role="switch"
-          :aria-checked="prefs.showClearDtc"
-          @click="toggleShowClearDtc"
-        >
-          <span
-            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
-            :class="prefs.showClearDtc ? 'left-[22px]' : 'left-0.5'"
-          />
-        </button>
+        <!-- 开启前需二次确认，故只读状态 + 自行处理点击 -->
+        <ToggleSwitch
+          :model-value="prefs.showClearDtc"
+          :label="t('settings.showClearDtc')"
+          @toggle="toggleShowClearDtc"
+        />
       </div>
 
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-1.5">
             <span class="text-primary text-sm">{{ t("settings.hotReload") }}</span>
             <kbd
-              class="rounded border border-[var(--color-border)] bg-[var(--color-card)] px-1 py-0.5 font-mono text-[10px] text-secondary"
+              class="text-secondary rounded border border-[var(--color-border)] bg-[var(--color-card)] px-1 py-0.5 font-mono text-[10px]"
             >
               F5 / Ctrl+R
             </kbd>
           </div>
           <div class="text-secondary mt-0.5 text-xs">{{ t("settings.hotReloadDesc") }}</div>
         </div>
-        <button
-          class="flex items-center gap-1.5 rounded-lg bg-sky-500/90 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-500"
-          @click="reloadUI"
-        >
+        <button class="btn-primary btn-md shrink-0" @click="reloadUI">
           <span class="i-lucide-refresh-cw h-4 w-4" />
           {{ t("settings.reloadNow") }}
         </button>
       </div>
 
       <!-- 开发者模式：未开启时连击 5 次按钮；开启后变为开关 -->
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-1.5">
             <span class="text-primary text-sm">{{ t("settings.developer") }}</span>
-            <span
-              v-if="prefs.devMode"
-              class="rounded bg-emerald-400/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300"
-            >
+            <span v-if="prefs.devMode" class="badge-success">
               {{ t("settings.developerActive") }}
             </span>
           </div>
@@ -258,22 +208,15 @@ const disableDevMode = (): void => {
             {{ prefs.devMode ? t("settings.developerActive") : t("settings.developerDesc") }}
           </div>
         </div>
-        <button
-          v-if="!prefs.devMode"
-          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-sm transition-colors"
-          @click="onDevButtonClick"
-        >
+        <button v-if="!prefs.devMode" class="btn-ghost btn-sm shrink-0" @click="onDevButtonClick">
           {{ t("settings.developer") }}
         </button>
-        <button
+        <ToggleSwitch
           v-else
-          class="relative h-6 w-11 rounded-full bg-sky-500 transition-colors"
-          role="switch"
-          :aria-checked="true"
-          @click="disableDevMode"
-        >
-          <span class="absolute left-[22px] top-0.5 h-5 w-5 rounded-full bg-white shadow" />
-        </button>
+          :model-value="true"
+          :label="t('settings.developer')"
+          @toggle="disableDevMode"
+        />
       </div>
     </section>
 
@@ -285,11 +228,11 @@ const disableDevMode = (): void => {
           @click="confirmingDevMode = false"
         />
         <div
-          class="relative w-96 max-w-[calc(100vw-32px)] rounded-xl border border-amber-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+          class="relative w-96 max-w-[calc(100vw-32px)] rounded-xl border border-[var(--color-warning-border)] bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
         >
           <div class="flex items-start gap-3">
             <span
-              class="i-lucide-terminal flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300"
+              class="i-lucide-terminal flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-warning-soft)] text-[var(--color-warning-text)]"
             />
             <div>
               <h2 class="text-primary text-base font-semibold">
@@ -301,16 +244,10 @@ const disableDevMode = (): void => {
             </div>
           </div>
           <div class="mt-5 flex justify-end gap-2">
-            <button
-              class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm"
-              @click="confirmingDevMode = false"
-            >
+            <button class="btn-ghost btn-md" @click="confirmingDevMode = false">
               {{ t("common.cancel") }}
             </button>
-            <button
-              class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-amber-400"
-              @click="confirmDevMode"
-            >
+            <button class="btn-warning btn-md" @click="confirmDevMode">
               {{ t("settings.developerAccept") }}
             </button>
           </div>
@@ -329,11 +266,11 @@ const disableDevMode = (): void => {
           @click="confirmingExperimental = false"
         />
         <div
-          class="relative w-96 max-w-[calc(100vw-32px)] rounded-xl border border-red-400/50 bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+          class="relative w-96 max-w-[calc(100vw-32px)] rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
         >
           <div class="flex items-start gap-3">
             <span
-              class="i-lucide-triangle-alert flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-400"
+              class="i-lucide-triangle-alert flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-danger-soft)] text-[var(--color-danger-text)]"
             />
             <div>
               <h2 class="text-primary text-base font-semibold">
@@ -345,16 +282,10 @@ const disableDevMode = (): void => {
             </div>
           </div>
           <div class="mt-5 flex justify-end gap-2">
-            <button
-              class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm"
-              @click="confirmingExperimental = false"
-            >
+            <button class="btn-ghost btn-md" @click="confirmingExperimental = false">
               {{ t("common.cancel") }}
             </button>
-            <button
-              class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-400"
-              @click="confirmEnableExperimental"
-            >
+            <button class="btn-danger btn-md" @click="confirmEnableExperimental">
               {{ t("settings.experimentalAccept") }}
             </button>
           </div>

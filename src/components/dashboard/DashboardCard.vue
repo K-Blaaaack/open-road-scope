@@ -145,7 +145,7 @@ const adjustFont = (delta: number): void => {
     <!-- 删除按钮（编辑态），置于视觉层外避免被 overflow 裁剪 -->
     <button
       v-if="editing"
-      class="flex-center absolute -top-1.5 -right-1.5 z-10 h-6 w-6 rounded-full bg-red-500 text-white shadow-md transition-transform hover:scale-110"
+      class="flex-center absolute -top-1.5 -right-1.5 z-10 h-6 w-6 rounded-full bg-[var(--color-danger-solid)] text-white shadow-md transition-transform hover:scale-110"
       :title="t('dashboard.removeCard')"
       @click="emit('remove')"
     >
@@ -155,7 +155,7 @@ const adjustFont = (delta: number): void => {
     <!-- 视觉层：卡片外观与内容 -->
     <div
       class="glass-card relative flex min-h-0 flex-1 flex-col overflow-hidden transition-shadow"
-      :class="editing ? 'ring-2 ring-sky-400/70 shadow-lg shadow-sky-900/30' : ''"
+      :class="editing ? 'ring-2 ring-[var(--color-accent)]/70 shadow-lg' : ''"
     >
       <!-- 编辑工具栏 -->
       <div
@@ -165,11 +165,11 @@ const adjustFont = (delta: number): void => {
         <button
           v-for="item in types"
           :key="item.type"
-          class="flex-center rounded-md p-1 transition-colors"
+          class="btn-quiet btn-icon-sm"
           :class="
             card.type === item.type
-              ? 'bg-sky-400/20 text-sky-300'
-              : 'text-secondary hover:bg-[var(--color-hover)]'
+              ? '!bg-[var(--color-accent-soft)] !text-[var(--color-accent-text)]'
+              : ''
           "
           :title="t(`dashboard.type.${item.type}`)"
           @click="emit('update', { type: item.type })"
@@ -196,7 +196,7 @@ const adjustFont = (delta: number): void => {
         <!-- 数值卡片：字号调节 -->
         <div v-else class="ml-auto flex items-center gap-1">
           <button
-            class="text-secondary hover:bg-[var(--color-hover)] rounded-md px-1.5 py-0.5 text-sm leading-none"
+            class="btn-quiet btn-xs font-mono"
             :title="t('dashboard.fontSmaller')"
             @click="adjustFont(-0.15)"
           >
@@ -206,7 +206,7 @@ const adjustFont = (delta: number): void => {
             >{{ Math.round((card.fontScale ?? 1) * 100) }}%</span
           >
           <button
-            class="text-secondary hover:bg-[var(--color-hover)] rounded-md px-1.5 py-0.5 text-sm leading-none"
+            class="btn-quiet btn-xs font-mono"
             :title="t('dashboard.fontLarger')"
             @click="adjustFont(0.15)"
           >

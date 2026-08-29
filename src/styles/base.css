@@ -12,9 +12,34 @@
   --color-warning: #fbbf24;
   --color-hover: rgba(255, 255, 255, 0.06);
   --color-active: rgba(255, 255, 255, 0.1);
-  /* 功能按钮背景：常态半透明白（深色底），悬停变浅 */
-  --color-btn: rgba(255, 255, 255, 0.08);
-  --color-btn-hover: rgba(255, 255, 255, 0.16);
+  /* 次要按钮：常态半透明白底 + 细描边，悬停/按下逐级加深 */
+  --color-btn: rgba(255, 255, 255, 0.06);
+  --color-btn-hover: rgba(255, 255, 255, 0.12);
+  --color-btn-active: rgba(255, 255, 255, 0.18);
+  --color-btn-border: rgba(255, 255, 255, 0.12);
+  /* 主按钮：实心蓝底白字（深色底下用 sky-500 保证对比度） */
+  --color-primary: #0ea5e9;
+  --color-primary-hover: #38bdf8;
+  /* 危险/警告实心按钮 */
+  --color-danger-solid: #e11d48;
+  --color-danger-hover: #f43f5e;
+  --color-warning-solid: #f59e0b;
+  --color-warning-hover: #fbbf24;
+  /* 语义色：文字 / 浅底 / 描边，深浅主题各自取值以保证对比度 */
+  --color-danger-text: #fca5a5;
+  --color-danger-soft: rgba(248, 113, 113, 0.12);
+  --color-danger-border: rgba(248, 113, 113, 0.38);
+  --color-warning-text: #fcd34d;
+  --color-warning-soft: rgba(251, 191, 36, 0.14);
+  --color-warning-border: rgba(251, 191, 36, 0.42);
+  --color-success-text: #6ee7b7;
+  --color-success-soft: rgba(52, 211, 153, 0.15);
+  /* 选中态底色（分段选择、当前项） */
+  --color-accent-soft: rgba(56, 189, 248, 0.14);
+  /* 键盘焦点环 */
+  --color-focus-ring: rgba(56, 189, 248, 0.6);
+  /* 开关关闭态轨道：比边框色更实，避免浅色主题下几乎看不见 */
+  --color-switch-off: rgba(255, 255, 255, 0.18);
   --font-mono: "JetBrains Mono", "Cascadia Code", ui-monospace, "SF Mono", monospace;
 }
 
@@ -29,9 +54,29 @@
   --color-accent-text: #0369a1;
   --color-hover: rgba(15, 23, 42, 0.06);
   --color-active: rgba(15, 23, 42, 0.12);
-  /* 日间模式：按钮常态浅灰，悬停加深 */
-  --color-btn: rgba(15, 23, 42, 0.06);
-  --color-btn-hover: rgba(15, 23, 42, 0.12);
+  --color-btn: rgba(15, 23, 42, 0.04);
+  --color-btn-hover: rgba(15, 23, 42, 0.09);
+  --color-btn-active: rgba(15, 23, 42, 0.14);
+  --color-btn-border: rgba(15, 23, 42, 0.12);
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
+  --color-danger-solid: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-warning-solid: #d97706;
+  --color-warning-hover: #b45309;
+  --color-accent-soft: rgba(2, 132, 199, 0.1);
+  --color-focus-ring: rgba(2, 132, 199, 0.55);
+  --color-switch-off: rgba(15, 23, 42, 0.2);
+  --color-danger: #dc2626;
+  --color-warning: #b45309;
+  --color-danger-text: #b91c1c;
+  --color-danger-soft: rgba(220, 38, 38, 0.08);
+  --color-danger-border: rgba(220, 38, 38, 0.35);
+  --color-warning-text: #b45309;
+  --color-warning-soft: rgba(217, 119, 6, 0.1);
+  --color-warning-border: rgba(217, 119, 6, 0.4);
+  --color-success-text: #047857;
+  --color-success-soft: rgba(5, 150, 105, 0.1);
 }
 
 * {
@@ -141,4 +186,73 @@ body {
 .toast-leave-to {
   opacity: 0;
   transform: translate(-50%, 8px);
+}
+
+/* 日夜主题切换：切换瞬间给全局配色加一次性过渡，避免硬切刺眼。
+   仅在切换期间挂载（由 prefs store 加类名再移除），不常驻以免干扰悬停等交互过渡。 */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition:
+    background-color 320ms ease,
+    border-color 320ms ease,
+    color 320ms ease,
+    fill 320ms ease,
+    stroke 320ms ease,
+    box-shadow 320ms ease !important;
+  transition-delay: 0ms !important;
+}
+
+/* 主题按钮图标随主题旋转淡入 */
+.theme-icon-enter-active,
+.theme-icon-leave-active {
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease;
+}
+
+.theme-icon-enter-from {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+
+.theme-icon-leave-to {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+
+/* 侧栏折叠：文字标签淡入淡出（宽度由 aside 的 transition 负责） */
+.nav-label-enter-active,
+.nav-label-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.nav-label-enter-from,
+.nav-label-leave-to {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+
+/* 尊重系统「减少动态效果」设置 */
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: none !important;
+  }
+
+  .page-enter-active,
+  .page-leave-active,
+  .toast-enter-active,
+  .toast-leave-active,
+  .theme-icon-enter-active,
+  .theme-icon-leave-active,
+  .nav-label-enter-active,
+  .nav-label-leave-active {
+    transition: none !important;
+  }
 }

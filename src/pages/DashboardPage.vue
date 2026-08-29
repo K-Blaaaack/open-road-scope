@@ -122,22 +122,13 @@ const doImport = (): void => {
   <div class="flex h-full flex-col gap-4 max-sm:gap-2">
     <!-- 编辑态操作行：非编辑态不渲染，垂直空间全部留给卡片（标题已移入顶栏） -->
     <div v-if="layout.editing" class="flex flex-wrap items-center justify-end gap-2">
-      <button
-        class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-sm transition-colors"
-        @click="layout.sidebarOpen = true"
-      >
+      <button class="btn-ghost btn-sm" @click="layout.sidebarOpen = true">
         {{ t("dashboard.config") }}
       </button>
-      <button
-        class="border-[var(--color-border)] text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-sm transition-colors"
-        @click="layout.cancelEdit()"
-      >
+      <button class="btn-ghost btn-sm" @click="layout.cancelEdit()">
         {{ t("common.cancel") }}
       </button>
-      <button
-        class="rounded-lg bg-sky-500/90 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500"
-        @click="layout.save()"
-      >
+      <button class="btn-primary btn-sm" @click="layout.save()">
         {{ t("common.save") }}
       </button>
     </div>
@@ -169,13 +160,13 @@ const doImport = (): void => {
           <div
             v-for="c in gridLines.cols"
             :key="`c${c}`"
-            class="absolute top-0 h-full border-l border-dashed border-sky-400/15"
+            class="absolute top-0 h-full border-l border-dashed border-[var(--color-accent)]/20"
             :style="{ left: `${(c / GRID_COLS) * 100}%` }"
           />
           <div
             v-for="r in gridLines.rows"
             :key="`r${r}`"
-            class="absolute left-0 w-full border-t border-dashed border-sky-400/15"
+            class="absolute left-0 w-full border-t border-dashed border-[var(--color-accent)]/20"
             :style="{ top: `${r * rowHeight}px` }"
           />
         </div>
@@ -208,10 +199,7 @@ const doImport = (): void => {
         >
           <div class="flex items-center justify-between">
             <h2 class="text-primary font-semibold">{{ t("dashboard.config") }}</h2>
-            <button
-              class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex h-7 w-7 items-center justify-center rounded-md"
-              @click="layout.sidebarOpen = false"
-            >
+            <button class="btn-quiet btn-icon-sm" @click="layout.sidebarOpen = false">
               <span class="i-lucide-x h-4 w-4" />
             </button>
           </div>
@@ -234,12 +222,7 @@ const doImport = (): void => {
                 <option value="bar">{{ t("dashboard.type.bar") }}</option>
                 <option value="value">{{ t("dashboard.type.value") }}</option>
               </select>
-              <button
-                class="rounded-lg bg-sky-500/90 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-500"
-                @click="addCard"
-              >
-                +
-              </button>
+              <button class="btn-primary btn-sm" @click="addCard">+</button>
             </div>
           </section>
 
@@ -253,14 +236,14 @@ const doImport = (): void => {
                   { key: 'compact', label: t('dashboard.presetCompact') },
                 ]"
                 :key="preset.key"
-                class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-2.5 py-1 text-xs"
+                class="btn-ghost btn-xs"
                 @click="layout.applyPreset(preset.key as never)"
               >
                 {{ preset.label }}
               </button>
             </div>
             <button
-              class="border-border text-red-300/80 hover:bg-red-400/10 rounded-lg border px-2.5 py-1 text-xs transition-colors"
+              class="btn-ghost btn-xs !text-[var(--color-danger)] hover:!bg-[var(--color-danger-solid)]/12"
               @click="layout.applyPreset('default')"
             >
               {{ t("dashboard.resetLayout") }}
@@ -276,20 +259,16 @@ const doImport = (): void => {
               spellcheck="false"
             />
             <div class="flex gap-2">
-              <button
-                class="border-border text-secondary hover:bg-[var(--color-hover)] flex-1 rounded-lg border px-2 py-1.5 text-sm"
-                @click="doExport"
-              >
+              <button class="btn-ghost btn-sm flex-1" @click="doExport">
                 {{ t("dashboard.export") }}
               </button>
-              <button
-                class="border-border text-secondary hover:bg-[var(--color-hover)] flex-1 rounded-lg border px-2 py-1.5 text-sm"
-                @click="doImport"
-              >
+              <button class="btn-ghost btn-sm flex-1" @click="doImport">
                 {{ t("dashboard.import") }}
               </button>
             </div>
-            <div v-if="importMsg" class="text-xs text-sky-300">{{ importMsg }}</div>
+            <div v-if="importMsg" class="text-xs text-[var(--color-accent-text)]">
+              {{ importMsg }}
+            </div>
           </section>
         </aside>
       </div>

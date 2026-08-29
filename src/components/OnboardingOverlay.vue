@@ -52,13 +52,17 @@ const confirmSkip = (): void => {
       </div>
 
       <!-- 行车安全警告（醒目） -->
-      <div class="flex items-start gap-3 rounded-xl border border-red-400/50 bg-red-500/10 p-4">
-        <span class="i-lucide-triangle-alert mt-0.5 h-6 w-6 shrink-0 text-red-400" />
+      <div
+        class="flex items-start gap-3 rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-danger-soft)] p-4"
+      >
+        <span
+          class="i-lucide-triangle-alert mt-0.5 h-6 w-6 shrink-0 text-[var(--color-danger-text)]"
+        />
         <div>
-          <div class="text-sm font-semibold text-red-300">
+          <div class="text-sm font-semibold text-[var(--color-danger-text)]">
             {{ t("onboarding.safetyTitle") }}
           </div>
-          <p class="mt-1 text-sm leading-relaxed text-red-200/90">
+          <p class="mt-1 text-sm leading-relaxed text-[var(--color-danger-text)] opacity-90">
             {{ t("onboarding.safetyDesc") }}
           </p>
         </div>
@@ -103,14 +107,15 @@ const confirmSkip = (): void => {
 
       <!-- 不再显示勾选框 -->
       <label class="flex cursor-pointer items-center gap-2">
-        <input v-model="skipChecked" type="checkbox" class="accent-sky-400" />
+        <input
+          v-model="skipChecked"
+          type="checkbox"
+          class="h-4 w-4 accent-[var(--color-primary)]"
+        />
         <span class="text-secondary text-sm">{{ t("onboarding.dontShowAgain") }}</span>
       </label>
 
-      <button
-        class="w-full rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-400"
-        @click="onStart"
-      >
+      <button class="btn-primary btn-lg w-full" @click="onStart">
         {{ t("onboarding.start") }}
       </button>
     </div>
@@ -123,11 +128,11 @@ const confirmSkip = (): void => {
           @click="confirmingSkip = false"
         />
         <div
-          class="border-amber-400/50 relative mx-4 w-96 max-w-[calc(100vw-32px)] rounded-xl border bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
+          class="relative mx-4 w-96 max-w-[calc(100vw-32px)] rounded-xl border border-[var(--color-warning-border)] bg-[var(--color-bg-elevated)] p-6 shadow-2xl"
         >
           <div class="flex items-start gap-3">
             <span
-              class="i-lucide-triangle-alert flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-400/15 text-amber-300"
+              class="i-lucide-triangle-alert flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-warning-soft)] text-[var(--color-warning-text)]"
             />
             <div>
               <h2 class="text-primary text-base font-semibold">
@@ -139,16 +144,10 @@ const confirmSkip = (): void => {
             </div>
           </div>
           <div class="mt-5 flex justify-end gap-2">
-            <button
-              class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm"
-              @click="confirmingSkip = false"
-            >
+            <button class="btn-ghost btn-md" @click="confirmingSkip = false">
               {{ t("common.cancel") }}
             </button>
-            <button
-              class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-amber-400"
-              @click="confirmSkip"
-            >
+            <button class="btn-warning btn-md" @click="confirmSkip">
               {{ t("onboarding.confirmSkipAccept") }}
             </button>
           </div>

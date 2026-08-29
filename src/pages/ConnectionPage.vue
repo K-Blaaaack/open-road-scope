@@ -121,23 +121,15 @@ onMounted(listPorts);
         <div class="text-secondary mb-2 text-sm">{{ t("connection.mode") }}</div>
         <div class="flex flex-wrap gap-2">
           <button
-            class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-            :class="
-              mode === 'sim'
-                ? 'border-sky-400/50 bg-sky-400/10 text-[var(--color-accent-text)]'
-                : 'border-border text-secondary hover:bg-[var(--color-hover)]'
-            "
+            class="btn-ghost btn-md flex-1"
+            :class="mode === 'sim' ? 'btn-selected' : ''"
             @click="mode = 'sim'"
           >
             {{ t("connection.sim") }}
           </button>
           <button
-            class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
-            :class="
-              mode === 'real'
-                ? 'border-sky-400/50 bg-sky-400/10 text-[var(--color-accent-text)]'
-                : 'border-border text-secondary hover:bg-[var(--color-hover)]'
-            "
+            class="btn-ghost btn-md flex-1"
+            :class="mode === 'real' ? 'btn-selected' : ''"
             @click="mode = 'real'"
           >
             {{ t("connection.real") }}
@@ -147,12 +139,9 @@ onMounted(listPorts);
 
       <div v-if="mode === 'real' && store.status.state === 'idle'" class="flex flex-col gap-3">
         <!-- 无原生桥接平台（安卓 WebView / 浏览器）：串口/蓝牙/网络不可用 -->
-        <div
-          v-if="!hasBridge"
-          class="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs leading-relaxed text-amber-200/90"
-        >
+        <div v-if="!hasBridge" class="note-warning px-4 py-3">
           {{ t("connection.noBridgeTitle") }}
-          <div class="mt-1 text-amber-200/60">{{ t("connection.noBridgeDesc") }}</div>
+          <div class="mt-1 opacity-75">{{ t("connection.noBridgeDesc") }}</div>
         </div>
 
         <!-- 实车连接方式：USB 串口 / 蓝牙串口 / 网络（RJ45 OBD） -->
@@ -167,12 +156,8 @@ onMounted(listPorts);
                   { key: 'network', label: t('connection.typeNetwork') },
                 ]"
                 :key="type.key"
-                class="flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
-                :class="
-                  connType === type.key
-                    ? 'border-sky-400/50 bg-sky-400/10 text-[var(--color-accent-text)]'
-                    : 'border-border text-secondary hover:bg-[var(--color-hover)]'
-                "
+                class="btn-ghost btn-sm flex-1 text-xs"
+                :class="connType === type.key ? 'btn-selected' : ''"
                 @click="connType = type.key as typeof connType"
               >
                 {{ type.label }}
@@ -205,22 +190,15 @@ onMounted(listPorts);
                   </option>
                 </select>
               </div>
-              <button
-                class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-2 text-sm disabled:opacity-50"
-                :disabled="scanning"
-                @click="listPorts"
-              >
+              <button class="btn-ghost btn-md" :disabled="scanning" @click="listPorts">
                 {{ scanning ? t("connection.scanning") : t("connection.refresh") }}
               </button>
             </div>
 
             <!-- 枚举失败：带上底层错误，便于定位（sidecar 缺失 / 权限 / 超时） -->
-            <div
-              v-if="scanError"
-              class="rounded-lg border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs leading-relaxed text-rose-200/90"
-            >
+            <div v-if="scanError" class="note-danger">
               {{ t("connection.scanFailed") }}
-              <div class="mt-1 font-mono break-all text-rose-200/60">{{ scanError }}</div>
+              <div class="mt-1 font-mono break-all opacity-75">{{ scanError }}</div>
             </div>
             <!-- 蓝牙串口需先在系统层面配对，否则枚举不到 -->
             <div
@@ -257,24 +235,25 @@ onMounted(listPorts);
       </div>
 
       <div v-if="mode === 'sim' && store.status.state === 'idle'" class="flex items-center gap-2">
-        <input id="sim-fault" v-model="fault" type="checkbox" class="accent-sky-400" />
+        <input
+          id="sim-fault"
+          v-model="fault"
+          type="checkbox"
+          class="h-4 w-4 accent-[var(--color-primary)]"
+        />
         <label for="sim-fault" class="text-secondary text-sm">{{ t("connection.fault") }}</label>
       </div>
 
       <div class="flex flex-wrap gap-2">
         <button
           v-if="store.status.state === 'idle'"
-          class="flex-1 rounded-lg bg-sky-500/90 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:opacity-50"
+          class="btn-primary btn-lg flex-1"
           :disabled="busy"
           @click="connect"
         >
           {{ t("connection.connect") }}
         </button>
-        <button
-          v-if="store.status.state !== 'idle'"
-          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2.5 text-sm"
-          @click="disconnect"
-        >
+        <button v-if="store.status.state !== 'idle'" class="btn-ghost btn-lg" @click="disconnect">
           {{ t("connection.disconnect") }}
         </button>
       </div>

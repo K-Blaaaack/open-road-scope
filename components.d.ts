@@ -19,6 +19,7 @@ declare module 'vue' {
     PageSkeleton: typeof import('./src/components/PageSkeleton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ToggleSwitch: typeof import('./src/components/ToggleSwitch.vue')['default']
     ValueCard: typeof import('./src/components/ValueCard.vue')['default']
     ValueContent: typeof import('./src/components/dashboard/ValueContent.vue')['default']
   }

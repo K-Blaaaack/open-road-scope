@@ -106,9 +106,7 @@ onBeforeUnmount(() => {
       <div class="mt-2 border-t border-[var(--color-border)] pt-3">
         <p class="text-secondary leading-relaxed">{{ t("about.desc") }}</p>
         <div class="mt-3 flex items-center gap-2">
-          <span
-            class="rounded bg-emerald-400/15 px-2 py-0.5 font-mono text-[11px] font-semibold text-emerald-300"
-          >
+          <span class="badge-success px-2 py-0.5 font-mono text-[11px] font-semibold">
             GPL-2.0
           </span>
           <span class="text-secondary/80 text-xs">{{ t("about.license") }}</span>
@@ -125,7 +123,7 @@ onBeforeUnmount(() => {
             <span class="text-secondary text-xs">{{ t("about.updating") }}</span>
           </template>
           <template v-else-if="updateState === 'available'">
-            <span class="text-xs font-semibold text-emerald-300">
+            <span class="text-xs font-semibold text-[var(--color-success-text)]">
               {{ t("about.updateAvailable", { version: updateVersion }) }}
             </span>
           </template>
@@ -133,11 +131,11 @@ onBeforeUnmount(() => {
             <span class="text-secondary text-xs">{{ t("about.upToDate") }}</span>
           </template>
           <template v-else-if="updateState === 'error'">
-            <span class="text-xs text-red-300/90">{{ updateMessage }}</span>
+            <span class="text-xs text-[var(--color-danger-text)]">{{ updateMessage }}</span>
           </template>
         </div>
         <button
-          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-3 py-1.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          class="btn-ghost btn-sm text-xs"
           :disabled="updateState === 'checking'"
           @click="checkForUpdates"
         >

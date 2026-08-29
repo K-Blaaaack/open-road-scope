@@ -86,13 +86,14 @@ onMounted(() => {
   <div class="flex h-full" :class="bottomNav ? 'flex-col-reverse' : ''">
     <component
       :is="bottomNav ? 'nav' : 'aside'"
-      class="border-border bg-[var(--color-bg-elevated)]"
+      class="border-border overflow-hidden bg-[var(--color-bg-elevated)]"
       :class="
         bottomNav
           ? 'flex shrink-0 items-stretch justify-around gap-1 border-t px-1 py-1'
           : [
-              'flex flex-col gap-2 border-r py-4',
-              railLabels ? 'w-44 items-stretch px-2' : 'w-14 items-center',
+              // 折叠/展开只变宽度与标签透明度，几何位置保持一致以便平滑过渡
+              'flex flex-col items-stretch gap-2 border-r px-2 py-4 transition-[width] duration-250 ease-out',
+              railLabels ? 'w-44' : 'w-14',
             ]
       "
     >
@@ -102,33 +103,30 @@ onMounted(() => {
         :to="item.path"
         class="text-secondary hover:bg-[var(--color-hover)] hover:text-primary flex items-center rounded-lg transition-colors"
         :class="[
-          bottomNav
-            ? 'min-w-0 flex-1 flex-col justify-center gap-0.5 py-1.5'
-            : railLabels
-              ? 'gap-2.5 px-3 py-2 text-sm'
-              : 'flex-center h-10 w-10 gap-2.5',
+          bottomNav ? 'min-w-0 flex-1 flex-col justify-center gap-0.5 py-1.5' : 'h-10',
           route.path === item.path ? '!text-primary bg-[var(--color-active)]' : '',
         ]"
         :title="t(item.key)"
       >
-        <span :class="item.icon" class="h-5 w-5 shrink-0" />
-        <!-- 底部标签栏固定带文字；侧栏文字可在设置中开关 -->
+        <span
+          :class="bottomNav ? '' : 'flex h-10 w-10 shrink-0 items-center justify-center'"
+          class="shrink-0"
+        >
+          <span :class="item.icon" class="h-5 w-5" />
+        </span>
+        <!-- 底部标签栏固定带文字；侧栏文字可在设置中开关（折叠时淡出） -->
         <span v-if="bottomNav" class="w-full truncate text-center text-[10px] leading-tight">
           {{ t(item.key) }}
         </span>
-        <span v-else-if="railLabels" class="truncate">{{ t(item.key) }}</span>
+        <Transition v-else name="nav-label">
+          <span v-if="railLabels" class="truncate pr-2 text-sm">{{ t(item.key) }}</span>
+        </Transition>
       </router-link>
 
       <!-- 切换导航文字说明（底部标签栏与强制收窄状态下无意义，隐藏） -->
       <button
         v-if="!bottomNav && !compactRail"
-        class="text-secondary hover:text-primary mt-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors"
-        :class="[
-          isDark
-            ? 'border-white/10 bg-white/10 hover:bg-white/20'
-            : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10',
-          railLabels ? '' : 'mx-auto',
-        ]"
+        class="btn-ghost btn-icon mt-auto self-start"
         :title="t('settings.showNavLabels')"
         @click="
           prefs.showNavLabels = !prefs.showNavLabels;
@@ -159,33 +157,25 @@ onMounted(() => {
           <span v-if="waitingData" class="text-secondary text-xs max-sm:hidden">
             {{ t("dashboard.noData") }}
           </span>
-          <!-- 主题切换按钮（原样式：常态背景随日夜模式切换） -->
+          <!-- 主题切换按钮：图标随主题旋转淡入淡出 -->
           <button
-            class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
-            :class="
-              isDark
-                ? 'border-white/10 bg-white/10 hover:bg-white/20'
-                : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10'
-            "
+            class="btn-ghost btn-icon"
             :title="isDark ? t('common.day') : t('common.night')"
             @click="prefs.toggleTheme()"
           >
-            <!-- 图标随主题：黑夜模式为深色月亮，日间模式为亮色太阳 -->
-            <span
-              :class="isDark ? 'i-lucide-moon text-slate-500' : 'i-lucide-sun text-amber-500'"
-              class="h-4 w-4"
-            />
+            <Transition name="theme-icon" mode="out-in">
+              <span
+                :key="isDark ? 'moon' : 'sun'"
+                :class="isDark ? 'i-lucide-moon' : 'i-lucide-sun text-amber-500'"
+                class="h-4 w-4"
+              />
+            </Transition>
           </button>
-          <!-- 仪表盘编辑按钮（仅仪表盘页面显示，样式与主题按钮一致） -->
+          <!-- 仪表盘编辑按钮（仅仪表盘页面显示） -->
           <button
             v-if="route.path === '/dashboard'"
-            class="text-secondary hover:text-primary flex h-8 w-8 items-center justify-center rounded-lg border transition-colors"
-            :class="[
-              isDark
-                ? 'border-white/10 bg-white/10 hover:bg-white/20'
-                : 'border-[var(--color-border)] bg-black/5 hover:bg-black/10',
-              layout.editing ? '!border-sky-400/60 !text-sky-300 bg-sky-400/10' : '',
-            ]"
+            class="btn-ghost btn-icon"
+            :class="layout.editing ? 'btn-selected' : ''"
             :title="t('dashboard.edit')"
             @click="layout.editing ? layout.cancelEdit() : layout.enterEdit()"
           >

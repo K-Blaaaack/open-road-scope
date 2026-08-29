@@ -35,6 +35,24 @@ const applyTheme = (theme: Theme): void => {
   }
 };
 
+/** 主题过渡类名的移除定时器 */
+let themeTransitionTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * 让本次主题切换走渐变：临时挂上 .theme-transition 给全局配色加过渡，
+ * 动画结束即移除，避免常驻影响悬停等交互过渡。
+ */
+const withThemeTransition = (apply: () => void): void => {
+  const root = document.documentElement;
+  root.classList.add("theme-transition");
+  apply();
+  if (themeTransitionTimer) clearTimeout(themeTransitionTimer);
+  themeTransitionTimer = setTimeout(() => {
+    themeTransitionTimer = null;
+    root.classList.remove("theme-transition");
+  }, 360);
+};
+
 const applyLocale = (locale: Locale): void => {
   i18n.global.locale.value = locale;
   document.documentElement.lang = locale;
@@ -101,10 +119,21 @@ export const usePrefsStore = defineStore("prefs", () => {
     }, 250);
   };
 
-  /** 切换深色/浅色主题 */
+  /** 切换深色/浅色主题（带渐变过渡） */
   const toggleTheme = (): void => {
     theme.value = theme.value === "dark" ? "light" : "dark";
-    applyTheme(theme.value);
+    withThemeTransition(() => applyTheme(theme.value));
+    persist();
+  };
+
+  /**
+   * 指定主题（带渐变过渡）
+   * @param next - 目标主题
+   */
+  const setTheme = (next: Theme): void => {
+    if (theme.value === next) return;
+    theme.value = next;
+    withThemeTransition(() => applyTheme(next));
     persist();
   };
 
@@ -130,6 +159,7 @@ export const usePrefsStore = defineStore("prefs", () => {
     loaded,
     init,
     toggleTheme,
+    setTheme,
     setLocale,
     persist,
   };

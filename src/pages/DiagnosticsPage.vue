@@ -52,27 +52,19 @@ const readVin = async (): Promise<void> => {
   <div class="mx-auto flex max-w-2xl flex-col gap-5">
     <div class="glass-card flex flex-col gap-4 p-5">
       <div class="flex flex-wrap gap-2">
-        <button
-          class="rounded-lg bg-sky-500/90 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
-          :disabled="busy || !store.connected"
-          @click="readDtc"
-        >
+        <button class="btn-primary btn-md" :disabled="busy || !store.connected" @click="readDtc">
           {{ t("diagnostics.readDtc") }}
         </button>
         <!-- 清除故障码按钮默认隐藏，需在设置中开启（实验性功能） -->
         <button
           v-if="prefs.showClearDtc"
-          class="border-border text-red-300/90 hover:bg-red-400/10 rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
+          class="btn-ghost btn-md !text-[var(--color-danger)] hover:!bg-[var(--color-danger-solid)]/12"
           :disabled="busy || !store.connected"
           @click="clearDtc"
         >
           {{ t("diagnostics.clearDtc") }}
         </button>
-        <button
-          class="border-border text-secondary hover:bg-[var(--color-hover)] rounded-lg border px-4 py-2 text-sm disabled:opacity-50"
-          :disabled="busy || !store.connected"
-          @click="readVin"
-        >
+        <button class="btn-ghost btn-md" :disabled="busy || !store.connected" @click="readVin">
           {{ t("diagnostics.readVin") }}
         </button>
       </div>
@@ -86,7 +78,7 @@ const readVin = async (): Promise<void> => {
           <span
             v-for="code in dtcList"
             :key="code"
-            class="rounded-md bg-red-400/10 px-2.5 py-1 font-mono text-sm text-red-300"
+            class="rounded-md bg-[var(--color-danger-soft)] px-2.5 py-1 font-mono text-sm text-[var(--color-danger-text)]"
           >
             {{ code }}
           </span>

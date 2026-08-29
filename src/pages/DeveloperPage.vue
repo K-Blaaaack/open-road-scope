@@ -60,10 +60,7 @@ const openDevTools = (): void => {
     <section class="glass-card flex flex-col gap-2 p-5">
       <div class="text-primary font-medium">{{ t("developer.openDevtools") }}</div>
       <div class="text-secondary text-sm">{{ t("developer.devtoolsHint") }}</div>
-      <button
-        class="mt-2 flex w-fit items-center gap-2 rounded-lg bg-sky-500/90 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-500"
-        @click="openDevTools"
-      >
+      <button class="btn-primary btn-md mt-2 w-fit" @click="openDevTools">
         <span class="i-lucide-bug h-4 w-4" />
         {{ t("developer.openDevtools") }}
       </button>
@@ -75,21 +72,11 @@ const openDevTools = (): void => {
         <div class="text-primary text-sm">{{ t("developer.showModeSelect") }}</div>
         <div class="text-secondary mt-0.5 text-xs">{{ t("developer.showModeSelectDesc") }}</div>
       </div>
-      <button
-        class="relative h-6 w-11 rounded-full transition-colors"
-        :class="prefs.showModeSelect ? 'bg-sky-500' : 'bg-[var(--color-border)]'"
-        role="switch"
-        :aria-checked="prefs.showModeSelect"
-        @click="
-          prefs.showModeSelect = !prefs.showModeSelect;
-          prefs.persist();
-        "
-      >
-        <span
-          class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
-          :class="prefs.showModeSelect ? 'left-[22px]' : 'left-0.5'"
-        />
-      </button>
+      <ToggleSwitch
+        v-model="prefs.showModeSelect"
+        :label="t('developer.showModeSelect')"
+        @toggle="prefs.persist()"
+      />
     </section>
   </div>
 </template>
