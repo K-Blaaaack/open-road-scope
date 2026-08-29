@@ -1,4 +1,13 @@
 # 更新日志
+## [0.1.10-rc.2](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.9...v0.1.10-rc.2) (2026-08-29)
+
+### 📦 构建
+
+* 修正 Windows 产物命名并区分安装包与便携版 ([d71a12e](https://github.com/K-Blaaaack/open-road-scope/commit/d71a12e6272fbf98749ed0398e271f97edde30ea))
+
+### 🤖 CI
+
+* 重命名产物同步更新自动更新元数据并标记预发布 ([5c00710](https://github.com/K-Blaaaack/open-road-scope/commit/5c00710504b5276b3b7244e812d8e12660e381a5))
 ## [0.1.9](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.8...v0.1.9) (2026-08-29)
 
 ### ✨ 新功能
