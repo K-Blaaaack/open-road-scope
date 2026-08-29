@@ -1,4 +1,9 @@
 # 更新日志
+## [0.1.9](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.8...v0.1.9) (2026-08-29)
+
+### ✨ 新功能
+
+* 统一按钮开关样式并加入主题与侧栏过渡动画 ([b51223f](https://github.com/K-Blaaaack/open-road-scope/commit/b51223f72bc4bb4dbe0720e93489849b61032d48))
 ## [0.1.8](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.7...v0.1.8) (2026-08-28)
 
 ### ✨ 新功能
