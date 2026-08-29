@@ -1,5 +1,5 @@
 # 更新日志
-## [0.1.10-rc.2](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.9...v0.1.10-rc.2) (2026-08-29)
+## [0.1.9-rc.2](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.8...v0.1.9-rc.2) (2026-08-29)
 
 ### 📦 构建
 
