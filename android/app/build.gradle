@@ -3,7 +3,8 @@ apply plugin: 'com.android.application'
 // 版本号与 Web/桌面端保持一致：统一从根目录 package.json 读取
 def pkg = new groovy.json.JsonSlurper().parseText(file('../../package.json').text)
 def appVersion = pkg.version as String
-def versionParts = appVersion.tokenize('.')
+// 预发布版本（如 0.2.0-rc.1）先剥掉 -rc.1 后缀再算 versionCode，否则解析报错
+def versionParts = appVersion.split('-')[0].tokenize('.')
 def appVersionCode = versionParts.size() >= 3
         ? versionParts[0].toInteger() * 10000 + versionParts[1].toInteger() * 100 + versionParts[2].toInteger()
         : 1
