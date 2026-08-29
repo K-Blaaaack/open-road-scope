@@ -68,20 +68,27 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 产物命名统一：OpenRoadScope-<版本>-<平台>-<架构>.<扩展名>
-      # electron-builder 的 arch 输出为 x64，平台为 win/mac，此处统一为 x86_64 与 windows/macos
+      # 平台名已在 electron-builder 配置里写死，这里只统一架构名 x64 -> x86_64。
+      # 重命名后必须同步改写 latest*.yml 里记录的文件名，否则 electron-updater 会 404。
       - name: 统一产物命名
         shell: bash
         run: |
-          for f in dist/*; do
-            base="$(basename "$f")"
-            new="${base/-win-/-windows-}"
-            new="${new/-mac-/-macos-}"
-            new="${new/-darwin-/-macos-}"
-            new="${new/-x64./-x86_64.}"
-            if [ "$new" != "$base" ]; then mv "$f" "dist/$new"; fi
-          done
-          ls -1 dist/
+          python - <<'PY'
+          from pathlib import Path
+
+          def unify(name: str) -> str:
+              return name.replace("-x64.", "-x86_64.").replace("-x64-", "-x86_64-")
+
+          dist = Path("dist")
+          for f in sorted(p for p in dist.iterdir() if p.is_file()):
+              new = unify(f.name)
+              if new != f.name:
+                  f.rename(dist / new)
+          for meta in dist.glob("latest*.yml"):
+              meta.write_text(unify(meta.read_text(encoding="utf-8")), encoding="utf-8")
+          for f in sorted(dist.iterdir()):
+              print(f.name)
+          PY
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
@@ -174,5 +181,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body_path: release_body.md
+          # 预发布标签（如 v0.2.0-rc.1）标记为 prerelease，
+          # 避免 electron-updater 把候选版推给稳定版用户
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             release-assets/*
