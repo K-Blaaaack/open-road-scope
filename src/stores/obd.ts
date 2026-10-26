@@ -4,6 +4,7 @@ import { ref, reactive, computed } from "vue";
 import { usePrefsStore } from "@/stores/prefs";
 import {
   PIDS,
+  clampReadInterval,
   type Command,
   type ObdApi,
   type Pid,
@@ -42,8 +43,14 @@ const startDemoBridge = (handleEvent: (event: RpcEvent) => void): (() => void) =
     params: { state: "connected", mode: "sim", protocol: "DEMO (内置模拟)" },
   });
   let phase = 0;
-  const timer = window.setInterval(() => {
-    phase += 0.015;
+  let timer: number | undefined;
+  let stopped = false;
+  // 每帧重新读取设置里的间隔：改动设置后演示数据流无需重建即可生效
+  const tick = (): void => {
+    if (stopped) return;
+    const interval = clampReadInterval(usePrefsStore().readInterval);
+    // 按 500ms 基准缩放相位，保证不同间隔下波形推进速度一致
+    phase += 0.015 * (interval / 500);
     const pedal = (Math.sin(phase) + 1) / 2;
     handleEvent({
       event: "data",
@@ -69,8 +76,13 @@ const startDemoBridge = (handleEvent: (event: RpcEvent) => void): (() => void) =
         ts: Date.now(),
       },
     });
-  }, 500);
-  return () => window.clearInterval(timer);
+    timer = window.setTimeout(tick, interval);
+  };
+  timer = window.setTimeout(tick, clampReadInterval(usePrefsStore().readInterval));
+  return () => {
+    stopped = true;
+    window.clearTimeout(timer);
+  };
 };
 
 export const useObdStore = defineStore("obd", () => {
@@ -88,6 +100,10 @@ export const useObdStore = defineStore("obd", () => {
   );
   /** 最近一次数据时间戳 */
   const lastTs = ref(0);
+  /** 当前数据流订阅号（sidecar 返回的 subId），重订阅前用于释放旧订阅 */
+  const subId = ref<number | null>(null);
+  /** 订阅世代令牌：并发 subscribe 重叠时只有最新世代能占住 subId，落单订阅自我释放 */
+  let subscribeEpoch = 0;
 
   const connected = computed(() => status.value.state === "connected");
 
@@ -140,6 +156,8 @@ export const useObdStore = defineStore("obd", () => {
     }
     const result = (await window.obd.connect(mode, options)) as { ok: boolean; error?: string };
     if (!result.ok) throw new Error(result.error);
+    // sidecar 进程已重建，旧订阅号失效
+    subId.value = null;
   };
 
   const disconnect = async (): Promise<void> => {
@@ -149,23 +167,50 @@ export const useObdStore = defineStore("obd", () => {
     }
     await window.obd.disconnect();
     status.value = { state: "idle", mode: status.value.mode };
+    subId.value = null;
   };
 
   /**
    * 订阅一组 PID，建立仪表盘数据流
    * @param pids - 需要订阅的 PID 列表
-   * @param interval - 轮询间隔 ms
+   * @param interval - 轮询间隔 ms，缺省取设置中的读取间隔（已夹到合法区间）
    */
-  const subscribe = async (pids: Pid[] = DEFAULT_PIDS, interval = 500): Promise<void> => {
+  const subscribe = async (pids: Pid[] = DEFAULT_PIDS, interval?: number): Promise<void> => {
+    // 单调递增世代令牌：本调用持有 my，任何后续 subscribe 会使 my 过期
+    const my = ++subscribeEpoch;
+    const ms = clampReadInterval(interval ?? usePrefsStore().readInterval);
     if (!window.obd) {
       if (demoAllowed()) return;
       throw new Error("OBD 桥接不可用");
     }
-    const result = (await window.obd.subscribe({ pids, interval })) as {
-      ok: boolean;
-      error?: string;
-    };
+    // 必须在首个 await 之前同步取旧值并清空：两个触发源（保存布局、防抖重订阅）重叠时，
+    // 都会读到同一个旧 subId 各自释放一次；清空后后来者读到 null 不会重复释放，
+    // 世代令牌保证只有最新一次 subscribe 的结果能写入 subId.value
+    const old = subId.value;
+    subId.value = null;
+    if (old !== null && typeof window.obd.unsubscribe === "function") {
+      try {
+        await window.obd.unsubscribe(old);
+      } catch {
+        // 旧订阅可能随 sidecar 重启失效，忽略即可
+      }
+    }
+    // 契约层已声明返回 RpcEnvelope<SubscribeResult>，无需再内联断言
+    const result = await window.obd.subscribe({ pids, interval: ms });
     if (!result.ok) throw new Error(result.error);
+    const newSubId = result.result?.subId ?? null;
+    if (my !== subscribeEpoch) {
+      // 有更新的订阅正在跑，本次是落单订阅：立即自我释放，避免孤儿泄漏
+      if (newSubId !== null && typeof window.obd.unsubscribe === "function") {
+        try {
+          await window.obd.unsubscribe(newSubId);
+        } catch {
+          // 释放失败只能忽略，sidecar 侧由重连流程兜底
+        }
+      }
+      return;
+    }
+    subId.value = newSubId;
   };
 
   /**
@@ -197,6 +242,7 @@ export const useObdStore = defineStore("obd", () => {
     latest,
     history,
     lastTs,
+    subId,
     connected,
     isDemo,
     setup,

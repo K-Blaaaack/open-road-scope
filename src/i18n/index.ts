@@ -56,6 +56,12 @@ export const i18n = createI18n({
         themeDesc: "切换深色与浅色外观",
         dark: "深色",
         light: "浅色",
+        data: "数据读取",
+        dataDesc: "调整传感器数据的读取间隔：间隔越小数据越新，但适配器负载越高",
+        readInterval: "读取间隔",
+        readIntervalHint:
+          "可调范围 {min}–{max} ms，步进 {step} ms。下限受 ELM327 单次往返（约 20–50 ms，多 PID 还需串行排队）限制，再小只会积压请求、数据反而更旧；上限对应慢速 PID（如燃油液位）约 1 s 的刷新周期，再大仪表就失去实时意义。默认 {def} ms。",
+        defaultValue: "默认",
         behavior: "行为选项",
         behaviorDesc: "自定义应用行为",
         showNavLabels: "显示导航文字说明",
@@ -81,7 +87,13 @@ export const i18n = createI18n({
           "「清除故障码」会移除车辆 ECU 中的故障码记录，可能影响后续诊断与年检。该功能尚未经过充分验证，请确认你了解相关风险后再开启。",
         experimentalAccept: "我已了解，开启",
       },
-      common: { day: "日间", night: "夜间", save: "保存", cancel: "取消" },
+      common: {
+        day: "日间",
+        night: "夜间",
+        save: "保存",
+        cancel: "取消",
+        ms: "ms",
+      },
       status: {
         idle: "未连接",
         connecting: "连接中",
@@ -245,6 +257,13 @@ export const i18n = createI18n({
         themeDesc: "Switch between dark and light",
         dark: "Dark",
         light: "Light",
+        data: "Data reading",
+        dataDesc:
+          "Adjust how often sensor data is read: a smaller interval means fresher data but more adapter load",
+        readInterval: "Read interval",
+        readIntervalHint:
+          "Range {min}–{max} ms in {step} ms steps. The lower bound is set by the ELM327 round trip (about 20–50 ms per PID, polled serially) — going lower only queues requests and data gets older; the upper bound matches the about 1 s refresh of slow PIDs (e.g. fuel level). Default {def} ms.",
+        defaultValue: "default",
         behavior: "Behavior",
         behaviorDesc: "Customize app behavior",
         showNavLabels: "Show nav labels",
@@ -270,7 +289,13 @@ export const i18n = createI18n({
           "Clearing DTCs removes fault records from the vehicle ECU, which may affect future diagnostics and inspections. This feature is not fully validated. Please make sure you understand the risks before enabling it.",
         experimentalAccept: "I understand, enable",
       },
-      common: { day: "Day", night: "Night", save: "Save", cancel: "Cancel" },
+      common: {
+        day: "Day",
+        night: "Night",
+        save: "Save",
+        cancel: "Cancel",
+        ms: "ms",
+      },
       status: {
         idle: "Idle",
         connecting: "Connecting",

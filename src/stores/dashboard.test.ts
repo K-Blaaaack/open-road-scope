@@ -2,13 +2,21 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
 import { useDashboardStore } from "./dashboard";
+import { useObdStore } from "./obd";
+import { usePrefsStore } from "./prefs";
 import { DEFAULT_LAYOUT, GRID_COLS, type DashboardCard } from "@shared/dashboard";
+
+// happy-dom 下 localforage 找不到可用存储驱动，统一打桩避免持久化写入抛未处理拒绝
+vi.mock("localforage", () => ({
+  default: { getItem: vi.fn(), setItem: vi.fn() },
+}));
 
 function mockObd(): void {
   (window as unknown as { obd: unknown }).obd = {
     connect: vi.fn().mockResolvedValue({ ok: true }),
     disconnect: vi.fn().mockResolvedValue({ ok: true }),
     subscribe: vi.fn().mockResolvedValue({ ok: true }),
+    unsubscribe: vi.fn().mockResolvedValue({ ok: true }),
     query: vi.fn(),
     status: vi.fn(),
     listPorts: vi.fn(),
@@ -130,5 +138,40 @@ describe("useDashboardStore", () => {
     const store = useDashboardStore();
     const parsed = JSON.parse(store.toJSON()) as { cards: DashboardCard[] };
     expect(parsed.cards.length).toBe(store.cards.length);
+  });
+
+  test("resubscribe 使用设置中的读取间隔", async () => {
+    const obd = useObdStore();
+    obd.status = { state: "connected", mode: "sim" };
+    const prefs = usePrefsStore();
+    prefs.setReadInterval(300);
+    const store = useDashboardStore();
+    await store.save();
+    expect(window.obd.subscribe).toHaveBeenLastCalledWith({
+      pids: store.subscribedPids,
+      interval: 300,
+    });
+  });
+
+  test("读取间隔变更后按新间隔重订阅", async () => {
+    vi.useFakeTimers();
+    const obd = useObdStore();
+    obd.status = { state: "connected", mode: "sim" };
+    const prefs = usePrefsStore();
+    const store = useDashboardStore();
+    await store.init();
+    vi.mocked(window.obd.subscribe).mockClear();
+
+    prefs.setReadInterval(1000);
+    // 防抖已提升到 300ms，需越过该窗口后才会触发重订阅
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(window.obd.subscribe).toHaveBeenCalledWith({
+      pids: store.subscribedPids,
+      interval: 1000,
+    });
+
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 });

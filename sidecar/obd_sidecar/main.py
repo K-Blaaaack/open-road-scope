@@ -16,7 +16,7 @@ import time
 from . import protocol as p
 from .device import Device, DeviceError
 from .ports import list_serial_ports
-from .scheduler import Scheduler
+from .scheduler import DEFAULT_INTERVAL_MS, Scheduler, clamp_interval
 from .sim import SimDevice
 
 logger = logging.getLogger("sidecar.main")
@@ -138,14 +138,22 @@ class SidecarApp:
 
     def _m_subscribe(self, params: dict) -> dict:
         pids = params.get("pids") or []
-        interval = int(params.get("interval", 500))
+        # 与渲染进程设置共用同一套上下限，越界值在这里兜底夹取
+        interval = clamp_interval(params.get("interval", DEFAULT_INTERVAL_MS))
         if not pids:
             raise DeviceError("pids required")
-        index = self._scheduler.subscribe(pids, interval)
-        return {"subId": index, "pids": pids, "interval": interval}
+        sub_id = self._scheduler.subscribe(pids, interval)
+        return {"subId": sub_id, "pids": pids, "interval": interval}
 
     def _m_unsubscribe(self, params: dict) -> dict:
-        self._scheduler.unsubscribe(int(params.get("subId", -1)))
+        # subId 非法（缺失/非数值）统一按未知 id 处理，避免 int() 抛错泄漏内部信息
+        try:
+            sub_id = int(params.get("subId", -1))
+        except (TypeError, ValueError):
+            sub_id = -1
+        if not self._scheduler.unsubscribe(sub_id):
+            # 未知 id：抛错由 _dispatch 转成 ok=false 且 error=unknown subId 的响应
+            raise DeviceError("unknown subId")
         return {"ok": True}
 
     def _m_query(self, params: dict) -> dict:

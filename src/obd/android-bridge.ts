@@ -1,6 +1,15 @@
-import type { Command, ObdApi, Pid, RpcEvent, StatusEventParams } from "@shared/obd";
+import {
+  READ_INTERVAL_DEFAULT,
+  clampReadInterval,
+  type Command,
+  type ObdApi,
+  type Pid,
+  type RpcEvent,
+  type StatusEventParams,
+} from "@shared/obd";
 
 import { Elm327Session, type TransportBridge } from "@/obd/elm327";
+import { usePrefsStore } from "@/stores/prefs";
 
 declare global {
   interface Window {
@@ -14,8 +23,12 @@ declare global {
  * 轮询在主线程分批调度（每次空闲查 1 个 PID），避免同步串口读阻塞界面。
  */
 
-/** sim 模式演示数据刷新间隔 */
-const SIM_INTERVAL_MS = 500;
+/** sim 模式演示数据刷新间隔（跟随设置，缺省用共享默认值） */
+let simIntervalMs: number = READ_INTERVAL_DEFAULT;
+/** 订阅号自增序列：安卓桥只有一路数据流，但仍要返回 subId 以对齐桌面契约 */
+let subSeq = 0;
+/** 当前活动订阅号，用于校验 unsubscribe */
+let activeSubId: number | null = null;
 
 const SIM_VALUES = (phase: number, pedal: number): Partial<Record<Pid, number>> => ({
   SPEED: pedal * 118,
@@ -74,7 +87,7 @@ const createAndroidApi = (native: TransportBridge): ObdApi => {
 
   const clearTimers = (): void => {
     if (pollTimer !== undefined) window.clearTimeout(pollTimer);
-    if (simTimer !== undefined) window.clearInterval(simTimer);
+    if (simTimer !== undefined) window.clearTimeout(simTimer);
     pollTimer = undefined;
     simTimer = undefined;
   };
@@ -89,12 +102,14 @@ const createAndroidApi = (native: TransportBridge): ObdApi => {
   /** 分批轮询：每次空闲查一个 PID，全部完成后发出 data 事件 */
   const startPolling = (pids: Pid[], interval: number): void => {
     stopPolling();
+    // 与设置页共用同一套上下限，越界值在这里兜底夹取
+    const ms = clampReadInterval(interval);
     const tick = (index: number, values: Partial<Record<Pid, number>>): void => {
       if (index >= pids.length) {
         if (Object.keys(values).length > 0) {
           emit({ event: "data", params: { values, ts: Date.now() } });
         }
-        pollTimer = window.setTimeout(() => tick(0, {}), interval);
+        pollTimer = window.setTimeout(() => tick(0, {}), ms);
         return;
       }
       const pid = pids[index];
@@ -116,7 +131,7 @@ const createAndroidApi = (native: TransportBridge): ObdApi => {
     tick(0, {});
   };
 
-  /** sim 模式演示数据流 */
+  /** sim 模式演示数据流：每帧重读间隔并重排定时器，改设置后无需重启 */
   const startSim = (): void => {
     clearTimers();
     emit({
@@ -124,16 +139,22 @@ const createAndroidApi = (native: TransportBridge): ObdApi => {
       params: { state: "connected", mode: "sim", protocol: "DEMO (内置模拟)" },
     });
     let phase = 0;
-    simTimer = window.setInterval(() => {
-      phase += 0.015;
+    const tick = (): void => {
+      const interval = clampReadInterval(simIntervalMs);
+      // 按 500ms 基准缩放相位，保证不同间隔下波形推进速度一致
+      phase += 0.015 * (interval / 500);
       const pedal = (Math.sin(phase) + 1) / 2;
       emit({ event: "data", params: { values: SIM_VALUES(phase, pedal), ts: Date.now() } });
-    }, SIM_INTERVAL_MS);
+      simTimer = window.setTimeout(tick, interval);
+    };
+    simTimer = window.setTimeout(tick, clampReadInterval(simIntervalMs));
   };
 
   return {
     connect: async (mode, options) => {
       if (mode === "sim") {
+        // 进入模拟模式时按设置里的读取间隔起播
+        simIntervalMs = clampReadInterval(usePrefsStore().readInterval);
         startSim();
         return { ok: true };
       }
@@ -192,12 +213,22 @@ const createAndroidApi = (native: TransportBridge): ObdApi => {
     },
 
     subscribe: async (params) => {
-      if (!session) return { ok: false, error: "未连接" };
-      startPolling(params.pids, params.interval);
-      return { ok: true };
+      const interval = clampReadInterval(params.interval);
+      const subId = ++subSeq;
+      activeSubId = subId;
+      if (!session) {
+        // sim 模式没有串口会话：按请求间隔驱动演示数据流（已起播则只改间隔）
+        simIntervalMs = interval;
+        if (simTimer === undefined) startSim();
+        return { ok: true, result: { subId, pids: params.pids, interval } };
+      }
+      startPolling(params.pids, interval);
+      return { ok: true, result: { subId, pids: params.pids, interval } };
     },
 
-    unsubscribe: async () => {
+    unsubscribe: async (subId: number) => {
+      if (subId !== activeSubId) return { ok: false, error: "unknown subId" };
+      activeSubId = null;
       stopPolling();
       return { ok: true };
     },

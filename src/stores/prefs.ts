@@ -3,6 +3,7 @@ import { ref } from "vue";
 import localforage from "localforage";
 
 import { i18n } from "@/i18n";
+import { READ_INTERVAL_DEFAULT, clampReadInterval } from "@shared/obd";
 
 export type Theme = "dark" | "light";
 export type Locale = "zh-CN" | "en-US";
@@ -19,6 +20,8 @@ interface PrefsSnapshot {
   showNavLabels?: boolean;
   /** 是否跳过首次引导（勾选「不再显示」并确认后为 true） */
   skipOnboarding?: boolean;
+  /** 数据读取间隔（ms），旧数据可能缺失或越界，恢复时统一夹取 */
+  readInterval?: number;
 }
 
 const applyTheme = (theme: Theme): void => {
@@ -74,6 +77,8 @@ export const usePrefsStore = defineStore("prefs", () => {
   const showNavLabels = ref(true);
   /** 首次使用引导是否已完成 */
   const skipOnboarding = ref(false);
+  /** 数据读取间隔（ms），限制在 READ_INTERVAL_MIN~READ_INTERVAL_MAX */
+  const readInterval = ref<number>(READ_INTERVAL_DEFAULT);
   /** 界面热重载：崩溃自动恢复与 F5/Ctrl+R 快捷键 */
   const loaded = ref(false);
 
@@ -90,6 +95,11 @@ export const usePrefsStore = defineStore("prefs", () => {
         showModeSelect.value = saved.showModeSelect ?? true;
         showNavLabels.value = saved.showNavLabels ?? true;
         skipOnboarding.value = saved.skipOnboarding ?? false;
+        readInterval.value = clampReadInterval(saved.readInterval ?? READ_INTERVAL_DEFAULT);
+        // 夹取结果与存储值不同（旧数据越界或缺失）时回写一次，避免越界值长期留存
+        if (readInterval.value !== saved.readInterval) {
+          persist();
+        }
       }
     } catch {
       // 存储不可用时回退默认值
@@ -115,6 +125,7 @@ export const usePrefsStore = defineStore("prefs", () => {
         showModeSelect: showModeSelect.value,
         showNavLabels: showNavLabels.value,
         skipOnboarding: skipOnboarding.value,
+        readInterval: readInterval.value,
       });
     }, 250);
   };
@@ -147,6 +158,17 @@ export const usePrefsStore = defineStore("prefs", () => {
     persist();
   };
 
+  /**
+   * 设置数据读取间隔：自动夹到合法区间并对齐步进
+   * @param ms - 目标间隔（ms）
+   */
+  const setReadInterval = (ms: number): void => {
+    const next = clampReadInterval(ms);
+    if (readInterval.value === next) return;
+    readInterval.value = next;
+    persist();
+  };
+
   return {
     theme,
     locale,
@@ -156,11 +178,13 @@ export const usePrefsStore = defineStore("prefs", () => {
     showModeSelect,
     showNavLabels,
     skipOnboarding,
+    readInterval,
     loaded,
     init,
     toggleTheme,
     setTheme,
     setLocale,
+    setReadInterval,
     persist,
   };
 });

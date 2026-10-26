@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import localforage from "localforage";
 
 import {
@@ -12,6 +12,7 @@ import {
   type Pid,
 } from "@shared/dashboard";
 import { useObdStore } from "./obd";
+import { usePrefsStore } from "./prefs";
 
 const STORAGE_KEY = "open-road-scope:dashboard-layout";
 
@@ -51,6 +52,8 @@ const clampGrid = (v: number, lo: number, hi: number): number =>
 
 /** 仪表盘布局与编辑状态 */
 export const useDashboardStore = defineStore("dashboard", () => {
+  /** 读取间隔等界面偏好 */
+  const prefs = usePrefsStore();
   const cards = ref<DashboardCard[]>([]);
   const editing = ref(false);
   const sidebarOpen = ref(false);
@@ -94,17 +97,41 @@ export const useDashboardStore = defineStore("dashboard", () => {
     }, 250);
   };
 
-  /** 按当前卡片 PID 集合重订阅数据流 */
+  /** 按当前卡片 PID 集合与设置中的读取间隔重订阅数据流 */
   const resubscribe = async (): Promise<void> => {
     const obd = useObdStore();
     if (subscribedPids.value.length > 0 && obd.status.state !== "idle") {
       try {
-        await obd.subscribe(subscribedPids.value, 500);
+        await obd.subscribe(subscribedPids.value, prefs.readInterval);
       } catch {
         // 连接尚未就绪时忽略，连接后由连接流程重新订阅
       }
     }
   };
+
+  // 连接状态跃迁到 connected 时补订阅：connect() 的 IPC 早于 status 事件返回，
+  // 且 sidecar 崩溃重启后不会自动重发订阅，统一由这里兜底（epoch 令牌保证不重复泄漏）
+  watch(
+    () => useObdStore().status.state,
+    (state) => {
+      if (state === "connected" && subscribedPids.value.length > 0) {
+        void resubscribe();
+      }
+    }
+  );
+
+  // 设置里调整读取间隔后重订阅，无需重连即可生效；拖拽停顿后再重订阅，与 obd store 的 epoch 令牌共同防泄漏
+  let resubTimer: ReturnType<typeof setTimeout> | null = null;
+  watch(
+    () => prefs.readInterval,
+    () => {
+      if (resubTimer) clearTimeout(resubTimer);
+      resubTimer = setTimeout(() => {
+        resubTimer = null;
+        void resubscribe();
+      }, 300);
+    }
+  );
 
   const enterEdit = (): void => {
     // 用 JSON 快照避免响应式代理无法深拷贝
@@ -228,6 +255,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     loaded,
     subscribedPids,
     init,
+    resubscribe,
     enterEdit,
     cancelEdit,
     save,

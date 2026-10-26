@@ -3,12 +3,14 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useObdStore } from "@/stores/obd";
+import { useDashboardStore } from "@/stores/dashboard";
 import { usePrefsStore } from "@/stores/prefs";
 import type { ListPortsResult, SerialPortInfo } from "@shared/obd";
 
 const { t } = useI18n();
 const store = useObdStore();
 const prefs = usePrefsStore();
+const dashboard = useDashboardStore();
 
 /** 是否有原生桥接（Electron preload）；无桥接的 WebView/浏览器无法使用串口/蓝牙/网络 */
 const hasBridge = computed(() => Boolean(window.obd));
@@ -96,7 +98,12 @@ const connect = async (): Promise<void> => {
           }
         : { fault: fault.value };
     await store.connect(mode.value, options);
-    await store.subscribe();
+    // 连接成功后按仪表盘当前卡片 PID 重订阅；仪表盘尚未初始化时回退默认订阅
+    if (dashboard.subscribedPids.length > 0) {
+      await dashboard.resubscribe();
+    } else {
+      await store.subscribe();
+    }
   } catch (err) {
     console.error(err);
   } finally {

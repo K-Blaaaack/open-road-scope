@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
 import { useObdStore, HISTORY_SECONDS } from "./obd";
+import { usePrefsStore } from "./prefs";
+import { READ_INTERVAL_MIN } from "@shared/obd";
 
 const listeners: ((event: { event: string; params: unknown }) => void)[] = [];
 
@@ -10,6 +12,7 @@ function mockObd(): void {
     connect: vi.fn().mockResolvedValue({ ok: true }),
     disconnect: vi.fn().mockResolvedValue({ ok: true }),
     subscribe: vi.fn().mockResolvedValue({ ok: true }),
+    unsubscribe: vi.fn().mockResolvedValue({ ok: true }),
     query: vi.fn().mockResolvedValue({ ok: true, result: { result: [] } }),
     status: vi.fn(),
     listPorts: vi.fn(),
@@ -83,6 +86,58 @@ describe("useObdStore", () => {
       error: "boom",
     });
     await expect(store.connect("sim")).rejects.toThrow("boom");
+  });
+
+  test("subscribe 缺省使用设置中的读取间隔并夹取越界值", async () => {
+    const prefs = usePrefsStore();
+    prefs.readInterval = 500;
+    const store = useObdStore();
+
+    await store.subscribe(["RPM"]);
+    expect(window.obd.subscribe).toHaveBeenLastCalledWith({ pids: ["RPM"], interval: 500 });
+
+    await store.subscribe(["RPM"], 10);
+    expect(window.obd.subscribe).toHaveBeenLastCalledWith({
+      pids: ["RPM"],
+      interval: READ_INTERVAL_MIN,
+    });
+  });
+
+  test("重订阅前释放旧订阅，避免 sidecar 重复轮询", async () => {
+    (window.obd.subscribe as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      result: { subId: 3 },
+    });
+    const store = useObdStore();
+    await store.subscribe(["RPM"]);
+    expect(store.subId).toBe(3);
+
+    await store.subscribe(["RPM", "SPEED"]);
+    expect(window.obd.unsubscribe).toHaveBeenCalledWith(3);
+  });
+
+  test("并发两次 subscribe 只保留一个订阅，落单订阅被 unsubscribe", async () => {
+    // subscribe 返回递增 subId，且可 await 延迟：模拟两次订阅重叠的竞态
+    let nextSubId = 1;
+    (window.obd.subscribe as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+      const subId = nextSubId++;
+      await new Promise((r) => setTimeout(r, 10));
+      return { ok: true, result: { subId } };
+    });
+    const store = useObdStore();
+
+    // 两次订阅并发触发（模拟 dashboard.save() 与防抖 watcher 重叠）
+    const first = store.subscribe(["RPM"]);
+    const second = store.subscribe(["SPEED"]);
+    await Promise.all([first, second]);
+
+    // 只有后完成者（世代最新）占住 subId，落单的那个必须被释放
+    expect(store.subId).toBe(2);
+    const calls = (window.obd.unsubscribe as ReturnType<typeof vi.fn>).mock.calls.map(
+      (c) => c[0] as number
+    );
+    expect(calls).toContain(1);
+    expect(calls.filter((v) => v === 2).length).toBe(0);
   });
 
   test("query 解包结果", async () => {

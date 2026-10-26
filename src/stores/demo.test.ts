@@ -39,7 +39,7 @@ describe("演示桥接受开发者模式控制", () => {
     store.setup();
     expect(store.isDemo).toBe(true);
     expect(store.status.state).toBe("connected");
-    await wait(1200); // 等待演示数据帧（500ms 间隔）
+    await wait(1200); // 等待演示数据帧（默认读取间隔 200ms）
     expect(store.lastTs).toBeGreaterThan(0);
     expect(store.latest.SPEED).toBeDefined();
   });

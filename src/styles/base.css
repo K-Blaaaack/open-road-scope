@@ -65,7 +65,9 @@
   --color-warning-solid: #d97706;
   --color-warning-hover: #b45309;
   --color-accent-soft: rgba(2, 132, 199, 0.1);
-  --color-focus-ring: rgba(2, 132, 199, 0.55);
+  /* 亮色主题改用实色：rgba(2,132,199,0.55) 在浅底上合成后焦点环对比度仅 2.10:1，
+     实色 #0284c7 约为 4.1:1，全站按钮/开关焦点环随之达标 */
+  --color-focus-ring: #0284c7;
   --color-switch-off: rgba(15, 23, 42, 0.2);
   --color-danger: #dc2626;
   --color-warning: #b45309;
@@ -254,5 +256,69 @@ body {
   .nav-label-enter-active,
   .nav-label-leave-active {
     transition: none !important;
+  }
+}
+
+/* 数值滑块（设置页读取间隔等）：input 本体承担触摸命中区（28px ≥ 24px）且背景透明，
+   视觉轨道由伪元素绘制，保证安卓竖屏等触摸场景的可用命中面积 */
+.range-input {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 28px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+/* 视觉轨道：4px 高，随主题色变化 */
+.range-input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-btn-active);
+}
+
+.range-input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-btn-active);
+}
+
+/* 滑块手柄 20px，相对 4px 轨道垂直居中（Webkit 需手动补偿） */
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-bg-elevated);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: background-color 160ms ease;
+}
+
+.range-input::-webkit-slider-thumb:hover {
+  background: var(--color-primary-hover);
+}
+
+.range-input::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-bg-elevated);
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+}
+
+/* 键盘焦点：直接给 input 本体画焦点环，粗细与偏移与按钮/开关一致 */
+.range-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+/* 高对比/强制色彩模式兜底：使用系统 Highlight 色，避免透明焦点环被吞掉 */
+@media (forced-colors: active) {
+  .range-input:focus-visible {
+    outline: 2px solid Highlight;
   }
 }

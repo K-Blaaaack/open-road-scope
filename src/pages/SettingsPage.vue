@@ -1,13 +1,44 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { usePrefsStore, type Locale } from "@/stores/prefs";
+import {
+  READ_INTERVAL_DEFAULT,
+  READ_INTERVAL_MAX,
+  READ_INTERVAL_MIN,
+  READ_INTERVAL_PRESETS,
+  READ_INTERVAL_STEP,
+} from "@shared/obd";
 
 const { t } = useI18n();
 const prefs = usePrefsStore();
 
 const selectLocale = (l: Locale): void => prefs.setLocale(l);
+
+/** 滑块本地草稿：拖动只更新它，松手才提交，避免拖动过程频繁落盘 */
+const intervalDraft = ref<number>(prefs.readInterval);
+
+/** 外部（store 夹取、恢复）改变间隔时同步草稿，防止回显不同步 */
+watch(
+  () => prefs.readInterval,
+  (value: number) => {
+    intervalDraft.value = value;
+  }
+);
+
+/**
+ * 滑块拖动中：仅更新本地草稿
+ * @param event - range 输入事件
+ */
+const onIntervalInput = (event: Event): void => {
+  intervalDraft.value = Number((event.target as HTMLInputElement).value);
+};
+
+/** 滑块松手（或键盘提交）：草稿交由 store 夹取并对齐步进 */
+const onIntervalChange = (): void => {
+  prefs.setReadInterval(intervalDraft.value);
+};
 
 /** 是否展示实验性功能开启确认弹窗 */
 const confirmingExperimental = ref(false);
@@ -126,6 +157,82 @@ const disableDevMode = (): void => {
           <span class="i-lucide-sun h-4 w-4" />
           {{ t("settings.light") }}
         </button>
+      </div>
+    </section>
+
+    <section class="glass-card flex flex-col gap-4 p-5" aria-labelledby="settings-data-title">
+      <div>
+        <!-- h2 供 section 的可访问名称引用 -->
+        <h2 id="settings-data-title" class="text-primary font-medium text-base">
+          {{ t("settings.data") }}
+        </h2>
+        <div class="text-secondary mt-0.5 text-sm">{{ t("settings.dataDesc") }}</div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-baseline justify-between gap-4">
+          <label for="read-interval" class="text-primary text-sm">
+            {{ t("settings.readInterval") }}
+          </label>
+          <span class="font-mono text-sm text-[var(--color-accent-text)]">
+            {{ intervalDraft }} {{ t("common.ms") }}
+          </span>
+        </div>
+        <input
+          id="read-interval"
+          class="range-input w-full"
+          type="range"
+          :min="READ_INTERVAL_MIN"
+          :max="READ_INTERVAL_MAX"
+          :step="READ_INTERVAL_STEP"
+          :value="intervalDraft"
+          :aria-valuetext="intervalDraft + ' ' + t('common.ms')"
+          aria-describedby="read-interval-hint"
+          @input="onIntervalInput"
+          @change="onIntervalChange"
+        />
+        <div class="text-secondary flex justify-between font-mono text-xs">
+          <span>{{ READ_INTERVAL_MIN }} {{ t("common.ms") }}</span>
+          <span>{{ READ_INTERVAL_MAX }} {{ t("common.ms") }}</span>
+        </div>
+      </div>
+
+      <!-- 竖屏 360px 下 4 按钮必然换行，改 2 列网格，sm 起恢复 4 列 -->
+      <div
+        role="group"
+        :aria-label="t('settings.readInterval')"
+        class="grid grid-cols-2 gap-2 sm:grid-cols-4"
+      >
+        <button
+          v-for="preset in READ_INTERVAL_PRESETS"
+          :key="preset"
+          type="button"
+          class="btn-ghost btn-sm w-full"
+          :class="prefs.readInterval === preset ? 'btn-selected' : ''"
+          :aria-pressed="prefs.readInterval === preset"
+          @click="prefs.setReadInterval(preset)"
+        >
+          <span
+            v-if="prefs.readInterval === preset"
+            class="i-lucide-check h-3.5 w-3.5"
+            aria-hidden="true"
+          />
+          {{ preset }} {{ t("common.ms") }}
+          <span v-if="preset === READ_INTERVAL_DEFAULT" class="opacity-80">
+            ({{ t("settings.defaultValue") }})
+          </span>
+        </button>
+      </div>
+
+      <div id="read-interval-hint" class="text-secondary text-xs leading-relaxed">
+        {{
+          t("settings.readIntervalHint", {
+            min: READ_INTERVAL_MIN,
+            max: READ_INTERVAL_MAX,
+            step: READ_INTERVAL_STEP,
+            def: READ_INTERVAL_DEFAULT,
+          })
+        }}
       </div>
     </section>
 

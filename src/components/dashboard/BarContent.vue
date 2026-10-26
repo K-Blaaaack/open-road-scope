@@ -19,7 +19,7 @@ let rafId = 0;
 
 /** 显示的时间窗口（毫秒） */
 const WINDOW_MS = 30000;
-/** 柱数（约每 500ms 一根） */
+/** 柱数（30s 窗口均分，每根约 500ms，与读取间隔无关） */
 const BARS = 60;
 
 const meta = computed(() => PID_META[props.pid]);

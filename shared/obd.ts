@@ -77,12 +77,80 @@ export type RpcRequest = z.infer<typeof rpcRequestSchema>;
 export type RpcResponse = z.infer<typeof rpcResponseSchema>;
 export type RpcEvent = z.infer<typeof rpcEventSchema>;
 
+/* ---------- 数据读取间隔 ---------- */
+
+/**
+ * 读取间隔的合法下限（ms）。ELM327 单条 PID 请求在 38400~500000 波特率下
+ * 往返约 20~50ms，多个 PID 还需串行排队；间隔再小只会让请求队列积压，
+ * 拿到的反而是更旧的数据，因此按适配器吞吐能力取 100ms 为下限。
+ */
+export const READ_INTERVAL_MIN = 100;
+/**
+ * 读取间隔的合法上限（ms）。慢速 PID（燃油液位等）自身刷新周期约 1s，
+ * 间隔超过 2s 后仪表已失去实时意义，故以 2000ms 封顶。
+ */
+export const READ_INTERVAL_MAX = 2000;
+/** 默认读取间隔（ms）：兼顾实时性与适配器吞吐 */
+export const READ_INTERVAL_DEFAULT = 200;
+/** 读取间隔调节步进（ms） */
+export const READ_INTERVAL_STEP = 50;
+/** 设置页档位（ms）：下限、默认、500、1000，与滑块同一套网格 */
+export const READ_INTERVAL_PRESETS = [READ_INTERVAL_MIN, READ_INTERVAL_DEFAULT, 500, 1000] as const;
+
+/**
+ * 规整读取间隔：非数值回退默认值，其余取整、对齐步进并夹到合法区间
+ * @param value - 用户输入、存储值或外部传入的间隔
+ * @returns 落在 [READ_INTERVAL_MIN, READ_INTERVAL_MAX] 内的整数 ms
+ */
+export const clampReadInterval = (value: unknown): number => {
+  // 只接受数值与非空数字字符串：null/""/空白串/布尔/对象一律按非法输入回退默认值
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim() !== ""
+        ? Number(value)
+        : Number.NaN;
+  if (!Number.isFinite(n)) return READ_INTERVAL_DEFAULT;
+  // 步进必须以 READ_INTERVAL_MIN 为锚点：<input type="range"> 的合法值是 min + k*step，
+  // 若按 0 为锚点对齐，回写 el.value 时会把滑块拽到相邻格
+  const stepped =
+    Math.round((n - READ_INTERVAL_MIN) / READ_INTERVAL_STEP) * READ_INTERVAL_STEP +
+    READ_INTERVAL_MIN;
+  return Math.min(READ_INTERVAL_MAX, Math.max(READ_INTERVAL_MIN, stepped));
+};
+
 /* ---------- 具体方法参数/结果 ---------- */
 
+/**
+ * 订阅参数。注意越界策略是有意的纵深防御：
+ * IPC 边界（本 schema）对越界值 fail fast，让渲染层 bug 立刻暴露；
+ * sidecar 侧 clamp_interval 只做防御性兜底（防止绕过渲染层的客户端）。
+ */
 export const subscribeParamsSchema = z.object({
   pids: z.array(z.enum(PIDS)).min(1),
-  interval: z.number().int().min(50).max(10000).default(500),
+  interval: z
+    .number()
+    .int()
+    .min(READ_INTERVAL_MIN)
+    .max(READ_INTERVAL_MAX)
+    .default(READ_INTERVAL_DEFAULT),
 });
+
+/** 订阅结果：sidecar / 安卓桥统一返回 subId，渲染层据此释放旧订阅 */
+export const subscribeResultSchema = z.object({
+  subId: z.number().int().nonnegative(),
+  pids: z.array(z.enum(PIDS)),
+  interval: z.number().int(),
+});
+
+export type SubscribeResult = z.infer<typeof subscribeResultSchema>;
+
+/** IPC / 桥接调用的统一信封：主进程与安卓桥都返回 { ok, error?, result? } */
+export interface RpcEnvelope<T = unknown> {
+  ok: boolean;
+  error?: string;
+  result?: T;
+}
 
 export const queryParamsSchema = z.object({
   cmd: z.enum(COMMANDS),
@@ -132,7 +200,7 @@ export interface UpdateEventParams {
 export interface ObdApi {
   connect(mode: "sim" | "real", options?: { port?: string; fault?: boolean }): Promise<unknown>;
   disconnect(): Promise<unknown>;
-  subscribe(params: { pids: Pid[]; interval: number }): Promise<unknown>;
+  subscribe(params: { pids: Pid[]; interval: number }): Promise<RpcEnvelope<SubscribeResult>>;
   unsubscribe(subId: number): Promise<unknown>;
   query(cmd: Command): Promise<unknown>;
   status(): Promise<unknown>;
