@@ -1,4 +1,24 @@
 # 更新日志
+## [0.2.0-rc.1](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.9...v0.2.0-rc.1) (2026-10-31)
+
+### ✨ 新功能
+
+* 全量重写为 Material Design 3 界面 ([8a206a8](https://github.com/K-Blaaaack/open-road-scope/commit/8a206a868e0f2056d15370664387e6e6ed0199fc))
+* 设置页支持调节数据读取间隔 ([ae225c0](https://github.com/K-Blaaaack/open-road-scope/commit/ae225c0632cfbfbff70141a5f0349e00d7f8a871))
+
+### 📦 构建
+
+* 修正 Windows 产物命名并区分安装包与便携版 ([d71a12e](https://github.com/K-Blaaaack/open-road-scope/commit/d71a12e6272fbf98749ed0398e271f97edde30ea))
+
+### 🤖 CI
+
+* 重命名产物同步更新自动更新元数据并标记预发布 ([5c00710](https://github.com/K-Blaaaack/open-road-scope/commit/5c00710504b5276b3b7244e812d8e12660e381a5))
+
+### 🧹 杂项
+
+* **release:** 0.1.10-rc.2 ([5489228](https://github.com/K-Blaaaack/open-road-scope/commit/548922834fde664959a3021abc075144971e96e6))
+* **release:** 0.1.9-rc.2 ([a246b93](https://github.com/K-Blaaaack/open-road-scope/commit/a246b93751bc09154877817a7b6b63641f4fd413))
+* **release:** 0.1.9-rc.3 ([4eb29d8](https://github.com/K-Blaaaack/open-road-scope/commit/4eb29d883f6f80f1b17145b167181df2b2b53416))
 ## [0.1.9-rc.3](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.9...v0.1.9-rc.3) (2026-10-26)
 
 ### ✨ 新功能
