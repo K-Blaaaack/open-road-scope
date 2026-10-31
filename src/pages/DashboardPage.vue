@@ -38,6 +38,9 @@ const { show } = useSnackbar();
 /** 拖拽中的落点幽灵框（网格坐标，松手即清） */
 const ghost = ref<{ x: number; y: number; w: number; h: number } | null>(null);
 
+/** 贴边卡片向内缩进的像素数，需与 DashboardCard 内的同名常量保持一致 */
+const EDGE_INSET = 8;
+
 const containerRef = ref<HTMLDivElement>();
 const containerWidth = ref(0);
 const containerHeight = ref(0);
@@ -78,7 +81,9 @@ const totalRows = computed(() => {
 const rowHeight = computed(() => {
   if (prefs.fitViewport) {
     const avail = containerHeight.value - 8;
-    return Math.max(52, avail / totalRows.value);
+    // 下限取 64：三行高的卡片在编辑态要容纳 37px 工具栏 + 标题 + 图表，
+    // 行高再低图表就只剩一条 30px 的缝，等于不可读。宁可让页面滚动。
+    return Math.max(64, avail / totalRows.value);
   }
   return GRID_ROW_HEIGHT;
 });
@@ -152,14 +157,20 @@ const onTypeChange = (value: string | number): void => {
   if (value === "line" || value === "bar" || value === "value") addType.value = value;
 };
 
-/** 幽灵框的像素样式：网格坐标换算成画布内的绝对位置 */
+/**
+ * 幽灵框的像素样式：网格坐标换算成画布内的绝对位置。
+ * 贴边卡片会向内缩 8px（给删除按钮让位），幽灵框必须同步内缩，
+ * 否则预览框比实际落定的卡片宽出 8px，松手瞬间会看到卡片"缩一下"。
+ */
 const ghostStyle = computed(() => {
   const g = ghost.value;
   if (!g) return null;
+  const insetLeft = g.x === 0 ? EDGE_INSET : 0;
+  const insetRight = g.x + g.w === GRID_COLS ? EDGE_INSET : 0;
   return {
-    left: `${(g.x / GRID_COLS) * 100}%`,
+    left: `calc(${(g.x / GRID_COLS) * 100}% + ${insetLeft}px)`,
     top: `${g.y * rowHeight.value}px`,
-    width: `${(g.w / GRID_COLS) * 100}%`,
+    width: `calc(${(g.w / GRID_COLS) * 100}% - ${insetLeft + insetRight}px)`,
     height: `${g.h * rowHeight.value}px`,
   };
 });

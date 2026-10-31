@@ -517,7 +517,10 @@ button.dash-slot__remove {
   /* 局部压低分段按钮高度，让工具栏在 96px 行高的卡片里不至于喧宾夺主 */
   --md-comp-button-height: 28px;
   display: flex;
-  flex-wrap: wrap;
+  /* 绝不换行：一旦允许换行，工具栏会多吃 36px 把图表区压扁，
+     同排卡片高度一致、内容区却一高一矮，看起来就像卡片尺寸错乱。
+     宽度不够时收缩量程输入框，而不是整体折行。 */
+  flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
@@ -532,7 +535,10 @@ button.dash-slot__remove {
   padding: 0 8px;
 }
 
-@container (max-width: 260px) {
+/* 卡片宽度紧张时只留图标，避免分段按钮溢出被裁。
+   阈值取 330：带文字的完整工具栏约需 384px，留出余量让中等宽度的卡片
+   也提前切到图标态，而不是贴着换行临界点晃。 */
+@container (max-width: 330px) {
   .dash-card__toolbar :deep(.md-segmented__label) {
     display: none;
   }
@@ -548,10 +554,20 @@ button.dash-slot__remove {
   align-items: center;
   gap: 4px;
   margin-left: auto;
+  /* 允许收缩，把挤压让给输入框，保证工具栏永远单行 */
+  min-width: 0;
+}
+
+/* 类型切换是主操作，宽度优先给它，不被量程挤扁 */
+.dash-card__toolbar :deep(.md-segmented) {
+  flex: 0 0 auto;
 }
 
 .dash-card__range-input {
+  /* 可收缩：56px 是舒适宽度，卡片变窄时先压这里，最小留到能显示 4 位数字 */
+  flex: 0 1 56px;
   width: 56px;
+  min-width: 34px;
   height: 28px;
   padding: 0 6px;
   border: 1px solid var(--md-sys-color-outline-variant);
