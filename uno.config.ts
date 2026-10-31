@@ -1,5 +1,13 @@
 import { defineConfig, presetUno, presetIcons, transformerDirectives } from "unocss";
 
+/**
+ * UnoCSS 配置（MD3 版）
+ *
+ * 只保留「布局原子」与「语义色别名」两类快捷类：
+ * - 布局原子：flex/grid 的常用组合，省去长串 class；
+ * - 语义色别名：把 --md-sys-color-* 映射成短类名，组件里读起来接近 MD3 角色名。
+ * 组件视觉细节（状态层、形状、层级、动效）一律走 tokens.css 的变量，不在这里堆砌。
+ */
 export default defineConfig({
   presets: [
     presetUno(),
@@ -8,56 +16,34 @@ export default defineConfig({
       warn: true,
     }),
   ],
+  // 变体分隔符只保留冒号：默认的 "-" 会把 md-page / md-stack / md-surface 这类
+  // 以断点名开头的快捷类误判成「md: 变体 + 剩余部分」，导致整批 md-* 快捷类静默失效。
+  separators: [":"],
   transformers: [transformerDirectives()],
   shortcuts: {
+    /* ---------- 布局原子 ---------- */
     "flex-center": "flex items-center justify-center",
-    "glass-card":
-      "bg-[var(--color-card)]/80 backdrop-blur-md border border-[var(--color-border)] rounded-xl",
-    "text-primary": "text-[var(--color-text-primary)]",
-    "text-secondary": "text-[var(--color-text-secondary)]",
+    "flex-between": "flex items-center justify-between",
+    "flex-start": "flex items-center",
+    "md-page": "mx-auto flex w-full max-w-3xl flex-col gap-4",
+    "md-page-wide": "mx-auto flex w-full max-w-5xl flex-col gap-4",
+    "md-stack": "flex flex-col gap-3",
+    "md-stack-lg": "flex flex-col gap-5",
+    "md-row": "flex flex-wrap items-center gap-2",
+    "md-row-lg": "flex flex-wrap items-center gap-3",
+    "md-fill": "min-h-0 min-w-0 flex-1",
 
-    /* ---------- 按钮 ---------- */
-    // 基座：统一圆角/字重/过渡/禁用与键盘焦点表现（配色由具体变体给出）
-    btn: "inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-colors duration-200 outline-none select-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50",
-    // 尺寸（含边框，保证有边框与无边框变体等高）
-    "btn-xs": "px-2 py-1 text-xs",
-    "btn-sm": "px-3 py-1.5",
-    "btn-md": "px-4 py-2",
-    "btn-lg": "px-4 py-2.5",
-    "btn-icon": "h-8 w-8 shrink-0 p-0",
-    "btn-icon-sm": "h-7 w-7 shrink-0 p-0",
-    // 次要按钮：细描边 + 半透明底，深浅主题各自取色
-    "btn-ghost":
-      "btn border border-[var(--color-btn-border)] bg-[var(--color-btn)] text-[var(--color-text-secondary)] hover:bg-[var(--color-btn-hover)] hover:text-[var(--color-text-primary)] active:bg-[var(--color-btn-active)]",
-    // 无描边的轻按钮：用于卡片工具栏等密集处
-    "btn-quiet":
-      "btn border border-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-btn-hover)] hover:text-[var(--color-text-primary)]",
-    // 主按钮：实心强调色 + 白字
-    "btn-primary":
-      "btn border border-transparent bg-[var(--color-primary)] text-white shadow-sm hover:bg-[var(--color-primary-hover)]",
-    "btn-danger":
-      "btn border border-transparent bg-[var(--color-danger-solid)] text-white hover:bg-[var(--color-danger-hover)]",
-    "btn-warning":
-      "btn border border-transparent bg-[var(--color-warning-solid)] text-white hover:bg-[var(--color-warning-hover)]",
-    // 分段选择的选中态（叠加在 btn-ghost 上）
-    "btn-selected":
-      "!border-[var(--color-accent)]/45 !bg-[var(--color-accent-soft)] !text-[var(--color-accent-text)]",
-
-    /* ---------- 开关 ---------- */
-    "switch-track":
-      "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50",
-    "switch-knob":
-      "pointer-events-none absolute left-0.5 h-5 w-5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.35)] transition-transform duration-200 ease-out",
-
-    /* ---------- 徽标与提示块 ---------- */
-    badge: "inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none",
-    "badge-warning": "badge bg-[var(--color-warning-soft)] text-[var(--color-warning-text)]",
-    "badge-success": "badge bg-[var(--color-success-soft)] text-[var(--color-success-text)]",
-    "badge-danger": "badge bg-[var(--color-danger-soft)] text-[var(--color-danger-text)]",
-    note: "rounded-lg border px-3 py-2 text-xs leading-relaxed",
-    "note-warning":
-      "note border-[var(--color-warning-border)] bg-[var(--color-warning-soft)] text-[var(--color-warning-text)]",
-    "note-danger":
-      "note border-[var(--color-danger-border)] bg-[var(--color-danger-soft)] text-[var(--color-danger-text)]",
+    /* ---------- 语义色别名（MD3 颜色角色） ---------- */
+    "md-surface": "bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)]",
+    "md-surface-container": "bg-[var(--md-sys-color-surface-container)]",
+    "md-surface-low": "bg-[var(--md-sys-color-surface-container-low)]",
+    "md-surface-high": "bg-[var(--md-sys-color-surface-container-high)]",
+    "md-surface-highest": "bg-[var(--md-sys-color-surface-container-highest)]",
+    "md-text": "text-[var(--md-sys-color-on-surface)]",
+    "md-text-variant": "text-[var(--md-sys-color-on-surface-variant)]",
+    "md-text-primary": "text-[var(--md-sys-color-primary)]",
+    "md-text-error": "text-[var(--md-sys-color-error)]",
+    "md-border": "border-[var(--md-sys-color-outline)]",
+    "md-border-variant": "border-[var(--md-sys-color-outline-variant)]",
   },
 });

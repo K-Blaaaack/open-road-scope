@@ -60,6 +60,10 @@ export const useDashboardStore = defineStore("dashboard", () => {
   const loaded = ref(false);
   /** 编辑前的快照，取消时恢复 */
   let snapshot: DashboardCard[] = [];
+  /** 编辑期内的撤销栈：每次结构变更前压入当前卡片数组 */
+  const history = ref<DashboardCard[][]>([]);
+  /** 撤销栈上限，避免长时间编辑累积占用内存 */
+  const HISTORY_LIMIT = 40;
 
   const subscribedPids = computed(() => {
     const set = new Set<Pid>();
@@ -133,9 +137,82 @@ export const useDashboardStore = defineStore("dashboard", () => {
     }
   );
 
+  /**
+   * 深拷贝单张卡片
+   *
+   * 必须走 JSON 而不是 structuredClone：响应式代理带内部槽位，
+   * structuredClone 会直接抛 DataCloneError。
+   * @param card - 卡片（可能是响应式代理）
+   * @returns 纯对象副本
+   */
+  const cloneCard = (card: DashboardCard): DashboardCard =>
+    JSON.parse(JSON.stringify(card)) as DashboardCard;
+
+  /** 深拷贝当前卡片数组 */
+  const cloneCards = (): DashboardCard[] =>
+    JSON.parse(JSON.stringify(cards.value)) as DashboardCard[];
+
+  /** 结构变更前压栈，供撤销使用 */
+  const pushHistory = (): void => {
+    history.value.push(cloneCards());
+    if (history.value.length > HISTORY_LIMIT) history.value.shift();
+  };
+
+  /**
+   * 撤销上一步编辑
+   * @returns 是否真的撤销了一步
+   */
+  const undo = (): boolean => {
+    const prev = history.value.pop();
+    if (!prev) return false;
+    cards.value = prev;
+    return true;
+  };
+
+  /** 两个卡片矩形是否相交（网格坐标） */
+  const intersects = (a: DashboardCard, b: DashboardCard): boolean =>
+    a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+  /**
+   * 落定后整理重叠：先把压在锚点卡片下面的全部下移到锚点底边，
+   * 再对剩余卡片做一轮“低者让位”，保证画布上永远看不到互相压住的卡片
+   * @param anchorId - 刚移动或缩放的卡片 ID，它的位置保持不变
+   */
+  const settleOverlaps = (anchorId: string): void => {
+    const anchor = cards.value.find((c) => c.id === anchorId);
+    if (!anchor) return;
+
+    // 第一轮：与锚点相交的卡片整体下移，锚点自己不动
+    for (let guard = 0; guard < 200; guard += 1) {
+      const hit = cards.value.find((c) => c.id !== anchorId && intersects(anchor, c));
+      if (!hit) break;
+      hit.y = anchor.y + anchor.h;
+    }
+
+    // 第二轮：下移可能让这些卡片彼此相交，按 y 从小到大依次让位
+    for (let guard = 0; guard < 200; guard += 1) {
+      const sorted = [...cards.value].sort((a, b) => a.y - b.y);
+      let changed = false;
+      for (let i = 0; i < sorted.length; i += 1) {
+        for (let j = i + 1; j < sorted.length; j += 1) {
+          const a = sorted[i];
+          const b = sorted[j];
+          if (a.id === anchorId || b.id === anchorId) continue;
+          if (!intersects(a, b)) continue;
+          b.y = a.y + a.h;
+          changed = true;
+        }
+      }
+      if (!changed) break;
+    }
+  };
+
+  const canUndo = computed(() => history.value.length > 0);
+
   const enterEdit = (): void => {
     // 用 JSON 快照避免响应式代理无法深拷贝
-    snapshot = JSON.parse(JSON.stringify(cards.value)) as DashboardCard[];
+    snapshot = cloneCards();
+    history.value = [];
     editing.value = true;
   };
 
@@ -143,11 +220,13 @@ export const useDashboardStore = defineStore("dashboard", () => {
     cards.value = snapshot;
     editing.value = false;
     snapshot = [];
+    history.value = [];
   };
 
   const save = async (): Promise<void> => {
     editing.value = false;
     snapshot = [];
+    history.value = [];
     persist();
     await resubscribe();
   };
@@ -166,6 +245,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
    * @returns 新卡片
    */
   const addCard = (pid: Pid, type: GaugeType): DashboardCard => {
+    pushHistory();
     const y = cards.value.reduce((m, c) => Math.max(m, c.y + c.h), 0);
     const size = DEFAULT_CARD_SIZE[type];
     const card: DashboardCard = {
@@ -183,8 +263,31 @@ export const useDashboardStore = defineStore("dashboard", () => {
     return card;
   };
 
-  const removeCard = (id: string): void => {
+  /**
+   * 删除卡片
+   * @param id - 卡片 ID
+   * @returns 被删除的卡片（不存在时为 undefined），供调用方做撤销提示
+   */
+  const removeCard = (id: string): DashboardCard | undefined => {
+    const removed = cards.value.find((c) => c.id === id);
+    if (!removed) return undefined;
+    pushHistory();
     cards.value = cards.value.filter((c) => c.id !== id);
+    return removed;
+  };
+
+  /**
+   * 把删掉的卡片放回原位（撤销删除）
+   *
+   * 与 undo() 的区别：undo 回退整步历史，可能连带撤销之后的其它编辑；
+   * 这里只针对「删除」这一个动作做精确恢复，用户在提示条上点撤销时更符合预期。
+   * @param card - 被删除的卡片快照
+   */
+  const restoreCard = (card: DashboardCard): void => {
+    if (cards.value.some((c) => c.id === card.id)) return;
+    pushHistory();
+    // 走 JSON 克隆：structuredClone 遇到响应式代理会抛 DataCloneError
+    cards.value.push(cloneCard(card));
   };
 
   /**
@@ -195,6 +298,12 @@ export const useDashboardStore = defineStore("dashboard", () => {
   const updateCard = (id: string, patch: Partial<DashboardCard>): void => {
     const card = cards.value.find((c) => c.id === id);
     if (!card) return;
+    // 只记真正改变了内容的编辑，避免连续输入把撤销栈灌满
+    const changed = Object.entries(patch).some(
+      ([key, value]) => (card as unknown as Record<string, unknown>)[key] !== value
+    );
+    if (!changed) return;
+    pushHistory();
     Object.assign(card, patch);
   };
 
@@ -207,8 +316,14 @@ export const useDashboardStore = defineStore("dashboard", () => {
   const moveCard = (id: string, x: number, y: number): void => {
     const card = cards.value.find((c) => c.id === id);
     if (!card) return;
-    card.x = clampGrid(x, 0, GRID_COLS - card.w);
-    card.y = Math.max(0, Math.round(y));
+    const nx = clampGrid(x, 0, GRID_COLS - card.w);
+    const ny = Math.max(0, Math.round(y));
+    // 位置没变就不进历史，否则拖动后又放回原处也会占一格撤销
+    if (nx === card.x && ny === card.y) return;
+    pushHistory();
+    card.x = nx;
+    card.y = ny;
+    settleOverlaps(id);
   };
 
   /**
@@ -220,12 +335,18 @@ export const useDashboardStore = defineStore("dashboard", () => {
   const resizeCard = (id: string, w: number, h: number): void => {
     const card = cards.value.find((c) => c.id === id);
     if (!card) return;
-    card.w = clampGrid(w, 2, GRID_COLS - card.x);
-    card.h = Math.min(8, Math.max(2, Math.round(h)));
+    const nw = clampGrid(w, 2, GRID_COLS - card.x);
+    const nh = Math.min(8, Math.max(2, Math.round(h)));
+    if (nw === card.w && nh === card.h) return;
+    pushHistory();
+    card.w = nw;
+    card.h = nh;
+    settleOverlaps(id);
   };
 
   /** 应用预设布局 */
   const applyPreset = (name: keyof typeof LAYOUT_PRESETS): void => {
+    pushHistory();
     cards.value = structuredClone(LAYOUT_PRESETS[name].cards);
   };
 
@@ -256,11 +377,15 @@ export const useDashboardStore = defineStore("dashboard", () => {
     subscribedPids,
     init,
     resubscribe,
+    history,
+    canUndo,
+    undo,
     enterEdit,
     cancelEdit,
     save,
     addCard,
     removeCard,
+    restoreCard,
     updateCard,
     moveCard,
     resizeCard,

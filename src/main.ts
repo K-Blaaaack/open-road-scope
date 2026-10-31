@@ -1,12 +1,14 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import "virtual:uno.css";
+import "./styles/md3/tokens.css";
 import "./styles/base.css";
 import App from "./App.vue";
 import { router } from "./router";
 import { i18n } from "./i18n";
 import { usePrefsStore } from "./stores/prefs";
 import { installAndroidBridge } from "./obd/android-bridge";
+import { vRipple } from "./directives/ripple";
 
 // 安卓 WebView 下无 Electron preload：安装原生 OBD 桥（蓝牙/USB/TCP → ELM327）
 installAndroidBridge();
@@ -14,6 +16,8 @@ installAndroidBridge();
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
+// MD3 水波纹：所有按钮类组件通过 v-ripple 使用
+app.directive("ripple", vRipple);
 
 /** splash 动画总时长（ms） */
 const SPLASH_ANIM_MS = 2800;

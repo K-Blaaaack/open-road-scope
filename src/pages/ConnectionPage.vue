@@ -1,16 +1,48 @@
 <script setup lang="ts">
+/**
+ * 连接页（MD3 重写）
+ *
+ * 业务逻辑与原实现逐条保持一致（模式/连接方式/串口枚举/网络地址/模拟故障/连接与断开），
+ * 只重写呈现层：卡片 + 分段按钮 + 文本框 + 选择框 + 开关 + 状态列表。
+ */
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useObdStore } from "@/stores/obd";
+import MdButton from "@/components/md3/MdButton.vue";
+import MdCard from "@/components/md3/MdCard.vue";
+import MdDivider from "@/components/md3/MdDivider.vue";
+import MdSegmentedButton from "@/components/md3/MdSegmentedButton.vue";
+import MdSelect from "@/components/md3/MdSelect.vue";
+import MdSwitch from "@/components/md3/MdSwitch.vue";
+import MdTextField from "@/components/md3/MdTextField.vue";
+import { useSnackbar } from "@/composables/useSnackbar";
 import { useDashboardStore } from "@/stores/dashboard";
+import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
 import type { ListPortsResult, SerialPortInfo } from "@shared/obd";
+
+/** 状态圆点可用的语义色 */
+type StatusTone = "primary" | "success" | "warning" | "error";
+
+/** 状态列表的一行 */
+interface StatusRow {
+  /** 行标识，用于 v-for key */
+  key: string;
+  /** 左侧标签 */
+  label: string;
+  /** 右侧值 */
+  value: string;
+  /** 值用等宽字体（协议 / 版本 / 端口这类机器读数） */
+  mono?: boolean;
+  /** 行首圆点配色，仅「状态」行有 */
+  tone?: StatusTone;
+}
 
 const { t } = useI18n();
 const store = useObdStore();
 const prefs = usePrefsStore();
 const dashboard = useDashboardStore();
+const snackbar = useSnackbar();
 
 /** 是否有原生桥接（Electron preload）；无桥接的 WebView/浏览器无法使用串口/蓝牙/网络 */
 const hasBridge = computed(() => Boolean(window.obd));
@@ -106,6 +138,8 @@ const connect = async (): Promise<void> => {
     }
   } catch (err) {
     console.error(err);
+    // 连接失败没有其它可视出口，用提示条兜底，避免按钮点下去「没反应」
+    snackbar.show(String(err));
   } finally {
     busy.value = false;
   }
@@ -116,181 +150,447 @@ const disconnect = async (): Promise<void> => {
 };
 
 onMounted(listPorts);
+
+/** 分段按钮抛的是宽类型，收窄回模式联合类型 */
+const setMode = (value: string | number): void => {
+  mode.value = value === "real" ? "real" : "sim";
+};
+
+/** 同上：连接方式只接受三个已知取值 */
+const setConnType = (value: string | number): void => {
+  if (value === "usb" || value === "bluetooth" || value === "network") {
+    connType.value = value;
+  }
+};
+
+/** 模式分段按钮选项 */
+const modeOptions = computed(() => [
+  { value: "sim", label: t("connection.sim") },
+  { value: "real", label: t("connection.real") },
+]);
+
+/** 连接方式分段按钮选项 */
+const connTypeOptions = computed(() => [
+  { value: "usb", label: t("connection.typeUsb"), icon: "i-lucide-usb" },
+  { value: "bluetooth", label: t("connection.typeBluetooth"), icon: "i-lucide-bluetooth" },
+  { value: "network", label: t("connection.typeNetwork"), icon: "i-lucide-network" },
+]);
+
+/** 串口选择框的标签随连接方式变化 */
+const portLabel = computed(() =>
+  connType.value === "usb" ? t("connection.portUsb") : t("connection.portBluetooth")
+);
+
+/** 枚举中 / 枚举失败 / 无串口，三种占位文案 */
+const portPlaceholder = computed(() => {
+  if (scanning.value) return t("connection.scanning");
+  if (scanError.value) return t("connection.scanFailed");
+  return t("connection.noPorts");
+});
+
+/** 串口下拉项；无可用串口时给一条空值占位项，同时由 disabled 兜住不可选 */
+const portOptions = computed(() => {
+  const list = filteredPorts.value;
+  if (list.length === 0) return [{ value: "", label: portPlaceholder.value }];
+  return list.map((p) => ({
+    value: p.name,
+    label: p.description ? `${p.name}（${p.description}）` : p.name,
+  }));
+});
+
+/** 连接中：本地 busy 与 store 状态任一为真即算，避免两个来源时序不一致时闪烁 */
+const isConnecting = computed(() => busy.value || store.status.state === "connecting");
+
+/** 状态圆点配色，按连接状态取语义色 */
+const stateTone = computed<StatusTone>(() => {
+  switch (store.status.state) {
+    case "connected":
+      return "success";
+    case "connecting":
+      return "warning";
+    case "error":
+      return "error";
+    default:
+      return "primary";
+  }
+});
+
+/** 连接状态卡片的数据行；空值统一用破折号占位 */
+const statusRows = computed<StatusRow[]>(() => [
+  {
+    key: "state",
+    label: t("connection.state"),
+    value: t(`status.${store.status.state}`),
+    tone: stateTone.value,
+  },
+  {
+    key: "mode",
+    label: t("connection.modeLabel"),
+    value: t(`status.${store.status.mode}`),
+  },
+  {
+    key: "protocol",
+    label: t("connection.protocol"),
+    value: store.status.protocol ?? "—",
+    mono: true,
+  },
+  {
+    key: "elmVersion",
+    label: t("connection.elmVersion"),
+    value: store.status.elmVersion ?? "—",
+    mono: true,
+  },
+  {
+    key: "port",
+    label: t("connection.port"),
+    value: store.status.port ?? "—",
+    mono: true,
+  },
+  {
+    key: "message",
+    label: t("connection.message"),
+    value: store.status.message || "—",
+  },
+]);
 </script>
 
 <template>
-  <div class="mx-auto flex max-w-2xl flex-col gap-5">
-    <div class="glass-card flex flex-col gap-4 p-5">
-      <!-- 以下连接配置仅在未连接时显示 -->
-      <!-- 模拟/实车模式选择，可在开发者菜单中控制显示 -->
-      <!-- 模拟/实车模式选择：需开启开发者模式且未连接，可在开发者菜单中控制显示 -->
-      <div v-if="prefs.showModeSelect && prefs.devMode && store.status.state === 'idle'">
-        <div class="text-secondary mb-2 text-sm">{{ t("connection.mode") }}</div>
-        <div class="flex flex-wrap gap-2">
-          <button
-            class="btn-ghost btn-md flex-1"
-            :class="mode === 'sim' ? 'btn-selected' : ''"
-            @click="mode = 'sim'"
-          >
-            {{ t("connection.sim") }}
-          </button>
-          <button
-            class="btn-ghost btn-md flex-1"
-            :class="mode === 'real' ? 'btn-selected' : ''"
-            @click="mode = 'real'"
-          >
-            {{ t("connection.real") }}
-          </button>
-        </div>
-      </div>
+  <div class="md-page">
+    <MdCard variant="elevated" layout="column" padding="lg" class="conn-card">
+      <h2 class="md-title-large conn-card__title">{{ t("connection.settingsTitle") }}</h2>
 
-      <div v-if="mode === 'real' && store.status.state === 'idle'" class="flex flex-col gap-3">
+      <!-- 模式选择：需开启开发者模式且未连接，可在开发者菜单中控制显示 -->
+      <section
+        v-if="prefs.showModeSelect && prefs.devMode && store.status.state === 'idle'"
+        class="conn-block"
+      >
+        <span class="conn-block__label md-body-medium">{{ t("connection.mode") }}</span>
+        <MdSegmentedButton
+          :model-value="mode"
+          :options="modeOptions"
+          full-width
+          @update:model-value="setMode"
+        />
+      </section>
+
+      <template v-if="mode === 'real' && store.status.state === 'idle'">
         <!-- 无原生桥接平台（安卓 WebView / 浏览器）：串口/蓝牙/网络不可用 -->
-        <div v-if="!hasBridge" class="note-warning px-4 py-3">
-          {{ t("connection.noBridgeTitle") }}
-          <div class="mt-1 opacity-75">{{ t("connection.noBridgeDesc") }}</div>
+        <div v-if="!hasBridge" class="conn-note conn-note--warning md-body-small">
+          <div class="conn-note__title">{{ t("connection.noBridgeTitle") }}</div>
+          <div>{{ t("connection.noBridgeDesc") }}</div>
         </div>
 
-        <!-- 实车连接方式：USB 串口 / 蓝牙串口 / 网络（RJ45 OBD） -->
-        <template v-if="hasBridge">
-          <div>
-            <div class="text-secondary mb-2 text-sm">{{ t("connection.connType") }}</div>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="type in [
-                  { key: 'usb', label: t('connection.typeUsb') },
-                  { key: 'bluetooth', label: t('connection.typeBluetooth') },
-                  { key: 'network', label: t('connection.typeNetwork') },
-                ]"
-                :key="type.key"
-                class="btn-ghost btn-sm flex-1 text-xs"
-                :class="connType === type.key ? 'btn-selected' : ''"
-                @click="connType = type.key as typeof connType"
-              >
-                {{ type.label }}
-              </button>
-            </div>
-          </div>
+        <template v-else>
+          <!-- 实车连接方式：USB 串口 / 蓝牙串口 / 网络（RJ45 OBD） -->
+          <section class="conn-block">
+            <span class="conn-block__label md-body-medium">{{ t("connection.connType") }}</span>
+            <MdSegmentedButton
+              :model-value="connType"
+              :options="connTypeOptions"
+              full-width
+              @update:model-value="setConnType"
+            />
+          </section>
 
           <!-- USB / 蓝牙串口下拉 -->
-          <div v-if="connType !== 'network'" class="flex flex-col gap-2">
-            <div class="flex items-end gap-2">
-              <div class="flex-1">
-                <div class="text-secondary mb-2 text-sm">
-                  {{ connType === "usb" ? t("connection.portUsb") : t("connection.portBluetooth") }}
-                </div>
-                <select
-                  v-model="port"
-                  class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                >
-                  <option v-if="filteredPorts.length === 0" value="" disabled>
-                    {{
-                      scanning
-                        ? t("connection.scanning")
-                        : scanError
-                          ? t("connection.scanFailed")
-                          : t("connection.noPorts")
-                    }}
-                  </option>
-                  <option v-for="p in filteredPorts" :key="p.name" :value="p.name">
-                    {{ p.name }}{{ p.description ? `（${p.description}）` : "" }}
-                  </option>
-                </select>
-              </div>
-              <button class="btn-ghost btn-md" :disabled="scanning" @click="listPorts">
-                {{ scanning ? t("connection.scanning") : t("connection.refresh") }}
-              </button>
-            </div>
-
-            <!-- 枚举失败：带上底层错误，便于定位（sidecar 缺失 / 权限 / 超时） -->
-            <div v-if="scanError" class="note-danger">
-              {{ t("connection.scanFailed") }}
-              <div class="mt-1 font-mono break-all opacity-75">{{ scanError }}</div>
-            </div>
-            <!-- 蓝牙串口需先在系统层面配对，否则枚举不到 -->
-            <div
-              v-else-if="connType === 'bluetooth' && !scanning && filteredPorts.length === 0"
-              class="text-secondary text-xs leading-relaxed"
+          <div v-if="connType !== 'network'" class="conn-port">
+            <MdSelect
+              class="conn-port__select"
+              :model-value="port"
+              :options="portOptions"
+              :label="portLabel"
+              :disabled="filteredPorts.length === 0"
+              @update:model-value="port = $event"
+            />
+            <MdButton
+              variant="outlined"
+              icon="i-lucide-refresh-cw"
+              :disabled="scanning"
+              @click="listPorts"
             >
-              {{ t("connection.btPairHint") }}
-            </div>
+              {{ scanning ? t("connection.scanning") : t("connection.refresh") }}
+            </MdButton>
           </div>
 
           <!-- 网络串口（RJ45 OBD）：IP + 端口 -->
-          <div v-else class="flex items-end gap-2">
-            <div class="flex-1">
-              <div class="text-secondary mb-2 text-sm">{{ t("connection.networkAddr") }}</div>
-              <input
-                v-model="netHost"
-                type="text"
-                class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                :placeholder="t('connection.networkPlaceholder')"
-                spellcheck="false"
-              />
-            </div>
-            <div class="w-28">
-              <div class="text-secondary mb-2 text-sm">{{ t("connection.networkPort") }}</div>
-              <input
-                v-model="netPort"
-                type="number"
-                class="border-border bg-[var(--color-card)] text-primary w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                placeholder="35000"
-              />
-            </div>
+          <div v-else class="conn-net">
+            <MdTextField
+              v-model="netHost"
+              class="conn-net__host"
+              :label="t('connection.networkAddr')"
+              :placeholder="t('connection.networkPlaceholder')"
+            />
+            <MdTextField
+              v-model="netPort"
+              class="conn-net__port"
+              :label="t('connection.networkPort')"
+              type="number"
+              inputmode="numeric"
+              placeholder="35000"
+            />
           </div>
+
+          <!-- 枚举失败：带上底层错误原文，便于定位（sidecar 缺失 / 权限 / 超时） -->
+          <div v-if="scanError" class="conn-note conn-note--error md-body-small">
+            <div class="conn-note__title">{{ t("connection.scanFailed") }}</div>
+            <div class="conn-note__detail md-mono md-selectable">{{ scanError }}</div>
+          </div>
+          <!-- 蓝牙串口需先在系统层面配对，否则枚举不到 -->
+          <p
+            v-else-if="connType === 'bluetooth' && !scanning && filteredPorts.length === 0"
+            class="conn-hint md-body-small"
+          >
+            {{ t("connection.btPairHint") }}
+          </p>
         </template>
+      </template>
+
+      <!-- 模拟模式：注入随机故障 -->
+      <div v-if="mode === 'sim' && store.status.state === 'idle'" class="conn-switch">
+        <span class="md-body-medium">{{ t("connection.fault") }}</span>
+        <MdSwitch v-model="fault" :label="t('connection.fault')" />
       </div>
 
-      <div v-if="mode === 'sim' && store.status.state === 'idle'" class="flex items-center gap-2">
-        <input
-          id="sim-fault"
-          v-model="fault"
-          type="checkbox"
-          class="h-4 w-4 accent-[var(--color-primary)]"
-        />
-        <label for="sim-fault" class="text-secondary text-sm">{{ t("connection.fault") }}</label>
-      </div>
-
-      <div class="flex flex-wrap gap-2">
-        <button
+      <div class="conn-actions">
+        <!-- MdProgress 尚未落地，这里用等价的本地不确定进度条，合并后可直接替换 -->
+        <div
+          v-if="isConnecting"
+          class="conn-progress"
+          role="progressbar"
+          :aria-label="t('status.connecting')"
+        >
+          <span class="conn-progress__bar" />
+        </div>
+        <MdButton
           v-if="store.status.state === 'idle'"
-          class="btn-primary btn-lg flex-1"
+          variant="filled"
+          size="lg"
+          block
+          icon="i-lucide-plug"
           :disabled="busy"
           @click="connect"
         >
           {{ t("connection.connect") }}
-        </button>
-        <button v-if="store.status.state !== 'idle'" class="btn-ghost btn-lg" @click="disconnect">
+        </MdButton>
+        <MdButton v-else variant="outlined" size="lg" block @click="disconnect">
           {{ t("connection.disconnect") }}
-        </button>
+        </MdButton>
       </div>
-    </div>
+    </MdCard>
 
-    <div class="glass-card flex flex-col gap-2 p-5 text-sm">
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("connection.state") }}</span>
-        <span class="text-primary font-medium">{{ t(`status.${store.status.state}`) }}</span>
+    <MdCard variant="outlined" layout="column" padding="lg" class="conn-card">
+      <h2 class="md-title-large conn-card__title">{{ t("connection.statusTitle") }}</h2>
+
+      <div class="conn-status">
+        <template v-for="(row, index) in statusRows" :key="row.key">
+          <div class="conn-status__row">
+            <span class="conn-status__label md-body-medium">
+              <!-- 圆点槽位恒占位：只有状态行有颜色，其余行留空，
+                   否则第一行标签会比其它行右移 18px，整列看着是歪的 -->
+              <span
+                class="conn-dot"
+                :class="row.tone ? `conn-dot--${row.tone}` : 'conn-dot--none'"
+                aria-hidden="true"
+              />
+              {{ row.label }}
+            </span>
+            <span
+              class="conn-status__value md-body-medium"
+              :class="row.mono ? 'md-mono md-selectable' : ''"
+            >
+              {{ row.value }}
+            </span>
+          </div>
+          <MdDivider v-if="index < statusRows.length - 1" />
+        </template>
       </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("connection.modeLabel") }}</span>
-        <span class="text-primary font-medium">{{ t(`status.${store.status.mode}`) }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("connection.protocol") }}</span>
-        <span class="text-primary font-mono">{{ store.status.protocol ?? "—" }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("connection.elmVersion") }}</span>
-        <span class="text-primary font-mono">{{ store.status.elmVersion ?? "—" }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("connection.port") }}</span>
-        <span class="text-primary font-mono">{{ store.status.port ?? "—" }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("connection.message") }}</span>
-        <span class="text-primary">{{ store.status.message || "—" }}</span>
-      </div>
-    </div>
+    </MdCard>
   </div>
 </template>
+
+<style scoped>
+/* 卡片内的节奏统一 20dp：标题 → 配置块 → 操作区 */
+.conn-card {
+  gap: 20px;
+}
+
+.conn-card__title {
+  margin: 0;
+  color: var(--md-sys-color-on-surface);
+}
+
+.conn-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conn-block__label {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* ---------- 提示块 ---------- */
+.conn-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+
+.conn-note--warning {
+  background: var(--md-sys-color-warning-container);
+  color: var(--md-sys-color-on-warning-container);
+}
+
+.conn-note--error {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.conn-note__title {
+  font-size: var(--md-sys-typescale-body-medium-size);
+  line-height: var(--md-sys-typescale-body-medium-line);
+  font-weight: var(--md-sys-typescale-title-small-weight);
+}
+
+/* 底层错误原文可能很长且无空格，必须允许任意位置断行 */
+.conn-note__detail {
+  word-break: break-all;
+}
+
+.conn-hint {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* ---------- 串口 / 网络 ---------- */
+.conn-port {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.conn-port__select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.conn-net {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.conn-net__host {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.conn-net__port {
+  flex: 0 0 auto;
+  width: 120px;
+}
+
+/* ---------- 模拟故障开关 ---------- */
+.conn-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* ---------- 操作区 ---------- */
+.conn-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 不确定进度条：轨道 surface-variant、指示条 primary，滑动用 long4 + emphasized */
+.conn-progress {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-variant);
+}
+
+.conn-progress__bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--md-sys-color-primary);
+  animation: conn-progress-slide var(--md-sys-motion-duration-long4)
+    var(--md-sys-motion-easing-emphasized) infinite;
+}
+
+@keyframes conn-progress-slide {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
+}
+
+/* ---------- 状态列表 ---------- */
+.conn-status {
+  display: flex;
+  flex-direction: column;
+}
+
+.conn-status__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.conn-status__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: nowrap;
+}
+
+.conn-status__value {
+  min-width: 0;
+  color: var(--md-sys-color-on-surface);
+  text-align: right;
+  word-break: break-all;
+}
+
+.conn-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+
+.conn-dot--none {
+  background: transparent;
+}
+
+.conn-dot--primary {
+  background: var(--md-sys-color-primary);
+}
+
+.conn-dot--success {
+  background: var(--md-sys-color-success);
+}
+
+.conn-dot--warning {
+  background: var(--md-sys-color-warning);
+}
+
+.conn-dot--error {
+  background: var(--md-sys-color-error);
+}
+</style>

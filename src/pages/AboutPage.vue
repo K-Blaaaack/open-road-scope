@@ -1,8 +1,19 @@
 <script setup lang="ts">
+/**
+ * 关于页
+ *
+ * 结构：品牌区 → 版本信息卡 → 许可证卡 → 更新卡。
+ * 版本信息与更新检查的既有逻辑（UA 解析、IPC 事件订阅、退订）保持不变，只重写呈现。
+ */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { UpdateEventParams } from "@shared/obd";
+import MdBadge from "@/components/md3/MdBadge.vue";
+import MdButton from "@/components/md3/MdButton.vue";
+import MdCard from "@/components/md3/MdCard.vue";
+import MdDivider from "@/components/md3/MdDivider.vue";
+import MdListItem from "@/components/md3/MdListItem.vue";
 
 const { t } = useI18n();
 
@@ -28,6 +39,13 @@ const updateMessage = ref("");
 
 let unsubscribe: (() => void) | undefined;
 
+/**
+ * 触发一次联网版本检查
+ *
+ * 真正的结果（有新版 / 已最新）由 onUpdateEvent 事件回调写入，
+ * 这里只处理「发起即失败」的两类情况：无桥接、开发模式/请求异常。
+ * @returns 无返回值
+ */
 const checkForUpdates = (): void => {
   if (!window.obd) {
     // 无原生桥接（WebView / 浏览器预览）：无更新通道，明确提示
@@ -72,76 +90,212 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-full flex-col items-center justify-center gap-6">
-    <!-- 应用标识 -->
-    <div class="flex flex-col items-center gap-3">
-      <span
-        class="i-lucide-gauge text-[var(--color-accent)] flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-card)]"
-      />
-      <div class="text-center">
-        <!-- 顶栏已有页面标题 h1，此处仅作品牌展示 -->
-        <div class="text-primary text-2xl font-bold tracking-wide">OpenRoadScope</div>
-        <p class="text-secondary mt-1 text-sm">{{ t("about.subtitle") }}</p>
+  <div class="md-page">
+    <!-- 品牌区：图标 + 名称 + 副标题 -->
+    <header class="brand">
+      <span class="brand__mark">
+        <span class="i-lucide-gauge brand__icon" aria-hidden="true" />
+      </span>
+      <div class="brand__text">
+        <!-- 顶栏已有页面标题，这里只作品牌展示，用 h2 避免出现第二个 h1 -->
+        <h2 class="md-headline-medium brand__name">OpenRoadScope</h2>
+        <p class="md-body-medium brand__subtitle">{{ t("about.subtitle") }}</p>
       </div>
-    </div>
+    </header>
 
-    <!-- 版本与简介 -->
-    <div class="glass-card flex w-full max-w-md flex-col gap-3 p-6 text-sm">
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("developer.version") }}</span>
-        <span class="text-primary font-mono">v{{ appVersion }}</span>
+    <!-- 版本与运行环境 -->
+    <MdCard variant="elevated" padding="lg" layout="column" class="info-card">
+      <MdListItem :headline="t('developer.version')">
+        <template #trailing>
+          <span class="info-card__value md-mono md-selectable">v{{ appVersion }}</span>
+        </template>
+      </MdListItem>
+      <MdDivider />
+      <MdListItem :headline="t('developer.electron')">
+        <template #trailing>
+          <span class="info-card__value md-mono md-selectable">{{ env.electron }}</span>
+        </template>
+      </MdListItem>
+      <MdDivider />
+      <MdListItem :headline="t('developer.chromium')">
+        <template #trailing>
+          <span class="info-card__value md-mono md-selectable">{{ env.chromium }}</span>
+        </template>
+      </MdListItem>
+      <MdDivider />
+      <MdListItem :headline="t('developer.node')">
+        <template #trailing>
+          <span class="info-card__value md-mono md-selectable">{{ env.node }}</span>
+        </template>
+      </MdListItem>
+    </MdCard>
+
+    <!-- 许可证 -->
+    <MdCard variant="elevated" padding="lg" layout="column" class="license-card">
+      <p class="md-body-medium license-card__desc">{{ t("about.desc") }}</p>
+      <div class="license-card__row">
+        <MdBadge tone="success" variant="tonal" label="GPL-2.0" />
+        <span class="md-body-small license-card__license">{{ t("about.license") }}</span>
       </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("developer.electron") }}</span>
-        <span class="text-primary font-mono">{{ env.electron }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("developer.chromium") }}</span>
-        <span class="text-primary font-mono">{{ env.chromium }}</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-secondary">{{ t("developer.node") }}</span>
-        <span class="text-primary font-mono">{{ env.node }}</span>
-      </div>
-      <div class="mt-2 border-t border-[var(--color-border)] pt-3">
-        <p class="text-secondary leading-relaxed">{{ t("about.desc") }}</p>
-        <div class="mt-3 flex items-center gap-2">
-          <span class="badge-success px-2 py-0.5 font-mono text-[11px] font-semibold">
-            GPL-2.0
+      <p class="md-body-small license-card__note">{{ t("about.licenseNote") }}</p>
+    </MdCard>
+
+    <!-- 更新检查 -->
+    <MdCard variant="elevated" padding="lg" layout="column" class="update-card">
+      <div class="update-card__row">
+        <div class="update-card__status">
+          <!-- 空闲态也要有说明文字，否则卡片只剩右侧按钮，看起来像渲染缺失 -->
+          <span v-if="updateState === 'idle'" class="md-body-small update-card__text">
+            {{ t("about.updateIdle") }}
           </span>
-          <span class="text-secondary/80 text-xs">{{ t("about.license") }}</span>
+          <span v-else-if="updateState === 'checking'" class="md-body-small update-card__text">
+            {{ t("about.updating") }}
+          </span>
+          <span
+            v-else-if="updateState === 'available'"
+            class="md-body-small update-card__text update-card__text--success"
+          >
+            {{ t("about.updateAvailable", { version: updateVersion }) }}
+          </span>
+          <span v-else-if="updateState === 'not-available'" class="md-body-small update-card__text">
+            {{ t("about.upToDate") }}
+          </span>
+          <span
+            v-else-if="updateState === 'error'"
+            class="md-body-small update-card__text update-card__text--error"
+          >
+            {{ updateMessage }}
+          </span>
         </div>
-        <p class="text-secondary/60 mt-2 text-xs leading-relaxed">{{ t("about.licenseNote") }}</p>
-      </div>
-
-      <!-- 联网检查新版本 -->
-      <div
-        class="flex items-center justify-between gap-2 border-t border-[var(--color-border)] pt-3"
-      >
-        <div class="min-w-0 flex-1">
-          <template v-if="updateState === 'checking'">
-            <span class="text-secondary text-xs">{{ t("about.updating") }}</span>
-          </template>
-          <template v-else-if="updateState === 'available'">
-            <span class="text-xs font-semibold text-[var(--color-success-text)]">
-              {{ t("about.updateAvailable", { version: updateVersion }) }}
-            </span>
-          </template>
-          <template v-else-if="updateState === 'not-available'">
-            <span class="text-secondary text-xs">{{ t("about.upToDate") }}</span>
-          </template>
-          <template v-else-if="updateState === 'error'">
-            <span class="text-xs text-[var(--color-danger-text)]">{{ updateMessage }}</span>
-          </template>
+        <div class="update-card__trailing">
+          <MdBadge
+            v-if="updateState === 'available'"
+            tone="success"
+            variant="tonal"
+            :label="`v${updateVersion}`"
+          />
+          <MdButton
+            variant="tonal"
+            icon="i-lucide-refresh-cw"
+            :disabled="updateState === 'checking'"
+            @click="checkForUpdates"
+          >
+            {{ t("about.checkUpdate") }}
+          </MdButton>
         </div>
-        <button
-          class="btn-ghost btn-sm text-xs"
-          :disabled="updateState === 'checking'"
-          @click="checkForUpdates"
-        >
-          {{ t("about.checkUpdate") }}
-        </button>
       </div>
-    </div>
+    </MdCard>
   </div>
 </template>
+
+<style scoped>
+/* ---------- 品牌区 ---------- */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 8px;
+  text-align: center;
+}
+
+.brand__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.brand__icon {
+  width: 40px;
+  height: 40px;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand__name {
+  color: var(--md-sys-color-on-surface);
+}
+
+.brand__subtitle {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* ---------- 信息卡 ---------- */
+/* 卡片已有 24 内边距，列表项再去掉自身 16 左右内边距，避免文本缩进过深 */
+.info-card :deep(.md-list-item) {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.info-card__value {
+  color: var(--md-sys-color-on-surface-variant);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 许可证卡 ---------- */
+.license-card__desc {
+  color: var(--md-sys-color-on-surface-variant);
+  margin: 0 0 12px;
+}
+
+.license-card__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.license-card__license {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.license-card__note {
+  color: var(--md-sys-color-on-surface-variant);
+  /* 备注是补充说明，压一档透明度拉开层次 */
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* ---------- 更新卡 ---------- */
+.update-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.update-card__status {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.update-card__text {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.update-card__text--success {
+  color: var(--md-sys-color-success);
+}
+
+.update-card__text--error {
+  color: var(--md-sys-color-error);
+}
+
+.update-card__trailing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+</style>

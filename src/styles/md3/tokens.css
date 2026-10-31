@@ -1,0 +1,439 @@
+/**
+ * Material Design 3 设计令牌
+ *
+ * 分两层：
+ * 1. 引用令牌（--md-ref-*）：色相板（tonal palette）原始色阶，不直接被组件使用；
+ * 2. 系统令牌（--md-sys-*）：语义角色，深/浅主题各自映射到引用令牌，组件只消费这一层。
+ *
+ * 命名与 MD3 规范一致（camelCase → kebab-case），便于对照官方组件规格。
+ */
+
+/* ============================================================
+ * 一、引用令牌：色相板
+ * ============================================================ */
+:root {
+  /* 主色：品牌蓝（seed #38bdf8 派生，色相 199） */
+  --md-ref-palette-primary-0: #000000;
+  --md-ref-palette-primary-10: #001d31;
+  --md-ref-palette-primary-20: #003350;
+  --md-ref-palette-primary-30: #004a6e;
+  --md-ref-palette-primary-40: #00628f;
+  --md-ref-palette-primary-50: #007bb2;
+  --md-ref-palette-primary-60: #1e96d4;
+  --md-ref-palette-primary-70: #51b0ef;
+  --md-ref-palette-primary-80: #86cbff;
+  --md-ref-palette-primary-90: #c6e7ff;
+  --md-ref-palette-primary-95: #e3f3ff;
+  --md-ref-palette-primary-99: #f7fbff;
+  --md-ref-palette-primary-100: #ffffff;
+
+  /* 次色：低饱和蓝灰 */
+  --md-ref-palette-secondary-0: #000000;
+  --md-ref-palette-secondary-10: #0d1e28;
+  --md-ref-palette-secondary-20: #22323d;
+  --md-ref-palette-secondary-30: #384954;
+  --md-ref-palette-secondary-40: #50606c;
+  --md-ref-palette-secondary-50: #687985;
+  --md-ref-palette-secondary-60: #82939f;
+  --md-ref-palette-secondary-70: #9cadba;
+  --md-ref-palette-secondary-80: #b7c8d6;
+  --md-ref-palette-secondary-90: #d3e4f2;
+  --md-ref-palette-secondary-95: #e3f3ff;
+  --md-ref-palette-secondary-99: #f7fbff;
+  --md-ref-palette-secondary-100: #ffffff;
+
+  /* 第三色：青绿，用于强调「已连接 / 正常」等辅助语义 */
+  --md-ref-palette-tertiary-0: #000000;
+  --md-ref-palette-tertiary-10: #001f1c;
+  --md-ref-palette-tertiary-20: #003731;
+  --md-ref-palette-tertiary-30: #005047;
+  --md-ref-palette-tertiary-40: #006b5f;
+  --md-ref-palette-tertiary-50: #008678;
+  --md-ref-palette-tertiary-60: #00a392;
+  --md-ref-palette-tertiary-70: #22c0ae;
+  --md-ref-palette-tertiary-80: #4ddcc9;
+  --md-ref-palette-tertiary-90: #72f8e4;
+  --md-ref-palette-tertiary-95: #b5fff4;
+  --md-ref-palette-tertiary-99: #f2fffc;
+  --md-ref-palette-tertiary-100: #ffffff;
+
+  /* 错误色 */
+  --md-ref-palette-error-0: #000000;
+  --md-ref-palette-error-10: #410002;
+  --md-ref-palette-error-20: #690005;
+  --md-ref-palette-error-30: #93000a;
+  --md-ref-palette-error-40: #ba1a1a;
+  --md-ref-palette-error-50: #de3730;
+  --md-ref-palette-error-60: #ff5449;
+  --md-ref-palette-error-70: #ff897d;
+  --md-ref-palette-error-80: #ffb4ab;
+  --md-ref-palette-error-90: #ffdad6;
+  --md-ref-palette-error-95: #ffedea;
+  --md-ref-palette-error-99: #fffbfa;
+  --md-ref-palette-error-100: #ffffff;
+
+  /* 中性色：界面底色与文字（略偏蓝，与主色同源） */
+  --md-ref-palette-neutral-0: #000000;
+  --md-ref-palette-neutral-4: #0a0e13;
+  --md-ref-palette-neutral-6: #0d1117;
+  --md-ref-palette-neutral-10: #10141a;
+  --md-ref-palette-neutral-12: #12171e;
+  --md-ref-palette-neutral-14: #171c24;
+  --md-ref-palette-neutral-17: #171c23;
+  --md-ref-palette-neutral-19: #1e242d;
+  --md-ref-palette-neutral-20: #1c2027;
+  --md-ref-palette-neutral-22: #1f232a;
+  --md-ref-palette-neutral-23: #252c36;
+  --md-ref-palette-neutral-24: #21262d;
+  --md-ref-palette-neutral-27: #2c343f;
+  --md-ref-palette-neutral-30: #2b3037;
+  --md-ref-palette-neutral-40: #3f444b;
+  --md-ref-palette-neutral-50: #575c63;
+  --md-ref-palette-neutral-60: #70757c;
+  --md-ref-palette-neutral-70: #8a8f96;
+  --md-ref-palette-neutral-80: #a4a9b1;
+  --md-ref-palette-neutral-87: #bcc1c9;
+  --md-ref-palette-neutral-90: #ced3db;
+  --md-ref-palette-neutral-92: #d4d9e1;
+  --md-ref-palette-neutral-94: #dbe0e8;
+  --md-ref-palette-neutral-95: #dfe4ec;
+  --md-ref-palette-neutral-96: #e3e8f0;
+  --md-ref-palette-neutral-98: #ebf0f8;
+  --md-ref-palette-neutral-99: #f3f8ff;
+  --md-ref-palette-neutral-100: #ffffff;
+
+  /* 中性变体：描边与次级容器 */
+  --md-ref-palette-neutral-variant-0: #000000;
+  --md-ref-palette-neutral-variant-10: #171c22;
+  --md-ref-palette-neutral-variant-20: #2c3137;
+  --md-ref-palette-neutral-variant-30: #3f484f;
+  --md-ref-palette-neutral-variant-40: #576067;
+  --md-ref-palette-neutral-variant-50: #6f7880;
+  --md-ref-palette-neutral-variant-60: #89929a;
+  --md-ref-palette-neutral-variant-70: #a3acb5;
+  --md-ref-palette-neutral-variant-80: #bec7d0;
+  --md-ref-palette-neutral-variant-90: #dae3ec;
+  --md-ref-palette-neutral-variant-95: #e8f1fa;
+  --md-ref-palette-neutral-variant-99: #f7f9fd;
+  --md-ref-palette-neutral-variant-100: #ffffff;
+
+  /* 扩展语义：成功 / 警告（MD3 未内置，按同一色阶规则补足） */
+  --md-ref-palette-success-10: #00210e;
+  --md-ref-palette-success-20: #00391a;
+  --md-ref-palette-success-30: #005228;
+  --md-ref-palette-success-40: #146c2e;
+  --md-ref-palette-success-80: #6edaa0;
+  --md-ref-palette-success-90: #8bf7b8;
+  --md-ref-palette-success-95: #c6ffd8;
+
+  --md-ref-palette-warning-10: #261a00;
+  --md-ref-palette-warning-20: #3f2e00;
+  --md-ref-palette-warning-30: #5c4300;
+  --md-ref-palette-warning-40: #7a5900;
+  --md-ref-palette-warning-80: #f8c76a;
+  --md-ref-palette-warning-90: #ffdf9e;
+  --md-ref-palette-warning-95: #ffefd2;
+}
+
+/* ============================================================
+ * 二、系统令牌：颜色角色（深色为默认主题）
+ * ============================================================ */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --md-sys-color-primary: var(--md-ref-palette-primary-80);
+  --md-sys-color-on-primary: var(--md-ref-palette-primary-20);
+  --md-sys-color-primary-container: var(--md-ref-palette-primary-30);
+  --md-sys-color-on-primary-container: var(--md-ref-palette-primary-90);
+
+  --md-sys-color-secondary: var(--md-ref-palette-secondary-80);
+  --md-sys-color-on-secondary: var(--md-ref-palette-secondary-20);
+  --md-sys-color-secondary-container: var(--md-ref-palette-secondary-30);
+  --md-sys-color-on-secondary-container: var(--md-ref-palette-secondary-90);
+
+  --md-sys-color-tertiary: var(--md-ref-palette-tertiary-80);
+  --md-sys-color-on-tertiary: var(--md-ref-palette-tertiary-20);
+  --md-sys-color-tertiary-container: var(--md-ref-palette-tertiary-30);
+  --md-sys-color-on-tertiary-container: var(--md-ref-palette-tertiary-90);
+
+  --md-sys-color-error: var(--md-ref-palette-error-80);
+  --md-sys-color-on-error: var(--md-ref-palette-error-20);
+  --md-sys-color-error-container: var(--md-ref-palette-error-30);
+  --md-sys-color-on-error-container: var(--md-ref-palette-error-90);
+
+  --md-sys-color-success: var(--md-ref-palette-success-80);
+  --md-sys-color-on-success: var(--md-ref-palette-success-20);
+  --md-sys-color-success-container: var(--md-ref-palette-success-30);
+  --md-sys-color-on-success-container: var(--md-ref-palette-success-90);
+
+  --md-sys-color-warning: var(--md-ref-palette-warning-80);
+  --md-sys-color-on-warning: var(--md-ref-palette-warning-20);
+  --md-sys-color-warning-container: var(--md-ref-palette-warning-30);
+  --md-sys-color-on-warning-container: var(--md-ref-palette-warning-90);
+
+  --md-sys-color-background: var(--md-ref-palette-neutral-10);
+  --md-sys-color-on-background: var(--md-ref-palette-neutral-95);
+
+  --md-sys-color-surface: var(--md-ref-palette-neutral-10);
+  --md-sys-color-on-surface: var(--md-ref-palette-neutral-95);
+  --md-sys-color-surface-variant: var(--md-ref-palette-neutral-variant-30);
+  --md-sys-color-on-surface-variant: var(--md-ref-palette-neutral-variant-80);
+
+  --md-sys-color-surface-dim: var(--md-ref-palette-neutral-6);
+  --md-sys-color-surface-bright: var(--md-ref-palette-neutral-30);
+  /* 深色下 MD3 靠容器色调表达高度：相邻层级至少拉开 7 阶亮度，
+     否则卡片与页面底色只差 2~3 阶，卡片边界在暗光环境里根本看不出来。 */
+  --md-sys-color-surface-container-lowest: var(--md-ref-palette-neutral-6);
+  --md-sys-color-surface-container-low: var(--md-ref-palette-neutral-14);
+  --md-sys-color-surface-container: var(--md-ref-palette-neutral-19);
+  --md-sys-color-surface-container-high: var(--md-ref-palette-neutral-23);
+  --md-sys-color-surface-container-highest: var(--md-ref-palette-neutral-27);
+
+  --md-sys-color-inverse-surface: var(--md-ref-palette-neutral-95);
+  --md-sys-color-inverse-on-surface: var(--md-ref-palette-neutral-20);
+  --md-sys-color-inverse-primary: var(--md-ref-palette-primary-40);
+
+  --md-sys-color-outline: var(--md-ref-palette-neutral-variant-60);
+  --md-sys-color-outline-variant: var(--md-ref-palette-neutral-variant-30);
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-shadow: #000000;
+
+  /* 图表专用：曲线、网格、面积填充（随主题切换） */
+  --md-sys-color-chart-line: var(--md-ref-palette-primary-70);
+  --md-sys-color-chart-line-secondary: var(--md-ref-palette-tertiary-70);
+  --md-sys-color-chart-grid: rgb(190 199 208 / 0.14);
+  --md-sys-color-chart-axis: var(--md-ref-palette-neutral-variant-70);
+  --md-sys-color-chart-area: rgb(134 203 255 / 0.18);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --md-sys-color-primary: var(--md-ref-palette-primary-40);
+  --md-sys-color-on-primary: var(--md-ref-palette-primary-100);
+  --md-sys-color-primary-container: var(--md-ref-palette-primary-90);
+  --md-sys-color-on-primary-container: var(--md-ref-palette-primary-10);
+
+  --md-sys-color-secondary: var(--md-ref-palette-secondary-40);
+  --md-sys-color-on-secondary: var(--md-ref-palette-secondary-100);
+  --md-sys-color-secondary-container: var(--md-ref-palette-secondary-90);
+  --md-sys-color-on-secondary-container: var(--md-ref-palette-secondary-10);
+
+  --md-sys-color-tertiary: var(--md-ref-palette-tertiary-40);
+  --md-sys-color-on-tertiary: var(--md-ref-palette-tertiary-100);
+  --md-sys-color-tertiary-container: var(--md-ref-palette-tertiary-90);
+  --md-sys-color-on-tertiary-container: var(--md-ref-palette-tertiary-10);
+
+  --md-sys-color-error: var(--md-ref-palette-error-40);
+  --md-sys-color-on-error: var(--md-ref-palette-error-100);
+  --md-sys-color-error-container: var(--md-ref-palette-error-90);
+  --md-sys-color-on-error-container: var(--md-ref-palette-error-10);
+
+  --md-sys-color-success: var(--md-ref-palette-success-40);
+  --md-sys-color-on-success: #ffffff;
+  --md-sys-color-success-container: var(--md-ref-palette-success-90);
+  --md-sys-color-on-success-container: var(--md-ref-palette-success-10);
+
+  --md-sys-color-warning: var(--md-ref-palette-warning-40);
+  --md-sys-color-on-warning: #ffffff;
+  --md-sys-color-warning-container: var(--md-ref-palette-warning-90);
+  --md-sys-color-on-warning-container: var(--md-ref-palette-warning-10);
+
+  --md-sys-color-background: var(--md-ref-palette-neutral-99);
+  --md-sys-color-on-background: var(--md-ref-palette-neutral-10);
+
+  --md-sys-color-surface: var(--md-ref-palette-neutral-99);
+  --md-sys-color-on-surface: var(--md-ref-palette-neutral-10);
+  --md-sys-color-surface-variant: var(--md-ref-palette-neutral-variant-90);
+  --md-sys-color-on-surface-variant: var(--md-ref-palette-neutral-variant-30);
+
+  --md-sys-color-surface-dim: var(--md-ref-palette-neutral-87);
+  --md-sys-color-surface-bright: var(--md-ref-palette-neutral-99);
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f8fafd;
+  --md-sys-color-surface-container: #f1f4f9;
+  --md-sys-color-surface-container-high: #ebeef4;
+  --md-sys-color-surface-container-highest: #e5e8ee;
+
+  --md-sys-color-inverse-surface: var(--md-ref-palette-neutral-20);
+  --md-sys-color-inverse-on-surface: var(--md-ref-palette-neutral-95);
+  --md-sys-color-inverse-primary: var(--md-ref-palette-primary-80);
+
+  --md-sys-color-outline: var(--md-ref-palette-neutral-variant-50);
+  --md-sys-color-outline-variant: var(--md-ref-palette-neutral-variant-80);
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-shadow: #000000;
+
+  --md-sys-color-chart-line: var(--md-ref-palette-primary-40);
+  --md-sys-color-chart-line-secondary: var(--md-ref-palette-tertiary-40);
+  --md-sys-color-chart-grid: rgb(87 96 103 / 0.16);
+  --md-sys-color-chart-axis: var(--md-ref-palette-neutral-variant-40);
+  --md-sys-color-chart-area: rgb(0 98 143 / 0.14);
+}
+
+/* ============================================================
+ * 三、系统令牌：字体（typescale）
+ * ============================================================ */
+:root {
+  --md-sys-typescale-font-family:
+    "Roboto", "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --md-sys-typescale-font-family-mono:
+    "JetBrains Mono", "Cascadia Code", ui-monospace, "SF Mono", monospace;
+
+  --md-sys-typescale-display-large-size: 57px;
+  --md-sys-typescale-display-large-line: 64px;
+  --md-sys-typescale-display-large-weight: 400;
+  --md-sys-typescale-display-large-tracking: -0.25px;
+
+  --md-sys-typescale-display-medium-size: 45px;
+  --md-sys-typescale-display-medium-line: 52px;
+  --md-sys-typescale-display-medium-weight: 400;
+  --md-sys-typescale-display-medium-tracking: 0;
+
+  --md-sys-typescale-display-small-size: 36px;
+  --md-sys-typescale-display-small-line: 44px;
+  --md-sys-typescale-display-small-weight: 400;
+  --md-sys-typescale-display-small-tracking: 0;
+
+  --md-sys-typescale-headline-large-size: 32px;
+  --md-sys-typescale-headline-large-line: 40px;
+  --md-sys-typescale-headline-large-weight: 400;
+  --md-sys-typescale-headline-large-tracking: 0;
+
+  --md-sys-typescale-headline-medium-size: 28px;
+  --md-sys-typescale-headline-medium-line: 36px;
+  --md-sys-typescale-headline-medium-weight: 400;
+  --md-sys-typescale-headline-medium-tracking: 0;
+
+  --md-sys-typescale-headline-small-size: 24px;
+  --md-sys-typescale-headline-small-line: 32px;
+  --md-sys-typescale-headline-small-weight: 400;
+  --md-sys-typescale-headline-small-tracking: 0;
+
+  --md-sys-typescale-title-large-size: 22px;
+  --md-sys-typescale-title-large-line: 28px;
+  --md-sys-typescale-title-large-weight: 400;
+  --md-sys-typescale-title-large-tracking: 0;
+
+  --md-sys-typescale-title-medium-size: 16px;
+  --md-sys-typescale-title-medium-line: 24px;
+  --md-sys-typescale-title-medium-weight: 500;
+  --md-sys-typescale-title-medium-tracking: 0.15px;
+
+  --md-sys-typescale-title-small-size: 14px;
+  --md-sys-typescale-title-small-line: 20px;
+  --md-sys-typescale-title-small-weight: 500;
+  --md-sys-typescale-title-small-tracking: 0.1px;
+
+  --md-sys-typescale-body-large-size: 16px;
+  --md-sys-typescale-body-large-line: 24px;
+  --md-sys-typescale-body-large-weight: 400;
+  --md-sys-typescale-body-large-tracking: 0.5px;
+
+  --md-sys-typescale-body-medium-size: 14px;
+  --md-sys-typescale-body-medium-line: 20px;
+  --md-sys-typescale-body-medium-weight: 400;
+  --md-sys-typescale-body-medium-tracking: 0.25px;
+
+  --md-sys-typescale-body-small-size: 12px;
+  --md-sys-typescale-body-small-line: 16px;
+  --md-sys-typescale-body-small-weight: 400;
+  --md-sys-typescale-body-small-tracking: 0.4px;
+
+  --md-sys-typescale-label-large-size: 14px;
+  --md-sys-typescale-label-large-line: 20px;
+  --md-sys-typescale-label-large-weight: 500;
+  --md-sys-typescale-label-large-tracking: 0.1px;
+
+  --md-sys-typescale-label-medium-size: 12px;
+  --md-sys-typescale-label-medium-line: 16px;
+  --md-sys-typescale-label-medium-weight: 500;
+  --md-sys-typescale-label-medium-tracking: 0.5px;
+
+  --md-sys-typescale-label-small-size: 11px;
+  --md-sys-typescale-label-small-line: 16px;
+  --md-sys-typescale-label-small-weight: 500;
+  --md-sys-typescale-label-small-tracking: 0.5px;
+}
+
+/* ============================================================
+ * 四、系统令牌：形状、层级、状态层、动效、间距
+ * ============================================================ */
+:root {
+  /* 形状：MD3 圆角刻度 */
+  --md-sys-shape-corner-none: 0;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* 层级：MD3 elevation level 0–5 */
+  --md-sys-elevation-level0: none;
+  --md-sys-elevation-level1: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
+  --md-sys-elevation-level2: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15);
+  --md-sys-elevation-level3: 0 1px 3px rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15);
+  --md-sys-elevation-level4: 0 2px 3px rgb(0 0 0 / 0.3), 0 6px 10px 4px rgb(0 0 0 / 0.15);
+  --md-sys-elevation-level5: 0 4px 4px rgb(0 0 0 / 0.3), 0 8px 12px 6px rgb(0 0 0 / 0.15);
+
+  /* 状态层不透明度：悬停 8% / 聚焦 10% / 按下 10% / 拖拽 16% */
+  --md-sys-state-hover-opacity: 0.08;
+  --md-sys-state-focus-opacity: 0.1;
+  --md-sys-state-pressed-opacity: 0.1;
+  --md-sys-state-dragged-opacity: 0.16;
+  --md-sys-state-disabled-opacity: 0.38;
+  --md-sys-state-disabled-container-opacity: 0.12;
+
+  /* 动效：缓动曲线与时长 */
+  --md-sys-motion-easing-linear: cubic-bezier(0, 0, 1, 1);
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  --md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+
+  --md-sys-motion-duration-short1: 50ms;
+  --md-sys-motion-duration-short2: 100ms;
+  --md-sys-motion-duration-short3: 150ms;
+  --md-sys-motion-duration-short4: 200ms;
+  --md-sys-motion-duration-medium1: 250ms;
+  --md-sys-motion-duration-medium2: 300ms;
+  --md-sys-motion-duration-medium3: 350ms;
+  --md-sys-motion-duration-medium4: 400ms;
+  --md-sys-motion-duration-long1: 450ms;
+  --md-sys-motion-duration-long2: 500ms;
+  --md-sys-motion-duration-long3: 550ms;
+  --md-sys-motion-duration-long4: 600ms;
+
+  /* 组件尺寸（dp → px，1:1） */
+  --md-comp-button-height: 40px;
+  --md-comp-button-height-lg: 48px;
+  --md-comp-icon-button-size: 40px;
+  --md-comp-fab-size: 56px;
+  --md-comp-fab-size-sm: 40px;
+  --md-comp-fab-size-lg: 96px;
+  --md-comp-switch-track-width: 52px;
+  --md-comp-switch-track-height: 32px;
+  --md-comp-switch-handle: 24px;
+  --md-comp-top-app-bar-height: 64px;
+  --md-comp-nav-rail-width: 80px;
+  --md-comp-nav-rail-expanded-width: 240px;
+  --md-comp-nav-bar-height: 80px;
+  --md-comp-list-item-height: 56px;
+  --md-comp-list-item-height-2: 72px;
+  --md-comp-list-item-height-3: 88px;
+  --md-comp-dialog-max-width: 560px;
+  --md-comp-sheet-width: 360px;
+
+  /* 层级顺序：内容 < 顶栏 < 侧栏/导航 < 浮层 < 对话框 < 引导 < 提示条 */
+  --md-sys-z-appbar: 10;
+  --md-sys-z-nav: 20;
+  --md-sys-z-fab: 30;
+  --md-sys-z-scrim: 40;
+  --md-sys-z-dialog: 50;
+  --md-sys-z-onboarding: 60;
+  --md-sys-z-snackbar: 70;
+}

@@ -115,6 +115,79 @@ describe("useDashboardStore", () => {
     expect(store.cards).toEqual(before);
   });
 
+  test("undo 逐步回退编辑", () => {
+    const store = useDashboardStore();
+    const target = store.cards[0];
+    store.updateCard(target.id, { type: "bar" });
+    store.updateCard(target.id, { type: "value" });
+    expect(store.cards[0].type).toBe("value");
+
+    expect(store.undo()).toBe(true);
+    expect(store.cards[0].type).toBe("bar");
+    expect(store.undo()).toBe(true);
+    expect(store.cards[0].type).toBe("line");
+    // 历史耗尽后返回 false，而不是抛错或原地打转
+    expect(store.undo()).toBe(false);
+  });
+
+  test("无变化的编辑不占撤销步", () => {
+    const store = useDashboardStore();
+    const card = store.cards[0];
+    store.moveCard(card.id, card.x, card.y);
+    store.resizeCard(card.id, card.w, card.h);
+    store.updateCard(card.id, { type: card.type });
+    expect(store.canUndo).toBe(false);
+  });
+
+  test("removeCard 返回被删卡片，restoreCard 精确放回", () => {
+    const store = useDashboardStore();
+    const target = store.cards[1];
+    // store.cards[i] 是响应式代理，structuredClone 会抛 DataCloneError
+    const snapshot = JSON.parse(JSON.stringify(target)) as DashboardCard;
+    const removed = store.removeCard(target.id);
+    expect(removed).toBeDefined();
+    expect(store.cards.some((c) => c.id === target.id)).toBe(false);
+
+    store.restoreCard(snapshot);
+    const back = store.cards.find((c) => c.id === target.id);
+    expect(back).toEqual(snapshot);
+
+    // 重复恢复不应产生第二张同 ID 卡片
+    store.restoreCard(snapshot);
+    expect(store.cards.filter((c) => c.id === target.id)).toHaveLength(1);
+  });
+
+  test("移动卡片后画布内不存在重叠", () => {
+    const store = useDashboardStore();
+    const overlap = (a: DashboardCard, b: DashboardCard): boolean =>
+      a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+    // 故意把第一张卡片丢到别的卡片正上方
+    const mover = store.cards[0];
+    const victim = store.cards[3];
+    store.moveCard(mover.id, victim.x, victim.y);
+
+    for (let i = 0; i < store.cards.length; i += 1) {
+      for (let j = i + 1; j < store.cards.length; j += 1) {
+        expect(overlap(store.cards[i], store.cards[j])).toBe(false);
+      }
+    }
+  });
+
+  test("放大卡片会把压住的邻居推开", () => {
+    const store = useDashboardStore();
+    const overlap = (a: DashboardCard, b: DashboardCard): boolean =>
+      a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+    const card = store.cards[0];
+    store.resizeCard(card.id, GRID_COLS - card.x, 8);
+    for (let i = 0; i < store.cards.length; i += 1) {
+      for (let j = i + 1; j < store.cards.length; j += 1) {
+        expect(overlap(store.cards[i], store.cards[j])).toBe(false);
+      }
+    }
+  });
+
   test("fromJSON 导入有效布局", () => {
     const store = useDashboardStore();
     const ok = store.fromJSON(
