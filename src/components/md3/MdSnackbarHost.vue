@@ -54,7 +54,9 @@ const onAction = (): void => {
   padding: 14px 16px;
   border-radius: var(--md-sys-shape-corner-extra-small);
   background: var(--md-sys-color-inverse-surface);
-  color: var(--md-sys-color-on-inverse-surface);
+  /* 令牌名是 inverse-on-surface：写成 on-inverse-surface 会解析成未定义变量，
+     深色主题下文字回退成近白色，压在浅色的 inverse-surface 上等于隐形 */
+  color: var(--md-sys-color-inverse-on-surface);
   box-shadow: var(--md-sys-elevation-level3);
   font-family: var(--md-sys-typescale-font-family);
 }
