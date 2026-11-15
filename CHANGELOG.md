@@ -1,4 +1,40 @@
 # 更新日志
+## [0.2.1-rc.1](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.9...v0.2.1-rc.1) (2026-11-15)
+
+### ✨ 新功能
+
+* 全量重写为 Material Design 3 界面 ([8a206a8](https://github.com/K-Blaaaack/open-road-scope/commit/8a206a868e0f2056d15370664387e6e6ed0199fc))
+* 设置页支持调节数据读取间隔 ([ae225c0](https://github.com/K-Blaaaack/open-road-scope/commit/ae225c0632cfbfbff70141a5f0349e00d7f8a871))
+* 增加 Windows ARM64、Intel Mac 与 HarmonyOS 支持并自动化构建发布 ([54804e6](https://github.com/K-Blaaaack/open-road-scope/commit/54804e676afb2a1c865b9d58372e5e2c1f157a14))
+
+### 🐛 修复
+
+* 统一 deb 架构命名并优先 AppImage 作为 Linux 更新入口 ([1a7c08c](https://github.com/K-Blaaaack/open-road-scope/commit/1a7c08c5a084868c64682ee61ec0f4d4f01cc28e))
+* 修复 sidecar 退出竞态与鸿蒙版本校验 ([91e6a7c](https://github.com/K-Blaaaack/open-road-scope/commit/91e6a7c8f79bbd6290bda8fe653309925a389c26))
+* 修正编辑态工具栏折行导致卡片内容高度不一致 ([4e8b8b4](https://github.com/K-Blaaaack/open-road-scope/commit/4e8b8b4bac7716765b1ccf2bfcb730c4ed71f371))
+* 修正提示条文字颜色令牌拼写 ([89566e8](https://github.com/K-Blaaaack/open-road-scope/commit/89566e8817782c74d809806bef7c69bb5b28b14d))
+
+### 📝 文档
+
+* 补充 CI 实测证据与发布验证边界 ([99097da](https://github.com/K-Blaaaack/open-road-scope/commit/99097da3aed652946d3b3ba175c67c629ea598a3))
+* 发布说明固定附带签名与鸿蒙实测等已知限制 ([41126ee](https://github.com/K-Blaaaack/open-road-scope/commit/41126ee78c84d35c9f6c3b7e3f322bdda8108bd7))
+* 说明 deb 架构命名与 Linux 更新入口顺序 ([8b02f41](https://github.com/K-Blaaaack/open-road-scope/commit/8b02f41c975e34d3d18e6179f07d1093492d8368))
+
+### 📦 构建
+
+* 修正 Windows 产物命名并区分安装包与便携版 ([d71a12e](https://github.com/K-Blaaaack/open-road-scope/commit/d71a12e6272fbf98749ed0398e271f97edde30ea))
+
+### 🤖 CI
+
+* 重命名产物同步更新自动更新元数据并标记预发布 ([5c00710](https://github.com/K-Blaaaack/open-road-scope/commit/5c00710504b5276b3b7244e812d8e12660e381a5))
+
+### 🧹 杂项
+
+* **release:** 0.1.10-rc.2 ([5489228](https://github.com/K-Blaaaack/open-road-scope/commit/548922834fde664959a3021abc075144971e96e6))
+* **release:** 0.1.9-rc.2 ([a246b93](https://github.com/K-Blaaaack/open-road-scope/commit/a246b93751bc09154877817a7b6b63641f4fd413))
+* **release:** 0.1.9-rc.3 ([4eb29d8](https://github.com/K-Blaaaack/open-road-scope/commit/4eb29d883f6f80f1b17145b167181df2b2b53416))
+* **release:** 0.2.0-rc.1 ([bf11cf5](https://github.com/K-Blaaaack/open-road-scope/commit/bf11cf5cc4727067d43d1e309e46d0b8392d082f))
+* **release:** 0.2.0-rc.2 ([108f7bd](https://github.com/K-Blaaaack/open-road-scope/commit/108f7bd55dc67aa50324926a6ac035162f929e05))
 ## [0.2.0-rc.2](https://github.com/K-Blaaaack/open-road-scope/compare/v0.1.9...v0.2.0-rc.2) (2026-10-31)
 
 ### ✨ 新功能
