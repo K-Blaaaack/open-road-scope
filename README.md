@@ -112,7 +112,7 @@ gh run watch <run-id> --exit-status
 | macOS Intel                       | x86_64 DMG / ZIP                        | `pnpm build:mac:x64`；ZIP 用于自动更新                                         |
 | macOS Apple Silicon               | ARM64 DMG / ZIP                         | `pnpm build:mac:arm64`                                                         |
 | Linux                             | AppImage / deb / rpm / snap / tar.gz    | `pnpm build:linux`；CI 发布 x86_64                                             |
-| Android                           | APK（arm64-v8a / armeabi-v7a / x86_64） | `pnpm build:android` / `pnpm build:android:release`；USB / 蓝牙 SPP / TCP      |
+| Android                           | 通用 APK（无 native 库，不按 ABI 拆分） | `pnpm build:android` / `pnpm build:android:release`；USB / 蓝牙 SPP / TCP      |
 | HarmonyOS NEXT 5.0+（API 12）     | ArkTS 原生 HAP 工程                     | `pnpm build:harmonyos`；TCP 网络适配器与模拟模式；HAP 由 DevEco SDK 构建和签名 |
 | 兼容 Android APK 的旧版 HarmonyOS | 使用 Android APK                        | 按设备 Android 兼容能力安装对应架构 APK；不等同于 NEXT HAP                     |
 
