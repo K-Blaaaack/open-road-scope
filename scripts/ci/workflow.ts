@@ -83,6 +83,9 @@ export function validateReleaseWorkflow(workflow: Workflow): {
   if (!jobs.publish.steps?.some((step) => (step.run ?? "").includes("gh release"))) {
     throw new Error("publish 必须使用 GitHub CLI 创建 Release");
   }
+  if (!jobs.publish.steps?.some((step) => (step.run ?? "").includes("release-known-issues"))) {
+    throw new Error("publish 必须把已知限制写进发布说明");
+  }
   if (!workflow.concurrency) throw new Error("release.yml 缺少 concurrency");
   const include = jobs.build.strategy?.matrix?.include ?? [];
   const byArtifact = new Map(include.map((entry) => [entry.artifact, entry]));

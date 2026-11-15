@@ -81,7 +81,7 @@ HarmonyOS 的 CI job 只构建并同步 ArkWeb 资源，不产生 HAP，也不�
 
 本机 Linux x64 已实跑 PyInstaller 6.22.3 打包（Python 3.14.9），解释器、源码和产物路径均包含空格；冻结 sidecar 模拟 ping 与 `--list-ports` 返回成功。CLI 在把 x64 Python 指向 ARM64 目标时按预期退出。Node 类型检查、桌面 ESLint、真实 builder 配置加载及 schema 校验、架构与多架构更新回归均通过。
 
-Windows ARM64/x64、macOS ARM64/x64 的安装器构建及安装尚未在本会话执行；CI 已配置独立 runner 和冻结 sidecar 冒烟。macOS 签名、公证、自动更新安装与真实 OBD 设备通讯仍需对应系统、证书及硬件验收。本次未发起 CI 发布、git commit 或 push。
+macOS 产物**未签名、未公证**：CI 没有配置 Developer ID 证书与公证凭据，`CSC_LINK`/`CSC_KEY_PASSWORD`/`APPLE_ID` 均未设置。用户需要右键打开或移除隔离属性，自动更新也可能被 Gatekeeper 拦截。发布说明里已固定附带该限制。Windows ARM64/x64、macOS ARM64/x64 的安装器安装动作本会话未实测（构建已在 CI 完成）；CI 已配置独立 runner 和冻结 sidecar 冒烟。macOS 签名、公证、自动更新安装与真实 OBD 设备通讯仍需对应系统、证书及硬件验收。本次未发起 CI 发布、git commit 或 push。
 
 ## 交接记录
 

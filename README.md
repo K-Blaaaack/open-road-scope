@@ -148,6 +148,16 @@ Web 资源通过 `resource://rawfile/web/index.html` 加载，使用相对资源
 
 连接时让设备与 ELM327 TCP 适配器处于可互通网络，在连接页填写地址与端口（常见端口 `35000`，以适配器说明为准）。模拟模式入口沿用设置页的开发者模式。协议引擎沿用移动端 CAN 能力，不包含所有 python-OBD 协议与冻结帧功能。详细工程结构及验证方式见 [HarmonyOS 工程说明](harmonyos/README.md)。
 
+### 发布前的已知限制
+
+每个 Release 的说明都会自动附带 [已知限制](docs/release-known-issues.md)，要点：
+
+- **macOS 未签名、未公证**：DMG / ZIP 都需要右键打开或 `xattr -dr com.apple.quarantine /Applications/OpenRoadScope.app`；未配置 Developer ID 时 `spctl` 校验与自动更新都可能被系统拦截。
+- **HarmonyOS NEXT 未真机实测**：只交付工程与 Web 资源校验，不发布 HAP；ArkTS 编译、签名、ArkWeb 权限与 Worker 时序、TCP 适配器连接都需在 DevEco + 真机完成，且当前不含 USB / 蓝牙 SPP。
+- **Windows ARM64 无 MSI**：WiX 包装仍是 x64；USB / 蓝牙需要 ARM64 驱动。
+- **Android APK 使用调试签名**：仅供内部测试与侧载。
+- **未连接真实车辆**：协议与传输逻辑有自动化测试，实车读数仍需自行验证。
+
 本次自动化验证覆盖共享协议/桥接、订阅生命周期、桌面构建架构与更新元数据，以及原生 TCP 逻辑。CI 的 HarmonyOS job 仅构建并同步 Web 资源；HAP SDK 编译、签名、ArkWeb 真机加载与实车连接仍需在 DevEco 和设备上验收。Windows ARM64 / Intel Mac 安装器也需对应 runner 与实机验证。
 
 ## 许可证
