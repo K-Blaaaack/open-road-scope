@@ -36,13 +36,19 @@ class SidecarApp:
         self._stop = threading.Event()
         self._lock = threading.Lock()
         self._device: Device | None = None
+        self._monitor: threading.Thread | None = None
+        # 清理开始后不再写 stdout：守护线程与解释器退出争用缓冲锁会触发
+        # Fatal Python error: _enter_buffered_busy（CI 上表现为冻结程序退出码非 0）
+        self._closing = False
 
     # ---------- lifecycle ----------
 
     def run(self) -> None:
         self._make_device()
-        monitor = threading.Thread(target=self._monitor, name="conn-monitor", daemon=True)
-        monitor.start()
+        self._monitor = threading.Thread(
+            target=self._monitor_loop, name="conn-monitor", daemon=True
+        )
+        self._monitor.start()
         self._emit_status()
         try:
             while not self._stop.is_set():
@@ -65,10 +71,21 @@ class SidecarApp:
         self._stop.set()
 
     def _cleanup(self) -> None:
+        self._closing = True
         if self._scheduler:
             self._scheduler.stop()
         if self._device:
             self._device.close()
+        monitor = self._monitor
+        if monitor and monitor.is_alive():
+            monitor.join(timeout=3.0)
+            if monitor.is_alive():
+                logger.warning("connection monitor did not stop in time")
+        try:
+            sys.stdout.flush()
+        except ValueError:
+            # 解释器已在收尾，忽略关闭中的流
+            pass
 
     def _make_device(self) -> None:
         if self._mode == "sim":
@@ -82,7 +99,7 @@ class SidecarApp:
 
     # ---------- connection monitor ----------
 
-    def _monitor(self) -> None:
+    def _monitor_loop(self) -> None:
         backoff = 1.0
         while not self._stop.is_set():
             if not self._device.is_connected():
@@ -115,9 +132,13 @@ class SidecarApp:
     # ---------- scheduler callbacks ----------
 
     def _on_data(self, values: dict[str, float], ts: int) -> None:
+        if self._closing:
+            return
         p.send(p.make_event("data", {"values": values, "ts": ts}))
 
     def _on_log(self, message: str) -> None:
+        if self._closing:
+            return
         p.send(p.make_event("log", {"message": message}))
 
     # ---------- rpc dispatch ----------
@@ -194,6 +215,8 @@ class SidecarApp:
         }
 
     def _emit_status(self) -> None:
+        if self._closing:
+            return
         p.send(p.make_event("status", self._status_payload()))
 
 

@@ -50,6 +50,7 @@ const usage = `用法：
 const { values } = (() => {
   try {
     return parseArgs({
+      args: process.argv.slice(2).filter((item) => item !== "--"),
       options: {
         tag: { type: "string" },
         ref: { type: "string" },

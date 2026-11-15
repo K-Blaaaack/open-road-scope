@@ -223,7 +223,7 @@ jobs:
       - name: 校验同步结果
         run: |
           test -f harmonyos/entry/src/main/resources/rawfile/web/index.html
-          node -e "const a=require('./harmonyos/AppScope/app.json5');const p=require('./package.json');if(a.app.versionName!==p.version)throw new Error('版本未同步');console.log('harmonyos version', a.app.versionName, a.app.versionCode)"
+          node -e "const fs=require('fs');const a=JSON.parse(fs.readFileSync('harmonyos/AppScope/app.json5','utf8'));const v=JSON.parse(fs.readFileSync('package.json','utf8')).version;if(a.app.versionName!==v)throw new Error('版本未同步：'+a.app.versionName+' != '+v);if(!Number.isInteger(a.app.versionCode)||a.app.versionCode<1)throw new Error('versionCode 非法');console.log('harmonyos version',a.app.versionName,a.app.versionCode)"
 
   android:
     name: Build android
