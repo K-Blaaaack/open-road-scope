@@ -61,9 +61,11 @@ builder 的 beforePack 会重新检查资源，afterPack 检查包内 sidecar �
 
 ## 更新元数据
 
-`normalize-artifacts.ts` 将对外文件名的 x64 改为 x86_64，同步更新所有 channel（包含预发布）的 `files[].url` 和旧版 `path`。安装器和 blockmap 同时改名，文件摘要保持不变，releaseNotes 等正文保持原样。
+`normalize-artifacts.ts` 将对外文件名的 x64 改为 x86_64（deb 目标的 Debian 架构名 `-amd64` 同样改写为 `-x86_64`，只影响文件名与元数据引用），同步更新所有 channel（包含预发布）的 `files[].url` 和旧版 `path`。安装器和 blockmap 同时改名，文件摘要保持不变，releaseNotes 等正文保持原样。
 
 `download-artifact` 使用 `merge-multiple: false` 保留各架构目录。`merge-update-metadata.ts` 在复制前检查文件摘要、大小、同名冲突、版本与其他公共字段，然后合并同名 YAML 的 files。Windows 与 macOS 的不同架构元数据分别汇入同一 channel，ZIP 优先，x64 在 ARM64 之前，旧版 path/sha512 指向首项。
+
+排序按「electron-updater 可直接安装的格式优先」：zip → AppImage → exe/msi → dmg → deb → rpm，同一格式内 x64 在前、arm64 在后。因此 Linux 的旧版 `path` 回退指向 AppImage，而不是 updater 无法安装的 deb。
 
 这一顺序与 electron-updater 6.8.9 的行为对应：Windows 根据 process.arch 优先选择文件，ARM64 匹配文件名；归一化后的 x86_64 名称不含 x64，因此 x64 回退的首项必须是 x64。macOS 另有 Apple Silicon/Rosetta 架构过滤。测试直接调用所安装 updater 的选包函数，覆盖四种桌面架构。
 
