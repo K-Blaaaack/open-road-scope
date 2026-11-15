@@ -18,6 +18,20 @@ Windows ARM64 的 Electron 和 sidecar 均使用原生 ARM64。PyInstaller [5.7.
 
 builder 26.15.3 的 `MsiTarget` 使用 WiX 4.0.0.5512.2，将 ARM64 目标映射为 x64 安装器包装。为准确表达支持，本项目的 ARM64 发行任务仅生成 NSIS、便携版，打包钩子会拦截 ARM64 MSI；NSIS 安装器自身的引导程序架构与 Electron/sidecar 载荷架构是不同概念。
 
+## CI 实测（2026-11-15，run 43703983808）
+
+`release.yml` 的五个桌面矩阵全部成功，其中两条关键证据来自真实日志：
+
+```text
+Build windows-arm64  构建并实跑原生 sidecar  [build-sidecar] win32/arm64，PyInstaller 6.22.3
+Build windows-arm64  打包发行物            [desktop] 包内 Electron 与 sidecar 已验证：win32/arm64
+Build macos-x64      打包发行物            [desktop] 包内 Electron 与 sidecar 已验证：darwin/x64
+```
+
+产物体积（artifacts）：windows-arm64 198MB、macos-x64 253MB、macos-arm64 250MB、windows-x64 331MB、linux-x64 511MB、android 6.2MB。该次运行同时暴露并已修复两个问题：冻结 sidecar 在 stdin EOF 后与守护线程争用 stdout 缓冲锁导致退出码非 0；鸿蒙资源校验步骤用 `require` 读取 `.json5`。修复后 CI run 43704533456 全绿。
+
+发布步骤（`gh release create/upload/edit`）尚未对真实 tag 执行，仅由 `scripts/ci/workflow.test.ts` 校验其存在与参数形态；预发布判定与 SHA-256 生成在本地脚本中已覆盖。
+
 ## 本地构建
 
 PyInstaller 使用当前平台的解释器及依赖。为每个架构单独创建虚拟环境，并安装：
