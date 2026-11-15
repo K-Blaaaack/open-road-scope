@@ -62,6 +62,9 @@ const checkForUpdates = (): void => {
         // 开发模式（未打包）无法联网检测，直接标记失败并提示
         updateState.value = "error";
         updateMessage.value = t("about.updateDevOnly");
+      } else if (!r.ok && r.error === "unsupported") {
+        updateState.value = "error";
+        updateMessage.value = t("about.updateUnsupported");
       } else if (!r.ok) {
         updateState.value = "error";
         updateMessage.value = r.error ?? t("about.updateFail");

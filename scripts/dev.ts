@@ -3,7 +3,9 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
-const venvOk = existsSync(join(root, "sidecar/.venv/bin/python"));
+const pythonPath =
+  process.platform === "win32" ? "sidecar/.venv/Scripts/python.exe" : "sidecar/.venv/bin/python";
+const venvOk = existsSync(join(root, pythonPath));
 
 if (!venvOk) {
   console.warn(

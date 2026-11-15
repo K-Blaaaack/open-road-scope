@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "OpenRoadScope 车辆数据仪表盘" },
+    { "name": "ability_desc", "value": "网络 OBD-II 仪表盘" },
+    { "name": "web_load_error", "value": "网页资源缺失或加载失败，请先运行 pnpm prepare:harmonyos，再构建应用。" }
+  ]
+}

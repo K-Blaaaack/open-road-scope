@@ -1,0 +1,8 @@
+{
+  "modelVersion": "5.0.0",
+  "name": "open-road-scope",
+  "version": "1.0.0",
+  "description": "OpenRoadScope HarmonyOS NEXT container",
+  "dependencies": {},
+  "devDependencies": {}
+}

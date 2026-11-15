@@ -1,0 +1,9 @@
+{
+  "apiType": "stageMode",
+  "buildOption": {
+    "sourceOption": {
+      "workers": ["./src/main/ets/workers/TcpWorker.ets"]
+    }
+  },
+  "targets": [{ "name": "default" }]
+}

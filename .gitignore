@@ -12,6 +12,9 @@ android/app/build/
 android/local.properties
 android/capacitor-cordova-android-plugins/
 dist-android/
+dist-harmonyos/
+.ai-memory/
+.learnings/
 android/app/src/main/assets/
 *.log
 .DS_Store

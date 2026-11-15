@@ -1,0 +1,7 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "OpenRoadScope vehicle dashboard" },
+    { "name": "ability_desc", "value": "Network OBD-II dashboard" },
+    { "name": "web_load_error", "value": "Web resources are missing or failed to load. Run pnpm prepare:harmonyos before building." }
+  ]
+}

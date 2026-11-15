@@ -9,10 +9,8 @@ import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.webkit.JavascriptInterface;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -59,7 +57,7 @@ final class ObdBridge {
     private static final class BluetoothTransport implements Transport {
         private final BluetoothDevice device;
         private BluetoothSocket socket;
-        private BufferedReader reader;
+        private ElmLineReader reader;
         private OutputStream writer;
 
         BluetoothTransport(BluetoothDevice device) {
@@ -76,9 +74,7 @@ final class ObdBridge {
                                 try {
                                     socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
                                     socket.connect();
-                                    reader =
-                                            new BufferedReader(
-                                                    new InputStreamReader(socket.getInputStream()));
+                                    reader = new ElmLineReader(socket.getInputStream());
                                     writer = socket.getOutputStream();
                                     ok[0] = true;
                                 } catch (IOException e) {
@@ -107,18 +103,7 @@ final class ObdBridge {
 
         @Override
         public String readLine(long timeoutMs) throws IOException {
-            long deadline = System.currentTimeMillis() + timeoutMs;
-            while (System.currentTimeMillis() < deadline) {
-                if (reader.ready()) {
-                    return reader.readLine();
-                }
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ignored) {
-                    break;
-                }
-            }
-            return null;
+            return reader == null ? "" : reader.readLine(timeoutMs);
         }
 
         @Override
@@ -137,7 +122,7 @@ final class ObdBridge {
         private final String host;
         private final int port;
         private Socket socket;
-        private BufferedReader reader;
+        private ElmLineReader reader;
         private OutputStream writer;
 
         TcpTransport(String host, int port) {
@@ -158,9 +143,7 @@ final class ObdBridge {
                                             new InetSocketAddress(host, port),
                                             TCP_CONNECT_TIMEOUT_MS);
                                     socket.setSoTimeout(0);
-                                    reader =
-                                            new BufferedReader(
-                                                    new InputStreamReader(socket.getInputStream()));
+                                    reader = new ElmLineReader(socket.getInputStream());
                                     writer = socket.getOutputStream();
                                     ok[0] = true;
                                 } catch (IOException e) {
@@ -189,18 +172,7 @@ final class ObdBridge {
 
         @Override
         public String readLine(long timeoutMs) throws IOException {
-            long deadline = System.currentTimeMillis() + timeoutMs;
-            while (System.currentTimeMillis() < deadline) {
-                if (reader.ready()) {
-                    return reader.readLine();
-                }
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ignored) {
-                    break;
-                }
-            }
-            return null;
+            return reader == null ? "" : reader.readLine(timeoutMs);
         }
 
         @Override
@@ -221,6 +193,7 @@ final class ObdBridge {
         private UsbDeviceConnection connection;
         private UsbSerialDevice serial;
         private InputStream in;
+        private ElmLineReader reader;
         private OutputStream out;
 
         UsbTransport(UsbManager usbManager, UsbDevice device) {
@@ -240,6 +213,7 @@ final class ObdBridge {
                     return false;
                 }
                 in = serial.getInputStream();
+                reader = new ElmLineReader(in);
                 out = serial.getOutputStream();
                 return true;
             } catch (Exception e) {
@@ -256,25 +230,7 @@ final class ObdBridge {
 
         @Override
         public String readLine(long timeoutMs) throws IOException {
-            long deadline = System.currentTimeMillis() + timeoutMs;
-            StringBuilder sb = new StringBuilder();
-            while (System.currentTimeMillis() < deadline) {
-                if (in.available() > 0) {
-                    int c = in.read();
-                    if (c == '\r' || c == '\n') {
-                        if (sb.length() > 0) return sb.toString();
-                    } else {
-                        sb.append((char) c);
-                    }
-                } else {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException ignored) {
-                        break;
-                    }
-                }
-            }
-            return sb.length() > 0 ? sb.toString() : null;
+            return reader == null ? "" : reader.readLine(timeoutMs);
         }
 
         @Override

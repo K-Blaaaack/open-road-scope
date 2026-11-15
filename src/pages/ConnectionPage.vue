@@ -19,7 +19,7 @@ import { useSnackbar } from "@/composables/useSnackbar";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useObdStore } from "@/stores/obd";
 import { usePrefsStore } from "@/stores/prefs";
-import type { ListPortsResult, SerialPortInfo } from "@shared/obd";
+import type { ConnectionType, ListPortsResult, SerialPortInfo } from "@shared/obd";
 
 /** 状态圆点可用的语义色 */
 type StatusTone = "primary" | "success" | "warning" | "error";
@@ -44,12 +44,13 @@ const prefs = usePrefsStore();
 const dashboard = useDashboardStore();
 const snackbar = useSnackbar();
 
-/** 是否有原生桥接（Electron preload）；无桥接的 WebView/浏览器无法使用串口/蓝牙/网络 */
+/** 桌面 preload 与移动端原生桥统一提供连接能力。 */
 const hasBridge = computed(() => Boolean(window.obd));
+const connectionTypes = window.obd?.connectionTypes ?? ["usb", "bluetooth", "network"];
+const isHarmony = window.obd?.platform === "harmonyos";
 
 const mode = ref<"sim" | "real">(store.status.mode === "real" ? "real" : "sim");
-/** 实车连接方式：USB 串口 / 蓝牙串口 / 网络（RJ45 OBD） */
-const connType = ref<"usb" | "bluetooth" | "network">("usb");
+const connType = ref<ConnectionType>(connectionTypes[0]);
 const port = ref("");
 const ports = ref<SerialPortInfo[]>([]);
 /** 串口枚举进行中 */
@@ -158,7 +159,10 @@ const setMode = (value: string | number): void => {
 
 /** 同上：连接方式只接受三个已知取值 */
 const setConnType = (value: string | number): void => {
-  if (value === "usb" || value === "bluetooth" || value === "network") {
+  if (
+    (value === "usb" || value === "bluetooth" || value === "network") &&
+    connectionTypes.includes(value)
+  ) {
     connType.value = value;
   }
 };
@@ -170,11 +174,13 @@ const modeOptions = computed(() => [
 ]);
 
 /** 连接方式分段按钮选项 */
-const connTypeOptions = computed(() => [
-  { value: "usb", label: t("connection.typeUsb"), icon: "i-lucide-usb" },
-  { value: "bluetooth", label: t("connection.typeBluetooth"), icon: "i-lucide-bluetooth" },
-  { value: "network", label: t("connection.typeNetwork"), icon: "i-lucide-network" },
-]);
+const connTypeOptions = computed(() =>
+  [
+    { value: "usb", label: t("connection.typeUsb"), icon: "i-lucide-usb" },
+    { value: "bluetooth", label: t("connection.typeBluetooth"), icon: "i-lucide-bluetooth" },
+    { value: "network", label: t("connection.typeNetwork"), icon: "i-lucide-network" },
+  ].filter((option) => connectionTypes.includes(option.value as ConnectionType))
+);
 
 /** 串口选择框的标签随连接方式变化 */
 const portLabel = computed(() =>
@@ -291,6 +297,10 @@ const statusRows = computed<StatusRow[]>(() => [
               @update:model-value="setConnType"
             />
           </section>
+
+          <p v-if="isHarmony" class="conn-hint md-body-small">
+            {{ t("connection.harmonyNetworkHint") }}
+          </p>
 
           <!-- USB / 蓝牙串口下拉 -->
           <div v-if="connType !== 'network'" class="conn-port">

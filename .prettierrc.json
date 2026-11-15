@@ -2,5 +2,11 @@
   "semi": true,
   "singleQuote": false,
   "printWidth": 100,
-  "trailingComma": "es5"
+  "trailingComma": "es5",
+  "overrides": [
+    {
+      "files": "harmonyos/**/*.json5",
+      "options": { "parser": "json", "trailingComma": "none" }
+    }
+  ]
 }

@@ -1,0 +1,181 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 同一分支的新推送取消旧运行，节省额度
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: 静态检查与测试
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装 JDK（校验安卓传输逻辑）
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 格式与静态检查
+        run: pnpm lint && pnpm typecheck
+
+      - name: 单元与平台测试
+        run: |
+          pnpm test:node
+          pnpm test:web
+          pnpm test:desktop
+          pnpm test:ci
+          pnpm test:android
+          pnpm test:harmonyos
+
+  web-build:
+    name: 构建渲染层
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 构建桌面、Web、安卓与鸿蒙资源
+        run: |
+          pnpm build
+          pnpm build:web
+          pnpm build:android-web
+          pnpm prepare:harmonyos
+
+      - name: 校验产物
+        run: |
+          test -f out/main/index.js
+          test -f out/preload/index.mjs
+          test -f out/renderer/index.html
+          test -f dist-web/index.html
+          test -f dist-android/index.html
+          test -f harmonyos/entry/src/main/resources/rawfile/web/index.html
+
+  sidecar:
+    name: sidecar 测试与冻结构建
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: sidecar/pyproject.toml
+
+      - name: 准备 sidecar 虚拟环境
+        run: |
+          python -m venv sidecar/.venv
+          sidecar/.venv/bin/python -m pip install -e "sidecar/[dev]" pyinstaller==6.22.3
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: sidecar 单元测试
+        run: pnpm test:sidecar
+
+      - name: 构建并实跑冻结 sidecar
+        run: pnpm build:sidecar --arch x64
+
+  android:
+    name: Android APK
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装 Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: 安装 Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 构建 Web 渲染层并同步
+        run: |
+          pnpm build:android-web
+          pnpm sync:android
+
+      - name: 构建调试 APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: 上传调试 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug
+          if-no-files-found: error
+          retention-days: 7
+          path: android/app/build/outputs/apk/debug/*.apk

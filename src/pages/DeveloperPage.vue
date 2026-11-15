@@ -36,6 +36,8 @@ const env = parseUA();
 const appVersion = __APP_VERSION__;
 
 const platform = computed(() => {
+  if (window.obd?.platform === "harmonyos") return "HarmonyOS";
+  if (window.obd?.platform === "android") return "Android";
   const p = navigator.platform;
   return p || "—";
 });

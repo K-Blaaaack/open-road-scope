@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "ArkWeb and TCP transport",
+  "main": "",
+  "author": "OpenRoadScope contributors",
+  "license": "GPL-2.0-only",
+  "dependencies": {}
+}

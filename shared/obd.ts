@@ -196,8 +196,13 @@ export interface UpdateEventParams {
   message?: string;
 }
 
-/** preload 通过 contextBridge 暴露给渲染进程的 API */
+/** 原生平台可用的实车连接方式 */
+export type ConnectionType = "usb" | "bluetooth" | "network";
+
+/** 桌面 preload 与移动端原生桥共用的渲染层 API */
 export interface ObdApi {
+  platform?: "android" | "harmonyos";
+  connectionTypes?: readonly ConnectionType[];
   connect(mode: "sim" | "real", options?: { port?: string; fault?: boolean }): Promise<unknown>;
   disconnect(): Promise<unknown>;
   subscribe(params: { pids: Pid[]; interval: number }): Promise<RpcEnvelope<SubscribeResult>>;

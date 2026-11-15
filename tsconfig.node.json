@@ -3,6 +3,8 @@
   "include": [
     "electron.vite.config.*",
     "electron-builder.config.*",
+    "vite.config.android.ts",
+    "vite.config.harmonyos.ts",
     "electron/**/*",
     "shared/**/*",
     "scripts/**/*"

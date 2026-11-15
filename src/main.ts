@@ -8,9 +8,11 @@ import { router } from "./router";
 import { i18n } from "./i18n";
 import { usePrefsStore } from "./stores/prefs";
 import { installAndroidBridge } from "./obd/android-bridge";
+import { installHarmonyBridge } from "./obd/harmony-bridge";
 import { vRipple } from "./directives/ripple";
 
-// 安卓 WebView 下无 Electron preload：安装原生 OBD 桥（蓝牙/USB/TCP → ELM327）
+// 移动端没有 Electron preload，先安装宿主桥再初始化界面。
+installHarmonyBridge();
 installAndroidBridge();
 
 const app = createApp(App);

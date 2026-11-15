@@ -1,6 +1,7 @@
 node_modules
 out
 dist
+dist-web
 sidecar/.venv
 sidecar/build
 sidecar/dist
@@ -10,4 +11,11 @@ auto-eslint.mjs
 components.d.ts
 CHANGELOG.md
 dist-android
+dist-harmonyos
+harmonyos/entry/src/main/resources/rawfile
+harmonyos/**/build
+harmonyos/.hvigor
+harmonyos/oh_modules
+.ai-memory
+.learnings
 android/app/src/main/assets
