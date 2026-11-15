@@ -38,7 +38,23 @@ export function isUpdateMetadata(name: string): boolean {
  * @returns 统一后的文件名
  */
 export function normalizeArtifactName(name: string): string {
-  return name.replace(/-x64(?=[.-])/g, "-x86_64");
+  // deb 目标按 Debian 架构名生成文件名，统一成对外的 x86_64；包内 control 字段不受影响
+  return name.replace(/-x64(?=[.-])/g, "-x86_64").replace(/-amd64(?=[.-])/g, "-x86_64");
+}
+
+/**
+ * 决定更新元数据的默认入口优先级：electron-updater 能直接安装的格式排在前面。
+ * @param url - 发行文件名
+ * @returns 排序权重，越小越优先
+ */
+export function defaultEntryRank(url: string): number {
+  if (url.endsWith(".zip")) return 0;
+  if (url.endsWith(".AppImage")) return 1;
+  if (url.endsWith(".exe") || url.endsWith(".msi")) return 2;
+  if (url.endsWith(".dmg")) return 3;
+  if (url.endsWith(".deb")) return 4;
+  if (url.endsWith(".rpm")) return 5;
+  return 6;
 }
 
 /**
@@ -130,9 +146,9 @@ export function mergeMetadata(inputs: UpdateMetadata[]): UpdateMetadata {
   }
   // updater 6.8.9 对 arm64 精确选包；x86_64 不含 process.arch=x64，需保证回退首项为 x64。
   result.files = [...files.values()].sort((left, right) => {
-    const zip = Number(!left.url.endsWith(".zip")) - Number(!right.url.endsWith(".zip"));
+    const rank = defaultEntryRank(left.url) - defaultEntryRank(right.url);
     const arch = Number(left.url.includes("-arm64")) - Number(right.url.includes("-arm64"));
-    return zip || arch || left.url.localeCompare(right.url);
+    return rank || arch || left.url.localeCompare(right.url);
   });
   result.path = result.files[0].url;
   result.sha512 = result.files[0].sha512;

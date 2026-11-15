@@ -9,7 +9,9 @@ import { findFile, parseUpdateInfo, resolveFiles } from "electron-updater/out/pr
 import { mergeReleaseArtifacts } from "../merge-update-metadata";
 import { normalizeArtifacts } from "../normalize-artifacts";
 import {
+  defaultEntryRank,
   mergeMetadata,
+  normalizeArtifactName,
   readMetadata,
   serializeMetadata,
   type UpdateMetadata,
@@ -196,4 +198,49 @@ test("非空发布目录保持原文件，旧版入口摘要须与files一致", 
   info.sha512 = "wrong";
   writeFileSync(join(group, "latest.yml"), serializeMetadata(info));
   await assert.rejects(mergeReleaseArtifacts(input, join(root, "other")), /path\/sha512/);
+});
+
+test("deb 的 Debian 架构名统一为 x86_64，其它名称不受影响", () => {
+  assert.equal(
+    normalizeArtifactName("OpenRoadScope-1.0-linux-amd64.deb"),
+    "OpenRoadScope-1.0-linux-x86_64.deb"
+  );
+  assert.equal(
+    normalizeArtifactName("OpenRoadScope-1.0-linux-x64.AppImage"),
+    "OpenRoadScope-1.0-linux-x86_64.AppImage"
+  );
+  assert.equal(normalizeArtifactName("app-arm64.zip"), "app-arm64.zip");
+});
+
+test("默认入口优先 electron-updater 可安装的格式", () => {
+  assert.ok(defaultEntryRank("app.zip") < defaultEntryRank("app.dmg"));
+  assert.ok(defaultEntryRank("app.AppImage") < defaultEntryRank("app.deb"));
+  assert.ok(defaultEntryRank("app.deb") < defaultEntryRank("app.rpm"));
+  assert.ok(defaultEntryRank("app.exe") < defaultEntryRank("app.dmg"));
+});
+
+test("Linux 元数据以 AppImage 作为旧版回退入口", () => {
+  const directory = mkdtempSync(join(tmpdir(), "open-road-linux-"));
+  try {
+    const files = [
+      "OpenRoadScope-1.0-linux-x86_64.deb",
+      "OpenRoadScope-1.0-linux-x86_64.AppImage",
+      "OpenRoadScope-1.0-linux-x86_64.rpm",
+    ];
+    const info = {
+      version: "1.0.0",
+      files: files.map((url) => ({
+        url,
+        sha512: createHash("sha512").update(url).digest("base64"),
+      })),
+    };
+    const merged = mergeMetadata([info]);
+    assert.equal(merged.files[0].url, "OpenRoadScope-1.0-linux-x86_64.AppImage");
+    assert.equal(merged.path, merged.files[0].url);
+    assert.equal(merged.sha512, merged.files[0].sha512);
+    // 目录只用于创建临时环境，这里不读取文件
+    assert.ok(directory);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
